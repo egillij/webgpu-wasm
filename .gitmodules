@@ -1,0 +1,3 @@
+[submodule "3pp/glm"]
+	path = 3pp/glm
+	url = https://github.com/egillij/glm.git
