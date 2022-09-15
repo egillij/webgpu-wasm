@@ -26,6 +26,9 @@ SET(WW_SOURCES
 
 	src/Renderer/WebGPU/wgpuUniformBuffer.h
 	src/Renderer/WebGPU/wgpuUniformBuffer.cpp
+
+	src/Renderer/WebGPU/wgpuShader.h
+	src/Renderer/WebGPU/wgpuShader.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})

@@ -17,6 +17,7 @@
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"
 #include "Renderer/WebGPU/wgpuIndexBuffer.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
+#include "Renderer/WebGPU/wgpuShader.h"
 
 #include "Renderer/WebGPU/wgpuBindGroup.h"
 
@@ -37,6 +38,8 @@ static WGpuSwapChain wSwapChain;
 static WGpuVertexBuffer vertexBuffer;
 static WGpuIndexBuffer indexBuffer;
 static WGpuUniformBuffer uniformBuffer;
+
+static WGpuShader* shader = nullptr;
 
 static WGpuBindGroup* sceneUniformBindGroup = nullptr;
 
@@ -111,27 +114,23 @@ void GetDevice(void (*callback)(wgpu::Device)){
 }
 
 void init() {
-    wgpu::ShaderModule shaderModule{};
-    {
-        wgpu::ShaderModuleWGSLDescriptor wgslDescription{};
-        wgslDescription.source = shaderCode;
+    shader = new WGpuShader("Color Shader", shaderCode, &wDevice);
+    // wgpu::ShaderModule shaderModule{};
+    // {
+    //     wgpu::ShaderModuleWGSLDescriptor wgslDescription{};
+    //     wgslDescription.source = shaderCode;
 
-        wgpu::ShaderModuleDescriptor shaderDescription{};
-        shaderDescription.label = "Color Shader Description";
-        shaderDescription.nextInChain = &wgslDescription;
-        shaderModule = wDevice.getHandle().CreateShaderModule(&shaderDescription);
-    }
+    //     wgpu::ShaderModuleDescriptor shaderDescription{};
+    //     shaderDescription.label = "Color Shader Description";
+    //     shaderDescription.nextInChain = &wgslDescription;
+    //     shaderModule = wDevice.getHandle().CreateShaderModule(&shaderDescription);
+    // }
 
     {
-        printf("Create uniform buffer\n");
         uniformBuffer = WGpuUniformBuffer(&wDevice, "Uniform Buffer", sizeof(Uniforms));
 
-
-        printf("Create uniform buffer bind group\n");
         sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
-        printf("Add entry\n");
         sceneUniformBindGroup->addEntry(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
-        printf("Build\n");
         sceneUniformBindGroup->build(&wDevice);
     }
 
@@ -176,15 +175,23 @@ void init() {
         plDescription.bindGroupLayoutCount = 1;
         plDescription.bindGroupLayouts = sceneUniformBindGroup->getLayout();// sceneUniformBindGroup.getLayout();
         
-        wgpu::ColorTargetState colorTargetState{};
-        colorTargetState.format = wgpu::TextureFormat::BGRA8Unorm;
+        /////////////////////////////////////
+        // Add to shader class and get from there
+        // wgpu::ColorTargetState colorTargetState{};
+        // colorTargetState.format = wgpu::TextureFormat::BGRA8Unorm;
 
-        wgpu::FragmentState fragmentState{};
-        fragmentState.module = shaderModule;
-        fragmentState.entryPoint = "main_f";
-        fragmentState.targetCount = 1;
-        fragmentState.targets = &colorTargetState;
+        // wgpu::FragmentState fragmentState{};
+        // fragmentState.module = shaderModule;
+        // fragmentState.entryPoint = "main_f";
+        // fragmentState.targetCount = 1;
+        // fragmentState.targets = &colorTargetState;
 
+        /////////////////////////////////////
+
+        ////////////////////////
+        // Add creation to vertex buffer class and get from there??? 
+        // Maybe not since this is at pipeline creation, but the same pipeline can be used for multiple vertex buffers.
+        // Make a special class for this instead?? or store with the pipeline class.
         wgpu::VertexAttribute vAttribute{};
         vAttribute.format = wgpu::VertexFormat::Float32x3;
         vAttribute.offset = 0;
@@ -195,14 +202,15 @@ void init() {
         vertexBufferLayout.attributes = &vAttribute;
         vertexBufferLayout.arrayStride = 3 * sizeof(float);
         vertexBufferLayout.stepMode = wgpu::VertexStepMode::Vertex;
+        ////////////////////////
 
         wgpu::RenderPipelineDescriptor rpDescription{};
         rpDescription.layout = wDevice.getHandle().CreatePipelineLayout(&plDescription);
-        rpDescription.vertex.module = shaderModule;
+        rpDescription.vertex.module = shader->getModule();
         rpDescription.vertex.entryPoint = "main_v";
         rpDescription.vertex.buffers = &vertexBufferLayout;
         rpDescription.vertex.bufferCount = 1;
-        rpDescription.fragment = &fragmentState;
+        rpDescription.fragment = shader->getFragmentState();
         rpDescription.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
         rpDescription.primitive.frontFace = wgpu::FrontFace::CCW;
         rpDescription.primitive.cullMode = wgpu::CullMode::Back;
