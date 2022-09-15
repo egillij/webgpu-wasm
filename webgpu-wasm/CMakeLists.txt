@@ -12,6 +12,9 @@ SET(WW_SOURCES
 	src/Renderer/WebGPU/wgpuSwapChain.h
 	src/Renderer/WebGPU/wgpuSwapChain.cpp
 
+	src/Renderer/WebGPU/wgpuBindGroup.h
+	src/Renderer/WebGPU/wgpuBindGroup.cpp
+
 	src/Renderer/WebGPU/wgpuBuffer.h
 	src/Renderer/WebGPU/wgpuBuffer.cpp
 
@@ -30,6 +33,7 @@ add_executable(wgpu_wasm ${WW_SOURCES})
 SET(LINKER_FLAGS
 -s USE_WEBGPU=1
 -o index.html
+-s ASSERTIONS=2
 )
 
 set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-s USE_WEBGPU=1 -o index.html")

@@ -16,11 +16,13 @@ WGpuBuffer::WGpuBuffer(WGpuDevice* device, const BufferDescription& description)
 
 void WGpuBuffer::create(const BufferDescription& description)
 {
+    m_Size = description.size;
+
     wgpu::BufferDescriptor descriptor{};
     descriptor.label = description.label.c_str();
     descriptor.usage = static_cast<wgpu::BufferUsage>(description.bufferUsage);
-    descriptor.size = description.size;
-    
+    descriptor.size = m_Size;
+
     if(description.size > 0 && description.data){
         descriptor.mappedAtCreation = true;
 
@@ -29,6 +31,7 @@ void WGpuBuffer::create(const BufferDescription& description)
         m_Buffer.Unmap();
     }
     else {
+        descriptor.mappedAtCreation = false;
         m_Buffer = m_Device->getHandle().CreateBuffer(&descriptor);
     }
 }

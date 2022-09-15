@@ -12,26 +12,33 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Renderer/WebGPU/wgpuDevice.h"
+
 #include "Renderer/WebGPU/wgpuSwapChain.h"
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"
 #include "Renderer/WebGPU/wgpuIndexBuffer.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
 
+#include "Renderer/WebGPU/wgpuBindGroup.h"
+
+
 // static wgpu::Device device;
-static wgpu::Queue queue;
+// static wgpu::Queue queue;
 // static wgpu::Buffer readbackBuffer;
 static wgpu::RenderPipeline pipeline;
 // static wgpu::SwapChain swapChain;
 // static wgpu::Buffer vertexBuffer;
 // static wgpu::Buffer indexBuffer;
 // static wgpu::Buffer uniformBuffer;
-static wgpu::BindGroup sceneUniformBindGroup;
+
+// static wgpu::BindGroup sceneUniformBindGroup;
 
 static WGpuDevice wDevice;
 static WGpuSwapChain wSwapChain;
 static WGpuVertexBuffer vertexBuffer;
 static WGpuIndexBuffer indexBuffer;
 static WGpuUniformBuffer uniformBuffer;
+
+static WGpuBindGroup* sceneUniformBindGroup = nullptr;
 
 struct Uniforms {
     glm::vec4 color;
@@ -40,19 +47,24 @@ struct Uniforms {
 static float triangleVertices[9] = {-0.5f, -0.5f, 0.f, 0.5, -0.5, 0.f, 0.f, 0.5f, 0.f};
 static uint32_t triangleIndices[3] = {0, 1, 2};
 
+static float cubeVertices[8*3] = {-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  -0.5f, 0.5f, -0.5f,
+                                  -0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, 0.5f, 0.5f,  -0.5f, 0.5f, 0.5f};
+static uint32_t cubeIndices[3*8] = {0, 1 ,2, 0, 2, 3,  0, 3, 7, 0, 7, 4,   4, 5, 6, 4, 6, 7,  1, 5, 6, 1, 6, 2}; // Missing the top and bottom faces
+
+
 static const char shaderCode[] = R"(
-    @stage(vertex)
+    @vertex
     fn main_v(@location(0) positionIn : vec3<f32>) -> @builtin(position) vec4<f32> {
         return vec4<f32>(positionIn, 1.0);
     }
 
     struct ColorUni {
-        color : vec4<f32>;
+        color : vec4<f32>
     };
 
     @group(0) @binding(0) var<uniform> colorU : ColorUni;
 
-    @stage(fragment)
+    @fragment
     fn main_f() -> @location(0) vec4<f32> {
         return colorU.color;
     }
@@ -95,14 +107,10 @@ void GetDevice(void (*callback)(wgpu::Device)){
             }, userdata);
             
         }
-        
-
     }, reinterpret_cast<void*>(callback));
 }
 
 void init() {
-    queue = wDevice.getHandle().GetQueue();
-
     wgpu::ShaderModule shaderModule{};
     {
         wgpu::ShaderModuleWGSLDescriptor wgslDescription{};
@@ -115,50 +123,58 @@ void init() {
     }
 
     {
-        // wgpu::BufferDescriptor ubDescription{};
-        // ubDescription.label = "uniform buffer";
-        // ubDescription.usage = wgpu::BufferUsage::Uniform | wgpu::BufferUsage::CopyDst;
-        // ubDescription.size = sizeof(Uniforms);
-        // ubDescription.mappedAtCreation = false;
-        // uniformBuffer = wDevice.getHandle().CreateBuffer(&ubDescription);
+        printf("Create uniform buffer\n");
         uniformBuffer = WGpuUniformBuffer(&wDevice, "Uniform Buffer", sizeof(Uniforms));
 
-        wgpu::BindGroupLayoutDescriptor bglDescription{};
-        auto bgl = wDevice.getHandle().CreateBindGroupLayout(&bglDescription);
-        wgpu::BindGroupDescriptor bgDescription{};
-        bgDescription.layout = bgl;
-        bgDescription.entryCount = 0;
-        bgDescription.entries = nullptr;
 
-        wDevice.getHandle().CreateBindGroup(&bgDescription);
+        printf("Create uniform buffer bind group\n");
+        sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
+        printf("Add entry\n");
+        sceneUniformBindGroup->addEntry(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
+        printf("Build\n");
+        sceneUniformBindGroup->build(&wDevice);
     }
 
-    wgpu::BindGroupLayout sceneBgl;
+    // wgpu::BindGroupLayout sceneBgl;
     {
         // wgpu::BindGroupEntry colorUniformEntry{};
         // colorUniformEntry.binding = 0;
-        // colorUniformEntry.buffer = uniformBuffer;
+        // colorUniformEntry.buffer = uniformBuffer.getHandle();
 
-        wgpu::BufferBindingLayout scenebbl{};
-        scenebbl.type = wgpu::BufferBindingType::Uniform;
-        scenebbl.minBindingSize = sizeof(Uniforms);
+        // wgpu::BufferBindingLayout scenebbl{};
+        // scenebbl.type = wgpu::BufferBindingType::Uniform;
+        // scenebbl.minBindingSize = sizeof(Uniforms);
 
-        wgpu::BindGroupLayoutEntry sceneBglEntry{};
-        sceneBglEntry.binding = 0;
-        sceneBglEntry.visibility = wgpu::ShaderStage::Fragment;
-        sceneBglEntry.buffer = scenebbl;
+        // wgpu::BindGroupLayoutEntry sceneBglEntry{};
+        // sceneBglEntry.binding = 0;
+        // sceneBglEntry.visibility = wgpu::ShaderStage::Fragment;
+        // sceneBglEntry.buffer = scenebbl;
     
 
-        wgpu::BindGroupLayoutDescriptor sceneBglDesc{};
-        sceneBglDesc.label = "Scene BindGroupLayout";
-        sceneBglDesc.entryCount = 1;
-        sceneBglDesc.entries = &sceneBglEntry;
+        // wgpu::BindGroupLayoutDescriptor sceneBglDesc{};
+        // sceneBglDesc.label = "Scene BindGroupLayout";
+        // sceneBglDesc.entryCount = 1;
+        // sceneBglDesc.entries = &sceneBglEntry;
 
-        sceneBgl = wDevice.getHandle().CreateBindGroupLayout(&sceneBglDesc);
+        // sceneBgl = wDevice.getHandle().CreateBindGroupLayout(&sceneBglDesc);
+
+        // wgpu::BindGroupEntry colorUniformEntry{};
+        // colorUniformEntry.binding = 0;
+        // colorUniformEntry.buffer = uniformBuffer.getHandle();
+        // colorUniformEntry.size = sizeof(Uniforms);
+        
+        // wgpu::BindGroupDescriptor sceneBgDescription{};
+        // sceneBgDescription.layout = wSceneUniformBindGroup->getLayout();// pipeline.GetBindGroupLayout(0);
+        // sceneBgDescription.entryCount = 1;
+        // sceneBgDescription.entries = &colorUniformEntry;
+
+        // sceneUniformBindGroup = wDevice.getHandle().CreateBindGroup(&sceneBgDescription);
+    }
+    {
 
         wgpu::PipelineLayoutDescriptor plDescription{};
         plDescription.bindGroupLayoutCount = 1;
-        plDescription.bindGroupLayouts = &sceneBgl;
+        plDescription.bindGroupLayouts = sceneUniformBindGroup->getLayout();// sceneUniformBindGroup.getLayout();
         
         wgpu::ColorTargetState colorTargetState{};
         colorTargetState.format = wgpu::TextureFormat::BGRA8Unorm;
@@ -194,18 +210,25 @@ void init() {
         pipeline = wDevice.getHandle().CreateRenderPipeline(&rpDescription);
     }
 
-    {
-        wgpu::BindGroupEntry colorUniformEntry{};
-        colorUniformEntry.binding = 0;
-        colorUniformEntry.buffer = uniformBuffer.getHandle();
-        colorUniformEntry.size = sizeof(Uniforms);
+    {   
+        // wgpu::BindGroupEntry colorUniformEntry{};
+        // colorUniformEntry.binding = 0;
+        // colorUniformEntry.buffer = uniformBuffer.getHandle();
+        // colorUniformEntry.size = sizeof(Uniforms);
         
-        wgpu::BindGroupDescriptor sceneBgDescription{};
-        sceneBgDescription.layout = sceneBgl;// pipeline.GetBindGroupLayout(0);
-        sceneBgDescription.entryCount = 1;
-        sceneBgDescription.entries = &colorUniformEntry;
+        // wgpu::BindGroupDescriptor sceneBgDescription{};
+        // sceneBgDescription.layout = sceneBgl;// pipeline.GetBindGroupLayout(0);
+        // sceneBgDescription.entryCount = 1;
+        // sceneBgDescription.entries = &colorUniformEntry;
 
-        sceneUniformBindGroup = wDevice.getHandle().CreateBindGroup(&sceneBgDescription);
+        // sceneUniformBindGroup = wDevice.getHandle().CreateBindGroup(&sceneBgDescription);
+
+        // printf("Create uniform buffer bind group\n");
+        // wSceneUniformBindGroup = WGpuBindGroup("Scene Uniform Bind Group");
+        // printf("Add entry\n");
+        // wSceneUniformBindGroup.addEntry(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
+        // printf("Build\n");
+        // wSceneUniformBindGroup.build(&wDevice);
     }
 
     {
@@ -237,6 +260,8 @@ void init() {
 }
 
 void render() {
+    wgpu::Queue queue = wDevice.getHandle().GetQueue();
+
     wgpu::TextureView backBuffer = wSwapChain.getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
 
     wgpu::RenderPassColorAttachment attachment{};
@@ -274,7 +299,7 @@ void render() {
             renderPass.SetPipeline(pipeline);
             renderPass.SetVertexBuffer(0, vertexBuffer.getHandle());
             renderPass.SetIndexBuffer(indexBuffer.getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer.getDataFormat()));
-            renderPass.SetBindGroup(0, sceneUniformBindGroup);
+            renderPass.SetBindGroup(0, sceneUniformBindGroup->get());
             renderPass.DrawIndexed(3);
             renderPass.End();
             
@@ -307,7 +332,7 @@ void run() {
         // swapChainDescription.presentMode = wgpu::PresentMode::Fifo;
         // swapChain = wDevice.getHandle().CreateSwapChain(surface, &swapChainDescription);
 
-        wSwapChain = WGpuSwapChain(&wDevice, 600, 800);
+        wSwapChain = WGpuSwapChain(&wDevice, 800, 600);
     }
 
     emscripten_set_main_loop(render, 0, true);

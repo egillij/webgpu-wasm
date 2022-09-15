@@ -35,9 +35,11 @@ public:
 
     void create(const BufferDescription& description);
 
-    wgpu::Buffer& getHandle() {return m_Buffer;}
+    wgpu::Buffer& getHandle() { return m_Buffer; }
+    inline uint64_t getSize() const { return m_Size; };
 
 private:
     WGpuDevice* m_Device;
     wgpu::Buffer m_Buffer;
+    uint64_t m_Size;
 };

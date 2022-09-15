@@ -9,9 +9,5 @@ WGpuUniformBuffer::WGpuUniformBuffer(WGpuDevice* device, const std::string& labe
     description.size = size;
     description.data = nullptr;
 
-    printf("a: %u\n", static_cast<uint32_t>(BufferUsage::Uniform));
-    printf("b: %u\n", static_cast<uint32_t>(BufferUsage::CopyDst));
-    printf("a|b = %u\n", static_cast<uint32_t>(description.bufferUsage));
-
     create(description);
 }
