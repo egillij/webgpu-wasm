@@ -6,29 +6,32 @@ SET(CMAKE_EXECUTABLE_SUFFIX .html)
 SET(WW_SOURCES 
 	src/main.cpp
 
-	src/Renderer/WebGPU/wgpuDevice.h
-	src/Renderer/WebGPU/wgpuDevice.cpp
-
-	src/Renderer/WebGPU/wgpuSwapChain.h
-	src/Renderer/WebGPU/wgpuSwapChain.cpp
-
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 
 	src/Renderer/WebGPU/wgpuBuffer.h
 	src/Renderer/WebGPU/wgpuBuffer.cpp
 
-	src/Renderer/WebGPU/wgpuVertexBuffer.h
-	src/Renderer/WebGPU/wgpuVertexBuffer.cpp
+	src/Renderer/WebGPU/wgpuDevice.h
+	src/Renderer/WebGPU/wgpuDevice.cpp
 
 	src/Renderer/WebGPU/wgpuIndexBuffer.h
 	src/Renderer/WebGPU/wgpuIndexBuffer.cpp
 
-	src/Renderer/WebGPU/wgpuUniformBuffer.h
-	src/Renderer/WebGPU/wgpuUniformBuffer.cpp
+	src/Renderer/WebGPU/wgpuPipeline.h
+	src/Renderer/WebGPU/wgpuPipeline.cpp
 
 	src/Renderer/WebGPU/wgpuShader.h
 	src/Renderer/WebGPU/wgpuShader.cpp
+
+	src/Renderer/WebGPU/wgpuSwapChain.h
+	src/Renderer/WebGPU/wgpuSwapChain.cpp
+
+	src/Renderer/WebGPU/wgpuUniformBuffer.h
+	src/Renderer/WebGPU/wgpuUniformBuffer.cpp
+
+	src/Renderer/WebGPU/wgpuVertexBuffer.h
+	src/Renderer/WebGPU/wgpuVertexBuffer.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
