@@ -19,8 +19,12 @@
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
 #include "Renderer/WebGPU/wgpuShader.h"
 #include "Renderer/WebGPU/wgpuPipeline.h"
+#include "Renderer/WebGPU/wgpuTexture.h"
 
 #include "Renderer/WebGPU/wgpuBindGroup.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
 
 
 // static wgpu::Device device;
@@ -45,6 +49,9 @@ static WGpuShader* shader = nullptr;
 static WGpuBindGroup* sceneUniformBindGroup = nullptr;
 
 static WGpuPipeline* pipeline = nullptr;
+
+// static wgpu::Texture testTexture;
+static WGpuTexture* texture;
 
 struct Uniforms {
     glm::vec4 color;
@@ -122,7 +129,7 @@ void init() {
     uniformBuffer = WGpuUniformBuffer(&wDevice, "Uniform Buffer", sizeof(Uniforms));
 
     sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
-    sceneUniformBindGroup->addEntry(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
+    sceneUniformBindGroup->addBuffer(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
     sceneUniformBindGroup->build(&wDevice);
 
     pipeline = new WGpuPipeline();
@@ -132,11 +139,48 @@ void init() {
 
     vertexBuffer = WGpuVertexBuffer(&wDevice, "Vertex Buffer", triangleVertices, 9*sizeof(float));
     indexBuffer = WGpuIndexBuffer(&wDevice, "Index Buffer", triangleIndices, 3*sizeof(uint32_t), IndexBufferFormat::UNSIGNED_INT_32);
+
+
+    // Load texture
+    emscripten_wget("/webgpu-wasm/avatar.jpg", "./avatar.jpg");
+    int width, height, channels;
+    unsigned char* imageData = stbi_load("./avatar.jpg", &width, &height, &channels, 4);
+
+    // wgpu::TextureDescriptor texDesc{};
+    // texDesc.label = "Test texture";
+    // texDesc.format = wgpu::TextureFormat::BGRA8Unorm;
+    wgpu::Extent3D texExtent{};
+    texExtent.width = width;
+    texExtent.height = height;
+    // texDesc.size = texExtent;
+    // texDesc.usage = wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::TextureBinding;
+
+    TextureCreateInfo texInfo{};
+    texInfo.format = TextureFormat::BGRA8Unorm;
+    texInfo.width = width;
+    texInfo.height = height;
+    texInfo.usage = {TextureUsage::CopyDst, TextureUsage::TextureBinding};
+
+    texture = new WGpuTexture("Test texture", &texInfo, &wDevice);
+    // testTexture = wDevice.getHandle().CreateTexture(&texDesc);
+
+    wgpu::Queue queue = wDevice.getHandle().GetQueue();
+    wgpu::ImageCopyTexture imgCpyTex{};
+    imgCpyTex.texture = texture->getHandle();
+    wgpu::Origin3D texOrig{};
+    imgCpyTex.origin = texOrig;
+
+    wgpu::TextureDataLayout texDataLayout{};
+    texDataLayout.bytesPerRow = width * 4;
+    texDataLayout.rowsPerImage = height;
+    texDataLayout.offset = 0;
+
+    queue.WriteTexture(&imgCpyTex, imageData, width*height*4, &texDataLayout, &texExtent);
 }
 
 void render() {
     wgpu::Queue queue = wDevice.getHandle().GetQueue();
-
+    
     wgpu::TextureView backBuffer = wSwapChain.getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
 
     wgpu::RenderPassColorAttachment attachment{};

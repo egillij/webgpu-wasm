@@ -1,5 +1,6 @@
 #include "wgpuPipeline.h"
 
+#include "wgpuDevice.h"
 #include "wgpuBindGroup.h"
 #include "wgpuShader.h"
 
