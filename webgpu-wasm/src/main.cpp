@@ -20,6 +20,7 @@
 #include "Renderer/WebGPU/wgpuShader.h"
 #include "Renderer/WebGPU/wgpuPipeline.h"
 #include "Renderer/WebGPU/wgpuTexture.h"
+#include "Renderer/WebGPU/wgpuSampler.h"
 
 #include "Renderer/WebGPU/wgpuBindGroup.h"
 
@@ -52,12 +53,15 @@ static WGpuPipeline* pipeline = nullptr;
 
 // static wgpu::Texture testTexture;
 static WGpuTexture* texture;
+static WGpuSampler* sampler;
 
 struct Uniforms {
     glm::vec4 color;
 };
 
-static float triangleVertices[9] = {-0.5f, -0.5f, 0.f, 0.5, -0.5, 0.f, 0.f, 0.5f, 0.f};
+static float triangleVertices[3*5] = {-0.5f, -0.5f, 0.f, 0.0f, 0.0f,
+                                    0.5, -0.5, 0.f, 1.0f, 0.0f,
+                                    0.f, 0.5f, 0.f, 0.5f, 1.0f};
 static uint32_t triangleIndices[3] = {0, 1, 2};
 
 static float cubeVertices[8*3] = {-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  -0.5f, 0.5f, -0.5f,
@@ -66,9 +70,21 @@ static uint32_t cubeIndices[3*8] = {0, 1 ,2, 0, 2, 3,  0, 3, 7, 0, 7, 4,   4, 5,
 
 
 static const char shaderCode[] = R"(
+
+    struct VertexOutput {
+        @builtin(position) position : vec4<f32>,
+        @location(0) fragUV : vec2<f32>,
+    }
+
     @vertex
-    fn main_v(@location(0) positionIn : vec3<f32>) -> @builtin(position) vec4<f32> {
-        return vec4<f32>(positionIn, 1.0);
+    fn main_v(
+        @location(0) positionIn : vec3<f32>,
+        @location(1) uvIn : vec2<f32>
+    ) -> VertexOutput {
+        var output : VertexOutput;
+        output.position = vec4<f32>(positionIn, 1.0);
+        output.fragUV = uvIn;
+        return output;
     }
 
     struct ColorUni {
@@ -76,10 +92,15 @@ static const char shaderCode[] = R"(
     };
 
     @group(0) @binding(0) var<uniform> colorU : ColorUni;
+    @group(0) @binding(1) var mySampler : sampler;
+    @group(0) @binding(2) var myTexture : texture_2d<f32>;
 
     @fragment
-    fn main_f() -> @location(0) vec4<f32> {
-        return colorU.color;
+    fn main_f(
+        @location(0) fragUV : vec2<f32>
+    ) -> @location(0) vec4<f32> {
+        let fragColor : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
+        return fragColor;
     }
 )";
 
@@ -128,21 +149,9 @@ void init() {
 
     uniformBuffer = WGpuUniformBuffer(&wDevice, "Uniform Buffer", sizeof(Uniforms));
 
-    sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
-    sceneUniformBindGroup->addBuffer(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
-    sceneUniformBindGroup->build(&wDevice);
-
-    pipeline = new WGpuPipeline();
-    pipeline->addBindGroup(sceneUniformBindGroup);
-    pipeline->setShader(shader);
-    pipeline->build(&wDevice);
-
-    vertexBuffer = WGpuVertexBuffer(&wDevice, "Vertex Buffer", triangleVertices, 9*sizeof(float));
-    indexBuffer = WGpuIndexBuffer(&wDevice, "Index Buffer", triangleIndices, 3*sizeof(uint32_t), IndexBufferFormat::UNSIGNED_INT_32);
-
-
     // Load texture
     emscripten_wget("/webgpu-wasm/avatar.jpg", "./avatar.jpg");
+    stbi_set_flip_vertically_on_load(true);
     int width, height, channels;
     unsigned char* imageData = stbi_load("./avatar.jpg", &width, &height, &channels, 4);
 
@@ -162,6 +171,9 @@ void init() {
     texInfo.usage = {TextureUsage::CopyDst, TextureUsage::TextureBinding};
 
     texture = new WGpuTexture("Test texture", &texInfo, &wDevice);
+
+    SamplerCreateInfo samplerInfo{};
+    sampler = new WGpuSampler("Sampler", &samplerInfo, &wDevice);
     // testTexture = wDevice.getHandle().CreateTexture(&texDesc);
 
     wgpu::Queue queue = wDevice.getHandle().GetQueue();
@@ -176,6 +188,23 @@ void init() {
     texDataLayout.offset = 0;
 
     queue.WriteTexture(&imgCpyTex, imageData, width*height*4, &texDataLayout, &texExtent);
+
+
+    sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
+    sceneUniformBindGroup->addBuffer(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
+    sceneUniformBindGroup->addSampler(sampler, SamplerBindingType::Filtering, 1, wgpu::ShaderStage::Fragment);
+    sceneUniformBindGroup->addTexture(texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    
+    sceneUniformBindGroup->build(&wDevice);
+
+    pipeline = new WGpuPipeline();
+    pipeline->addBindGroup(sceneUniformBindGroup);
+    pipeline->setShader(shader);
+    pipeline->build(&wDevice);
+
+    vertexBuffer = WGpuVertexBuffer(&wDevice, "Vertex Buffer", triangleVertices, 3*5*sizeof(float));
+    indexBuffer = WGpuIndexBuffer(&wDevice, "Index Buffer", triangleIndices, 3*sizeof(uint32_t), IndexBufferFormat::UNSIGNED_INT_32);
+
 }
 
 void render() {
