@@ -2,8 +2,8 @@
 
 #include "wgpuDevice.h"
 #include "wgpuBuffer.h"
-#include "WGpuSampler.h"
-#include "WGpuTexture.h"
+#include "wgpuSampler.h"
+#include "wgpuTexture.h"
 
 // WGpuBindGroup::WGpuBindGroup()
 // : m_Label("Default label Bind Group"), m_IsBuilt(false)
@@ -128,7 +128,7 @@ void WGpuBindGroup::build(WGpuDevice *device)
 
                 wgpu::TextureViewDescriptor texViewDesc{};
                 texViewDesc.label = "Texture View Label"; //TODO: create something from the texture label??
-                texViewDesc.format = wgpu::TextureFormat::BGRA8Unorm; //TODO: get from the texture?
+                texViewDesc.format = wgpu::TextureFormat::RGBA8Unorm; //TODO: get from the texture?
                 texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
                 texViewDesc.mipLevelCount = 1;
                 texViewDesc.arrayLayerCount = 1;
