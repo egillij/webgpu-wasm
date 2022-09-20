@@ -37,20 +37,24 @@ void WGpuPipeline::build(WGpuDevice* device)
     ////////////////////////
     // Make a class/struct for this creation that can be shared between the vertexbuffer and pipelines
 
-    wgpu::VertexAttribute vAttribute[2];
+    wgpu::VertexAttribute vAttribute[3];
 
     vAttribute[0].format = wgpu::VertexFormat::Float32x3;
     vAttribute[0].offset = 0;
     vAttribute[0].shaderLocation = 0;
 
-    vAttribute[1].format = wgpu::VertexFormat::Float32x2;
+    vAttribute[1].format = wgpu::VertexFormat::Float32x3;
     vAttribute[1].offset = 3*sizeof(float);
     vAttribute[1].shaderLocation = 1;
+
+    vAttribute[2].format = wgpu::VertexFormat::Float32x2;
+    vAttribute[2].offset = 6*sizeof(float);
+    vAttribute[2].shaderLocation = 2;
     
     wgpu::VertexBufferLayout vertexBufferLayout{};
-    vertexBufferLayout.attributeCount = 2;
+    vertexBufferLayout.attributeCount = 3;
     vertexBufferLayout.attributes = vAttribute;
-    vertexBufferLayout.arrayStride = 5 * sizeof(float);
+    vertexBufferLayout.arrayStride = 8 * sizeof(float);
     vertexBufferLayout.stepMode = wgpu::VertexStepMode::Vertex;
     ////////////////////////
 

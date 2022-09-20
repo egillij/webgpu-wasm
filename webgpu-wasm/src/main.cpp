@@ -9,6 +9,7 @@
 #include <emscripten/html5_webgpu.h>
 
 #include <glm/vec4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Renderer/WebGPU/wgpuDevice.h"
@@ -43,11 +44,15 @@ static WGpuDevice wDevice;
 static WGpuSwapChain wSwapChain;
 static WGpuVertexBuffer vertexBuffer;
 static WGpuIndexBuffer indexBuffer;
-static WGpuUniformBuffer uniformBuffer;
+static WGpuUniformBuffer sceneUniformBuffer;
+static WGpuUniformBuffer modelUniformBuffer;
+static WGpuUniformBuffer modelUniformBuffer2;
 
 static WGpuShader* shader = nullptr;
 
 static WGpuBindGroup* sceneUniformBindGroup = nullptr;
+static WGpuBindGroup* modelUniformBindGroup = nullptr;
+static WGpuBindGroup* modelUniformBindGroup2 = nullptr;
 
 static WGpuPipeline* pipeline = nullptr;
 
@@ -55,18 +60,96 @@ static WGpuPipeline* pipeline = nullptr;
 static WGpuTexture* texture;
 static WGpuSampler* sampler;
 
-struct Uniforms {
-    glm::vec4 color;
+static glm::mat4 projectionMatrix;
+static glm::mat4 viewMatrix;
+
+struct SceneUniforms {
+    glm::mat4 viewProjection;
 };
+
+struct ModelUniforms {
+    glm::mat4 modelMatrix;
+};
+
+static ModelUniforms modelUniforms;
+static ModelUniforms modelUniforms2;
+
+static uint32_t WINDOW_WIDTH = 800;
+static uint32_t WINDOW_HEIGHT = 600;
+static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
+static float fovY = glm::radians(45.f);
+
 
 static float triangleVertices[3*5] = {-0.5f, -0.5f, 0.f, 0.0f, 0.0f,
                                     0.5, -0.5, 0.f, 1.0f, 0.0f,
                                     0.f, 0.5f, 0.f, 0.5f, 1.0f};
 static uint32_t triangleIndices[3] = {0, 1, 2};
 
-static float cubeVertices[8*3] = {-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  -0.5f, 0.5f, -0.5f,
-                                  -0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, 0.5f, 0.5f,  -0.5f, 0.5f, 0.5f};
-static uint32_t cubeIndices[3*8] = {0, 1 ,2, 0, 2, 3,  0, 3, 7, 0, 7, 4,   4, 5, 6, 4, 6, 7,  1, 5, 6, 1, 6, 2}; // Missing the top and bottom faces
+// Float3 position, Float3 normal, Float2 uv
+static float cubeVertices[6*6*8] = {
+    1.f, -1.f, 1.f,   0.f, -1.f, 0.f,    1.f, 1.f,
+  -1.f, -1.f, 1.f,    0.f, -1.f, 0.f,    0.f, 1.f,
+  -1.f, -1.f, -1.f,   0.f, -1.f, 0.f,    0.f, 0.f,
+  1.f, -1.f, -1.f,    0.f, -1.f, 0.f,    1.f, 0.f,
+  1.f, -1.f, 1.f,     0.f, -1.f, 0.f,    1.f, 1.f,
+  -1.f, -1.f, -1.f,   0.f, -1.f, 0.f,    0.f, 0.f,
+
+  1.f, 1.f, 1.f,      1.f, 0.f, 0.f,    1.f, 1.f,
+  1.f, -1.f, 1.f,     1.f, 0.f, 0.f,    0.f, 1.f,
+  1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    0.f, 0.f,
+  1.f, 1.f, -1.f,     1.f, 0.f, 0.f,    1.f, 0.f,
+  1.f, 1.f, 1.f,      1.f, 0.f, 0.f,    1.f, 1.f,
+  1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    0.f, 0.f,
+
+  -1.f, 1.f, 1.f,     0.f, 1.f, 0.f,    1.f, 1.f,
+  1.f, 1.f, 1.f,      0.f, 1.f, 0.f,    0.f, 1.f,
+  1.f, 1.f, -1.f,     0.f, 1.f, 0.f,    0.f, 0.f,
+  -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    1.f, 0.f,
+  -1.f, 1.f, 1.f,     0.f, 1.f, 0.f,    1.f, 1.f,
+  1.f, 1.f, -1.f,     0.f, 1.f, 0.f,    0.f, 0.f,
+
+  -1.f, -1.f, 1.f,    -1.f, 0.f, 0.f,    1.f, 1.f,
+  -1.f, 1.f, 1.f,     -1.f, 0.f, 0.f,    0.f, 1.f,
+  -1.f, 1.f, -1.f,    -1.f, 0.f, 0.f,    0.f, 0.f,
+  -1.f, -1.f, -1.f,   -1.f, 0.f, 0.f,    1.f, 0.f,
+  -1.f, -1.f, 1.f,    -1.f, 0.f, 0.f,    1.f, 1.f,
+  -1.f, 1.f, -1.f,    -1.f, 0.f, 0.f,    0.f, 0.f,
+
+  1.f, 1.f, 1.f,      0.f, 0.f, 1.f,    1.f, 1.f,
+  -1.f, 1.f, 1.f,     0.f, 0.f, 1.f,    0.f, 1.f,
+  -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    0.f, 0.f,
+  -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    0.f, 0.f,
+  1.f, -1.f, 1.f,     0.f, 0.f, 1.f,    1.f, 0.f,
+  1.f, 1.f, 1.f,      0.f, 0.f, 1.f,    1.f, 1.f,
+
+  1.f, -1.f, -1.f,    0.f, 0.f, -1.f,    1.f, 1.f,
+  -1.f, -1.f, -1.f,   0.f, 0.f, -1.f,    0.f, 1.f,
+  -1.f, 1.f, -1.f,    0.f, 0.f, -1.f,    0.f, 0.f,
+  1.f, 1.f, -1.f,     0.f, 0.f, -1.f,    1.f, 0.f,
+  1.f, -1.f, -1.f,    0.f, 0.f, -1.f,    1.f, 1.f,
+  -1.f, 1.f, -1.f,    0.f, 0.f, -1.f,    0.f, 0.f,
+};
+
+static uint64_t numCubeIndices = 6*6;
+static uint32_t cubeIndices[6*6] = {
+    0, 1, 2,
+    3, 4, 5,
+
+    6, 7, 8,
+    9, 10, 11,
+
+    12, 13, 14,
+    15, 16, 17,
+
+    18, 19, 20,
+    21, 22, 23,
+
+    24, 25, 26,
+    27, 28, 29,
+
+    30, 31, 32,
+    33, 34, 35
+};
 
 
 static const char shaderCode[] = R"(
@@ -74,32 +157,46 @@ static const char shaderCode[] = R"(
     struct VertexOutput {
         @builtin(position) position : vec4<f32>,
         @location(0) fragUV : vec2<f32>,
+        @location(1) fragNormal : vec3<f32>,
     }
+
+    struct SceneUniforms {
+        viewProjection : mat4x4<f32>,
+    };
+
+    struct ModelUniforms {
+        modelMatrix : mat4x4<f32>,
+    };
+
+    @group(0) @binding(0) var<uniform> sceneUniforms : SceneUniforms;
+    @group(1) @binding(0) var<uniform> modelUniforms : ModelUniforms;
 
     @vertex
     fn main_v(
         @location(0) positionIn : vec3<f32>,
-        @location(1) uvIn : vec2<f32>
+        @location(1) normalIn : vec3<f32>,
+        @location(2) uvIn : vec2<f32>
     ) -> VertexOutput {
+
         var output : VertexOutput;
-        output.position = vec4<f32>(positionIn, 1.0);
+        output.position = sceneUniforms.viewProjection * modelUniforms.modelMatrix * vec4<f32>(positionIn, 1.0);
         output.fragUV = uvIn;
+        output.fragNormal = normalIn;
         return output;
     }
 
-    struct ColorUni {
-        color : vec4<f32>
-    };
-
-    @group(0) @binding(0) var<uniform> colorU : ColorUni;
     @group(0) @binding(1) var mySampler : sampler;
     @group(0) @binding(2) var myTexture : texture_2d<f32>;
 
     @fragment
     fn main_f(
-        @location(0) fragUV : vec2<f32>
+        @location(0) fragUV : vec2<f32>,
+        @location(1) fragNormal : vec3<f32>
     ) -> @location(0) vec4<f32> {
-        let fragColor : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
+        var fragColor : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
+        let gamma : f32 = 1.0 / 2.2;
+        let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
+        fragColor = vec4<f32>(pow(fragColor.rgb, gammaVec), 1.0);
         return fragColor;
     }
 )";
@@ -145,9 +242,15 @@ void GetDevice(void (*callback)(wgpu::Device)){
 }
 
 void init() {
+    
+    projectionMatrix = glm::perspective(fovY, aspect, 0.01f, 100.f);
+    viewMatrix = glm::lookAt(glm::vec3(-5.f, 2.f, 5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+
     shader = new WGpuShader("Color Shader", shaderCode, &wDevice);
 
-    uniformBuffer = WGpuUniformBuffer(&wDevice, "Uniform Buffer", sizeof(Uniforms));
+    sceneUniformBuffer = WGpuUniformBuffer(&wDevice, "Scene Uniform Buffer", sizeof(SceneUniforms));
+    modelUniformBuffer = WGpuUniformBuffer(&wDevice, "Model Uniform Buffer", sizeof(ModelUniforms));
+    modelUniformBuffer2 = WGpuUniformBuffer(&wDevice, "Model Uniform Buffer 2", sizeof(ModelUniforms));
 
     // Load texture
     emscripten_wget("/webgpu-wasm/avatar.jpg", "./avatar.jpg");
@@ -165,7 +268,7 @@ void init() {
     // texDesc.usage = wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::TextureBinding;
 
     TextureCreateInfo texInfo{};
-    texInfo.format = TextureFormat::BGRA8Unorm;
+    texInfo.format = TextureFormat::RGBA8Unorm;
     texInfo.width = width;
     texInfo.height = height;
     texInfo.usage = {TextureUsage::CopyDst, TextureUsage::TextureBinding};
@@ -191,20 +294,27 @@ void init() {
 
 
     sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
-    sceneUniformBindGroup->addBuffer(&uniformBuffer, BufferBindingType::Uniform, uniformBuffer.getSize(), 0, wgpu::ShaderStage::Fragment);
-    sceneUniformBindGroup->addSampler(sampler, SamplerBindingType::Filtering, 1, wgpu::ShaderStage::Fragment);
+    sceneUniformBindGroup->addBuffer(&sceneUniformBuffer, BufferBindingType::Uniform, sceneUniformBuffer.getSize(), 0, wgpu::ShaderStage::Vertex);
+    sceneUniformBindGroup->addSampler(sampler, SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
     sceneUniformBindGroup->addTexture(texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
-    
     sceneUniformBindGroup->build(&wDevice);
+
+    modelUniformBindGroup = new WGpuBindGroup("Model Uniform Bind Group");
+    modelUniformBindGroup->addBuffer(&modelUniformBuffer, BufferBindingType::Uniform, modelUniformBuffer.getSize(), 0, wgpu::ShaderStage::Vertex);
+    modelUniformBindGroup->build(&wDevice);
+
+    modelUniformBindGroup2 = new WGpuBindGroup("Model Uniform Bind Group 2");
+    modelUniformBindGroup2->addBuffer(&modelUniformBuffer2, BufferBindingType::Uniform, modelUniformBuffer2.getSize(), 0, wgpu::ShaderStage::Vertex);
+    modelUniformBindGroup2->build(&wDevice);
 
     pipeline = new WGpuPipeline();
     pipeline->addBindGroup(sceneUniformBindGroup);
+    pipeline->addBindGroup(modelUniformBindGroup);
     pipeline->setShader(shader);
     pipeline->build(&wDevice);
 
-    vertexBuffer = WGpuVertexBuffer(&wDevice, "Vertex Buffer", triangleVertices, 3*5*sizeof(float));
-    indexBuffer = WGpuIndexBuffer(&wDevice, "Index Buffer", triangleIndices, 3*sizeof(uint32_t), IndexBufferFormat::UNSIGNED_INT_32);
-
+    vertexBuffer = WGpuVertexBuffer(&wDevice, "Vertex Buffer", cubeVertices, numCubeIndices*8*sizeof(float));
+    indexBuffer = WGpuIndexBuffer(&wDevice, "Index Buffer", cubeIndices, numCubeIndices*sizeof(uint32_t), IndexBufferFormat::UNSIGNED_INT_32);
 }
 
 void render() {
@@ -222,20 +332,35 @@ void render() {
     renderPassDescription.colorAttachmentCount = 1;
     renderPassDescription.colorAttachments = &attachment;
     
-    static Uniforms uniformColor;
+    static SceneUniforms sceneUniforms_;
     static float t = 0.0f;
-    float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
-    uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
+    // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
+    // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
+    
+    static float radius = 5.f;
+    static float phi = 0.f;
+    static float theta = 0.f;
+
+    float x = radius * glm::cos(phi) * glm::sin(theta);
+    float y = radius * glm::sin(phi) * glm::sin(theta);
+    float z = radius * glm::cos(theta);
+
+    //TODO: make camera spin
+    viewMatrix = glm::lookAt(glm::vec3(x, y, z), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
+    sceneUniforms_.viewProjection = projectionMatrix * viewMatrix;
+
 
     // printf("Frame %f\n", weight);
 
-    t += 0.1f;
+    t += 1.f/60.f;
+    phi = glm::radians(10.f)*t;
+    theta = glm::radians(5.f)*t;
     // uniformColor.color[0] = 1.0f;
     // uniformColor.color[1] = 0.502f;
     // uniformColor.color[2] = 0.f;
     // uniformColor.color[3] = 1.f;
 
-    queue.WriteBuffer(uniformBuffer.getHandle(), 0, (void*) glm::value_ptr<float>(uniformColor.color), sizeof(Uniforms));
+    queue.WriteBuffer(sceneUniformBuffer.getHandle(), 0, (void*) &sceneUniforms_, sizeof(SceneUniforms));
 
     static uint64_t frameNr = 0;
 
@@ -248,7 +373,16 @@ void render() {
             renderPass.SetVertexBuffer(0, vertexBuffer.getHandle());
             renderPass.SetIndexBuffer(indexBuffer.getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer.getDataFormat()));
             renderPass.SetBindGroup(0, sceneUniformBindGroup->get());
-            renderPass.DrawIndexed(3);
+            renderPass.SetBindGroup(1, modelUniformBindGroup->get());
+
+            modelUniforms.modelMatrix = glm::mat4(1.f);
+            queue.WriteBuffer(modelUniformBuffer.getHandle(), 0, (void*) &modelUniforms, sizeof(ModelUniforms));
+            renderPass.DrawIndexed(numCubeIndices);
+
+            modelUniforms2.modelMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 2.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.5f));
+            queue.WriteBuffer(modelUniformBuffer2.getHandle(), 0, (void*) &modelUniforms2, sizeof(ModelUniforms));
+            renderPass.SetBindGroup(1, modelUniformBindGroup2->get());
+            renderPass.DrawIndexed(numCubeIndices);
             renderPass.End();
             
         }
