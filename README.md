@@ -1,2 +1,2 @@
 # webgpu-wasm
-WebGPU experiments with Emscripten and WebAssembly
+Playing around with WebGPU using C++ and Emscripten
