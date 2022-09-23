@@ -70,6 +70,13 @@ void WGpuPipeline::build(WGpuDevice* device)
     rpDescription.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
     rpDescription.primitive.frontFace = wgpu::FrontFace::CCW;
     rpDescription.primitive.cullMode = wgpu::CullMode::Back;
+
+    wgpu::DepthStencilState depthStencil{};
+    depthStencil.format = wgpu::TextureFormat::Depth32Float;
+    depthStencil.depthWriteEnabled = true;
+    depthStencil.depthCompare = wgpu::CompareFunction::LessEqual;
+
+    rpDescription.depthStencil = &depthStencil;
     
     m_Pipeline = device->getHandle().CreateRenderPipeline(&rpDescription);
 

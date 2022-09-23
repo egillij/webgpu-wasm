@@ -10,6 +10,7 @@ class WGpuDevice;
 enum class TextureFormat : uint32_t {
     BGRA8Unorm = static_cast<uint32_t>(wgpu::TextureFormat::BGRA8Unorm),
     RGBA8Unorm = static_cast<uint32_t>(wgpu::TextureFormat::RGBA8Unorm),
+    Depth32Float = static_cast<uint32_t>(wgpu::TextureFormat::Depth32Float),
 };
 
 enum class TextureUsage : uint32_t {

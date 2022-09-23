@@ -6,6 +6,9 @@ SET(CMAKE_EXECUTABLE_SUFFIX .html)
 SET(WW_SOURCES 
 	src/main.cpp
 
+	src/Application.h
+	src/Application.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 
