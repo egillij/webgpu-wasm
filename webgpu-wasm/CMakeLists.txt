@@ -1,6 +1,6 @@
 
 SET(CMAKE_EXECUTABLE_SUFFIX .html)
-
+set (CMAKE_CXX_STANDARD 20)
 #Set binary directory
 
 SET(WW_SOURCES 
@@ -8,6 +8,9 @@ SET(WW_SOURCES
 
 	src/Application.h
 	src/Application.cpp
+
+	src/ModelLoader.h
+	src/ModelLoader.cpp
 
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
@@ -41,6 +44,15 @@ SET(WW_SOURCES
 
 	src/Renderer/WebGPU/wgpuVertexBuffer.h
 	src/Renderer/WebGPU/wgpuVertexBuffer.cpp	
+
+	src/Scene/GameObject.h
+	src/Scene/GameObject.cpp
+
+	src/Scene/Scene.h
+	src/Scene/Scene.cpp
+
+	src/Scene/TriangleMesh.h
+	src/Scene/TriangleMesh.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
@@ -54,4 +66,4 @@ SET(LINKER_FLAGS
 
 set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-s USE_WEBGPU=1 -o index.html -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
 target_link_libraries(wgpu_wasm PUBLIC glm)
-target_include_directories(wgpu_wasm PUBLIC ../3pp/)
+target_include_directories(wgpu_wasm PUBLIC src/ ../3pp/)

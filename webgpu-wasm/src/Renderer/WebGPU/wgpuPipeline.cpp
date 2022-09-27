@@ -12,7 +12,7 @@ WGpuPipeline::~WGpuPipeline()
 {
 }
 
-void WGpuPipeline::addBindGroup(WGpuBindGroup* bindgroup)
+void WGpuPipeline::addBindGroup(WGpuBindGroupLayout* bindgroup)
 {
     m_BindGroups.push_back(bindgroup);
 }
@@ -26,8 +26,8 @@ void WGpuPipeline::build(WGpuDevice* device)
 {
     std::vector<wgpu::BindGroupLayout> bindGroupLayouts;
     bindGroupLayouts.reserve(m_BindGroups.size());
-    for(WGpuBindGroup* bg : m_BindGroups){
-        bindGroupLayouts.emplace_back(*bg->getLayout());
+    for(WGpuBindGroupLayout* bg : m_BindGroups){
+        bindGroupLayouts.emplace_back(*bg->get());
     }
 
     wgpu::PipelineLayoutDescriptor plDescriptor{};

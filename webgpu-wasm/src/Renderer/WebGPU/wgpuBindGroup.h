@@ -33,12 +33,62 @@ enum class TextureSampleType : uint32_t {
     Uint = static_cast<uint32_t>(wgpu::TextureSampleType::Uint),
 };
 
+class WGpuBindGroupLayout {
+public:
+    WGpuBindGroupLayout() : m_Label("") {};
+    WGpuBindGroupLayout(const std::string& label);
+    ~WGpuBindGroupLayout();
+
+    //TODO: do some validation against the layout when adding entries
+    void addBuffer(BufferBindingType bindingType, uint64_t minBindingSize, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
+    void addSampler(SamplerBindingType bindingType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
+    void addTexture(TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
+    void build(WGpuDevice *device);
+    wgpu::BindGroupLayout* get();
+
+private:
+    struct LayoutEntry {
+        uint32_t bindingSlot;
+        wgpu::ShaderStage visibility;
+        enum class Type {
+            Buffer,
+            Sampler,
+            Texture,
+            // StorageTexture
+        } entryType;
+
+        struct Buffer {
+            BufferBindingType type;
+            uint64_t minBindingSize;
+        } buffer;
+
+        struct Sampler {
+            SamplerBindingType type;
+        } sampler;
+
+        struct Texture {
+            TextureSampleType type;
+        } texture;
+    };
+
+    std::string m_Label;
+
+    wgpu::BindGroupLayout m_Layout;
+
+    std::vector<LayoutEntry> m_Entries;
+};
+
 // TODO: only works for buffer binding layout. make it more general for other binding types (samplers, textures, ...)
 class WGpuBindGroup {
 public:
     WGpuBindGroup() : m_Label("") {};
     WGpuBindGroup(const std::string& label);
     ~WGpuBindGroup();
+
+    void setLayout(WGpuBindGroupLayout* layout);
 
     void addBuffer(WGpuBuffer* buffer, BufferBindingType bindingType, uint64_t minBindingSize, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
@@ -47,8 +97,9 @@ public:
     void addTexture(WGpuTexture* texture, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
     void build(WGpuDevice *device);
+
     const wgpu::BindGroup& get();
-    wgpu::BindGroupLayout* getLayout();
+    WGpuBindGroupLayout* getLayout();
 
 private:
     struct Entry {
@@ -81,7 +132,7 @@ private:
 
     std::string m_Label;
 
-    wgpu::BindGroupLayout m_Layout;
+    WGpuBindGroupLayout* m_Layout;
     wgpu::BindGroup m_BindGroup;
 
     std::vector<Entry> m_Entries;

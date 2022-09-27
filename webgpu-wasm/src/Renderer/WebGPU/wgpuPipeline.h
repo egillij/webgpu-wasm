@@ -4,7 +4,7 @@
 
 #include <vector>
 
-class WGpuBindGroup;
+class WGpuBindGroupLayout;
 class WGpuShader;
 class WGpuDevice;
 
@@ -13,7 +13,7 @@ public:
     WGpuPipeline();
     ~WGpuPipeline();
 
-    void addBindGroup(WGpuBindGroup* bindgroup);
+    void addBindGroup(WGpuBindGroupLayout* bindgroup);
     
     //void setVertexBufferLayout(....);
     void setShader(WGpuShader* shader);
@@ -23,7 +23,7 @@ public:
     const wgpu::RenderPipeline& getPipeline() const { return m_Pipeline; }
 
 private:
-    std::vector<WGpuBindGroup*> m_BindGroups;
+    std::vector<WGpuBindGroupLayout*> m_BindGroups;
     WGpuShader* m_Shader;
 
     wgpu::RenderPipeline m_Pipeline;

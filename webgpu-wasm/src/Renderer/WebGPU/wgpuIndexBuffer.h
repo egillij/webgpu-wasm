@@ -12,11 +12,15 @@ enum class IndexBufferFormat : uint32_t {
 class WGpuIndexBuffer : public WGpuBuffer {
 public:
     WGpuIndexBuffer() : m_DataFormat(IndexBufferFormat::Undefined) {};
-    WGpuIndexBuffer(WGpuDevice* device, const std::string& label, void* data, size_t size, IndexBufferFormat dataFormat);
+    WGpuIndexBuffer(WGpuDevice* device, const std::string& label, void* data, uint64_t indexCount, IndexBufferFormat dataFormat);
     ~WGpuIndexBuffer() {};
 
     inline IndexBufferFormat getDataFormat() const {return m_DataFormat;}
 
+    inline uint32_t getIndexCount() const {return m_IndexCount;}
+
+
 private:
     IndexBufferFormat m_DataFormat;
+    uint64_t m_IndexCount;
 };

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+class Scene;
 class WGpuDevice;
 class WGpuSwapChain;
 class WGpuVertexBuffer;
@@ -35,36 +37,10 @@ public:
 private:
     std::string m_Name;
 
+    Scene* m_Scene = nullptr;
+
     WGpuDevice* m_Device = nullptr;
 
     bool m_IsInitialized;
-
-    WGpuSwapChain* wSwapChain;
-    WGpuVertexBuffer* vertexBuffer;
-    WGpuIndexBuffer* indexBuffer;
-    WGpuUniformBuffer* sceneUniformBuffer;
-    WGpuUniformBuffer* modelUniformBuffer;
-    WGpuUniformBuffer* modelUniformBuffer2;
-
-    WGpuShader* shader = nullptr;
-    WGpuBindGroup* sceneUniformBindGroup = nullptr;
-    WGpuBindGroup* modelUniformBindGroup = nullptr;
-    WGpuBindGroup* modelUniformBindGroup2 = nullptr;
-    WGpuPipeline* pipeline = nullptr;
-    WGpuTexture* texture;
-    WGpuSampler* sampler;
-
-    glm::mat4 projectionMatrix;
-    glm::mat4 viewMatrix;
-
-    struct SceneUniforms {
-        glm::mat4 viewProjection;
-    };
-
-    struct ModelUniforms {
-        glm::mat4 modelMatrix;
-    };
-
-    ModelUniforms modelUniforms;
-    ModelUniforms modelUniforms2;
+    
 };
