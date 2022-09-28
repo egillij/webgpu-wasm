@@ -8,7 +8,7 @@ struct Entity {
 };
 
 struct MeshComponent {
-
+    
 };
 
 struct TransformComponent {

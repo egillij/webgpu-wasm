@@ -3,15 +3,13 @@
 #include <string>
 #include <glm/mat4x4.hpp>
 
+#include "Utils/UniformStructs.h"
+
 class TriangleMesh;
 class WGpuDevice;
 class WGpuBindGroup;
 class WGpuBindGroupLayout;
 class WGpuUniformBuffer;
-
-struct ModelUniforms {
-    glm::mat4 transform;
-};
 
 class GameObject {
 public:

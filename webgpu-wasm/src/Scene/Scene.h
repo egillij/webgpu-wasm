@@ -8,6 +8,8 @@
 #include "TriangleMesh.h"
 #include "GameObject.h"
 
+#include "Utils/UniformStructs.h"
+
 class WGpuDevice;
 class WGpuBindGroup;
 class WGpuBindGroupLayout;
@@ -45,6 +47,12 @@ public:
     void onUpdate();
 
 private:
+    WGpuBindGroup* getUniformsBindGroup();
+    std::vector<GameObject*>& getGameObjects();
+
+    friend class Renderer;
+
+private:
     std::string m_Name;
     std::vector<GameObject*> m_GameObjects;
 
@@ -56,23 +64,12 @@ private:
     WGpuUniformBuffer* sceneUniformBuffer = nullptr;
     WGpuBindGroupLayout* sceneUniformBindGroupLayout = nullptr;
     WGpuBindGroup* sceneUniformBindGroup = nullptr;
-    struct SceneUniforms {
-        glm::mat4 viewProjection;
-    };
+    
     SceneUniforms sceneUniforms;
 
     //Temporary
-    WGpuSwapChain* wSwapChain = nullptr;
-
-    WGpuShader* shader = nullptr;
     
-    WGpuPipeline* pipeline = nullptr;
-    WGpuBindGroupLayout* materialBindGroupLayout = nullptr;
-    WGpuBindGroup* materialBindGroup = nullptr;
-    WGpuBindGroupLayout* modelUniformBindGroupLayout = nullptr;
-    WGpuTexture* texture = nullptr;
-    WGpuSampler* sampler = nullptr;
-    WGpuTexture* depthTexture = nullptr;
+    
 
     WGpuDevice* device_;
 };

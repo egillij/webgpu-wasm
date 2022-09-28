@@ -4,16 +4,8 @@
 
 #include "Scene/Scene.h"
 
+#include "Renderer/Renderer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
-#include "Renderer/WebGPU/wgpuSwapChain.h"
-#include "Renderer/WebGPU/wgpuVertexBuffer.h"
-#include "Renderer/WebGPU/wgpuIndexBuffer.h"
-#include "Renderer/WebGPU/wgpuUniformBuffer.h"
-#include "Renderer/WebGPU/wgpuShader.h"
-#include "Renderer/WebGPU/wgpuPipeline.h"
-#include "Renderer/WebGPU/wgpuTexture.h"
-#include "Renderer/WebGPU/wgpuSampler.h"
-#include "Renderer/WebGPU/wgpuBindGroup.h"
 
 #include <emscripten.h>
 // #include <emscripten/html5.h>
@@ -134,6 +126,7 @@ void Application::initializeAndRun()
     scene.numberOfModels = models.size();
 
     m_Scene = new Scene(&scene, m_Device);
+    m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
 
@@ -144,6 +137,8 @@ void Application::onUpdate()
     if(!m_IsInitialized) return;
 
     if(m_Scene) m_Scene->onUpdate();
+
+    if(m_Renderer) m_Renderer->render(m_Scene);
 }
 
 Application* Application::get()

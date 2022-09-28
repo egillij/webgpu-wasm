@@ -17,6 +17,7 @@ class WGpuBindGroup;
 class WGpuPipeline;
 class WGpuTexture;
 class WGpuSampler;
+class Renderer;
 
 namespace wgpu {
     class Device;
@@ -38,6 +39,7 @@ private:
     std::string m_Name;
 
     Scene* m_Scene = nullptr;
+    Renderer* m_Renderer = nullptr;
 
     WGpuDevice* m_Device = nullptr;
 

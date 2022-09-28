@@ -12,6 +12,9 @@ SET(WW_SOURCES
 	src/ModelLoader.h
 	src/ModelLoader.cpp
 
+	src/Renderer/Renderer.h
+	src/Renderer/Renderer.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 
@@ -53,6 +56,8 @@ SET(WW_SOURCES
 
 	src/Scene/TriangleMesh.h
 	src/Scene/TriangleMesh.cpp
+
+	src/Utils/UniformStructs.h
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
