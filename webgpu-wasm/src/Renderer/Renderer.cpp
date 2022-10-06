@@ -1,5 +1,8 @@
 #include "Renderer.h"
 
+#include "Renderer/TriangleMesh.h"
+#include "Renderer/Material.h"
+
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuSwapChain.h"
 #include "Renderer/WebGPU/wgpuTexture.h"
@@ -16,9 +19,6 @@
 #include "Utils/UniformStructs.h"
 
 #include <emscripten/emscripten.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 
 static const char shaderCode[] = R"(
 
@@ -53,8 +53,13 @@ static const char shaderCode[] = R"(
         return output;
     }
 
-    @group(2) @binding(0) var mySampler : sampler;
-    @group(2) @binding(1) var myTexture : texture_2d<f32>;
+    struct MaterialUniforms {
+        color : vec3<f32>,
+    };
+
+    @group(2) @binding(0) var<uniform> materialUniforms : MaterialUniforms;
+    @group(2) @binding(1) var mySampler : sampler;
+    @group(2) @binding(2) var myTexture : texture_2d<f32>;
 
     @fragment
     fn main_f(
@@ -64,7 +69,7 @@ static const char shaderCode[] = R"(
         var fragColor : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
         let gamma : f32 = 1.0 / 2.2;
         let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
-        fragColor = vec4<f32>(pow(fragColor.rgb, gammaVec), 1.0);
+        fragColor = vec4<f32>(pow(materialUniforms.color *fragColor.rgb, gammaVec), 1.0);
         return fragColor;
     }
 )";
@@ -86,8 +91,9 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_SceneUniformBindGroupLayout->build(m_Device);
 
     m_MaterialBindGroupLayout = new WGpuBindGroupLayout("Material Bind Group Layout");
-    m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 1, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->build(m_Device);
 
     m_ModelUniformBindGroupLayout = new WGpuBindGroupLayout("Model Bind Group Layout");
@@ -103,59 +109,6 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_Pipeline->addBindGroup(m_MaterialBindGroupLayout);
     m_Pipeline->setShader(shader);
     m_Pipeline->build(device);
-
-
-    /////////////////////////////////
-    // Load texture
-    emscripten_wget("/webgpu-wasm/avatar.jpg", "./avatar.jpg");
-    stbi_set_flip_vertically_on_load(true);
-    int texwidth, texheight, texchannels;
-    unsigned char* imageData = stbi_load("./avatar.jpg", &texwidth, &texheight, &texchannels, 4);
-
-    // wgpu::TextureDescriptor texDesc{};
-    // texDesc.label = "Test texture";
-    // texDesc.format = wgpu::TextureFormat::BGRA8Unorm;
-    wgpu::Extent3D texExtent{};
-    texExtent.width = texwidth;
-    texExtent.height = texheight;
-    // texDesc.size = texExtent;
-    // texDesc.usage = wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::TextureBinding;
-
-    TextureCreateInfo texInfo{};
-    texInfo.format = TextureFormat::RGBA8Unorm;
-    texInfo.width = texwidth;
-    texInfo.height = texheight;
-    texInfo.usage = {TextureUsage::CopyDst, TextureUsage::TextureBinding};
-
-    texture = new WGpuTexture("Test texture", &texInfo, device);
-
-    SamplerCreateInfo samplerInfo{};
-    sampler = new WGpuSampler("Sampler", &samplerInfo, device);
-    // testTexture = wDevice.getHandle().CreateTexture(&texDesc);
-
-    wgpu::Queue queue = device->getHandle().GetQueue();
-    wgpu::ImageCopyTexture imgCpyTex{};
-    imgCpyTex.texture = texture->getHandle();
-    wgpu::Origin3D texOrig{};
-    imgCpyTex.origin = texOrig;
-
-    wgpu::TextureDataLayout texDataLayout{};
-    texDataLayout.bytesPerRow = texwidth * 4;
-    texDataLayout.rowsPerImage = texheight;
-    texDataLayout.offset = 0;
-
-    queue.WriteTexture(&imgCpyTex, imageData, texwidth*texheight*4, &texDataLayout, &texExtent);
-
-    materialBindGroupLayout = new WGpuBindGroupLayout("Material Bind Group Layout");
-    materialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
-    materialBindGroupLayout->addTexture(TextureSampleType::Float, 1, wgpu::ShaderStage::Fragment);
-    materialBindGroupLayout->build(m_Device);
-
-    materialBindGroup = new WGpuBindGroup("Material Bind Group");
-    materialBindGroup->setLayout(materialBindGroupLayout);
-    materialBindGroup->addSampler(sampler, SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
-    materialBindGroup->addTexture(texture, TextureSampleType::Float, 1, wgpu::ShaderStage::Fragment);
-    materialBindGroup->build(m_Device);
 }
 
 Renderer::~Renderer()
@@ -197,7 +150,7 @@ void Renderer::render(Scene* scene)
     renderPassDescription.colorAttachments = &attachment;
     renderPassDescription.depthStencilAttachment = &depthAttachment;
 
-    static uint64_t frameNr = 0;
+    static uint64_t frameNr = 0;    
 
     wgpu::CommandBuffer commands;
     {
@@ -223,7 +176,7 @@ void Renderer::render(Scene* scene)
                 renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
-                renderPass.SetBindGroup(2, materialBindGroup->get());
+                renderPass.SetBindGroup(2, object->getMaterialBindGroup()->get());
 
                 renderPass.DrawIndexed(indexBuffer->getIndexCount());
             }

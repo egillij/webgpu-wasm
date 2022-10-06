@@ -1,13 +1,15 @@
 #include "GameObject.h"
 
-#include "TriangleMesh.h"
+#include "Renderer/TriangleMesh.h"
+
+#include "Renderer/Material.h"
 
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuBindGroup.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
 
 GameObject::GameObject(const std::string& name)
-:m_Name(name), m_Mesh(nullptr), m_BindGroup(nullptr)
+:m_Name(name), m_Mesh(nullptr), m_BindGroup(nullptr), m_Material(nullptr)
 {
     m_ModelUniforms.transform = glm::mat4(1.f);
 }
@@ -37,4 +39,13 @@ void GameObject::setMesh(const std::string& meshFile, const glm::mat4& transform
     m_BindGroup->setLayout(m_BindGroupLayout);
     m_BindGroup->addBuffer(m_UniformBuffer, BufferBindingType::Uniform, sizeof(ModelUniforms), 0, wgpu::ShaderStage::Vertex);
     m_BindGroup->build(device);
+
+    // TODO: another function to register/add a material
+    m_Material = new PBRMaterial("PBR test material", glm::vec3(0.2f, 0.4f, 0.8f), device);
+}
+
+WGpuBindGroup* GameObject::getMaterialBindGroup()
+{
+    if(!m_Material) return nullptr;
+    return m_Material->getBindGroup();
 }

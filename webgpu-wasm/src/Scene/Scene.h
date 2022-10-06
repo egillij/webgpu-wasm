@@ -5,7 +5,6 @@
 #include <glm/mat4x4.hpp>
 #include <vector>
 
-#include "TriangleMesh.h"
 #include "GameObject.h"
 
 #include "Utils/UniformStructs.h"

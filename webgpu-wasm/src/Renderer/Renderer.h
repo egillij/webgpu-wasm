@@ -33,10 +33,4 @@ private:
 
     //Temp. Move shader to material class
     WGpuShader* shader = nullptr;
-
-    WGpuBindGroupLayout* materialBindGroupLayout = nullptr;
-    WGpuBindGroup* materialBindGroup = nullptr;
-    WGpuTexture* texture = nullptr;
-    WGpuSampler* sampler = nullptr;
-
 };
