@@ -7,7 +7,7 @@ class WGpuVertexBuffer;
 class WGpuIndexBuffer;
 class WGpuDevice;
 
-struct Part {
+struct MeshPart {
     WGpuVertexBuffer* vertexBuffer;
     WGpuIndexBuffer* indexBuffer;
 
@@ -29,7 +29,8 @@ public:
 private:
     std::string m_Name;
     
-    std::vector<Part> m_Parts;  
+    // A triangle mesh should not contain parts, parts should be the basic building block
+    std::vector<MeshPart> m_Parts;
 
     // Resource location
     std::string m_ServerResource;

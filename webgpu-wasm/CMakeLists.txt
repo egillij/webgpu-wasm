@@ -15,12 +15,15 @@ SET(WW_SOURCES
 	src/Renderer/Renderer.h
 	src/Renderer/Renderer.cpp
 
-	src/Renderer/TriangleMesh.h
-	src/Renderer/TriangleMesh.cpp
-
 	src/Renderer/Material.h
 	src/Renderer/Material.cpp
 	src/Renderer/PBRMaterial.cpp
+
+	src/Renderer/Geometry/TriangleMesh.h
+	src/Renderer/Geometry/TriangleMesh.cpp
+	
+	src/Renderer/Geometry/Part.h
+	src/Renderer/Geometry/Part.cpp
 
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp

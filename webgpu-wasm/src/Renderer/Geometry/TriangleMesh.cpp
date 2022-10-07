@@ -40,7 +40,7 @@ void TriangleMesh::loadFromFile(const std::string &filename, WGpuDevice *device)
     for (int i = 0; i < model.modelData.size(); ++i)
     {
         m_Parts.push_back({nullptr, nullptr});
-        Part& part = m_Parts.back();
+        MeshPart& part = m_Parts.back();
 
         // For now we just load the first mesh from the .obj file. Later model loading should be moved out of this and create as many triangle meshes as needed for the file
         part.vertexBuffer = new WGpuVertexBuffer(device, m_Name + + "- Vertex Buffer_" + std::to_string(i), model.modelData.at(i).vertexData, model.modelData.at(i).numberOfVertices * 8 * sizeof(float));

@@ -1,6 +1,6 @@
 #include "GameObject.h"
 
-#include "Renderer/TriangleMesh.h"
+#include "Renderer/Geometry/TriangleMesh.h"
 
 #include "Renderer/Material.h"
 

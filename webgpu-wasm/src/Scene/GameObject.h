@@ -37,5 +37,7 @@ private:
     WGpuUniformBuffer* m_UniformBuffer;
     ////////////
 
+    // Currently only one material per model, even if it is constructed of multiple parts. That should be changed.
+    // Each renderable should have it's own material
     Material* m_Material;
 };
