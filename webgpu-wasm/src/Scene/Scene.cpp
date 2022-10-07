@@ -144,7 +144,7 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 5.f;
+    static float radius = 8.f;
     static float phi = 0.f;
     static float theta = 0.f;
 
@@ -160,8 +160,9 @@ void Scene::onUpdate()
     // printf("Frame %f\n", weight);
 
     t += 1.f/60.f;
-    phi = glm::radians(10.f)*t;
+    // phi = glm::clamp(glm::radians(10.f)*t, 0.f, glm::radians(180.f));
     theta = glm::radians(5.f)*t;
+    // radius = 50.f*glm::cos(t*glm::radians(5.f));
     // uniformColor.color[0] = 1.0f;
     // uniformColor.color[1] = 0.502f;
     // uniformColor.color[2] = 0.f;

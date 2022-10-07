@@ -150,7 +150,9 @@ void Renderer::render(Scene* scene)
     renderPassDescription.colorAttachments = &attachment;
     renderPassDescription.depthStencilAttachment = &depthAttachment;
 
-    static uint64_t frameNr = 0;    
+    static uint64_t frameNr = 0;
+
+    int frameTriangles = 0;
 
     wgpu::CommandBuffer commands;
     {
@@ -159,8 +161,6 @@ void Renderer::render(Scene* scene)
             wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
             renderPass.SetPipeline(m_Pipeline->getPipeline());
             renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
-            WGpuIndexBuffer* iBuffer = nullptr;
-            WGpuVertexBuffer* vBuffer = nullptr;
             
             auto gameObjects = scene->getGameObjects();
 
@@ -168,17 +168,25 @@ void Renderer::render(Scene* scene)
                 GameObject* object = gameObjects.at(i);
                 TriangleMesh* mesh = object->getMesh();
                 if(!mesh) continue;
-                
-                WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
-                renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
 
-                WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
-                renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
                 renderPass.SetBindGroup(2, object->getMaterialBindGroup()->get());
 
-                renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                for(size_t j = 0; j < mesh->getNumberOfParts(); ++j){
+                    if(!mesh->isPartReady(j)) {
+                        continue;
+                    }
+                    
+                    renderPass.SetVertexBuffer(0, mesh->getPartVertexBuffer(j)->getHandle());
+
+                    WGpuIndexBuffer* indexBuffer = mesh->getPartIndexBuffer(j);
+                    renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+
+                    renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                    frameTriangles += indexBuffer->getIndexCount() / 3;
+                }
             }
             
             renderPass.End();
@@ -188,5 +196,6 @@ void Renderer::render(Scene* scene)
         frameNr++;
     }
 
-    queue.Submit(1, &commands);   
+    queue.Submit(1, &commands);
+    // printf("Triangles drawn: %i\n", frameTriangles);
 }

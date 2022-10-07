@@ -12,21 +12,21 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-PBRMaterial::PBRMaterial(const std::string& name, const glm::vec3& color, WGpuDevice* device)
-: Material(name, MaterialType::PBR)
+PBRMaterial::PBRMaterial(const std::string &name, const glm::vec3 &color, WGpuDevice *device)
+    : Material(name, MaterialType::PBR)
 {
     m_Uniforms.m_Color = color;
-    m_UniformBuffer = new WGpuUniformBuffer(device, m_Name+"_Material_UB", sizeof(PBRUniforms));
+    m_UniformBuffer = new WGpuUniformBuffer(device, m_Name + "_Material_UB", sizeof(PBRUniforms));
 
     wgpu::Queue queue = device->getHandle().GetQueue();
     queue.WriteBuffer(m_UniformBuffer->getHandle(), 0, &m_Uniforms, sizeof(PBRUniforms));
-    
+
     /////////////////////////////////
     // Load texture
-    emscripten_wget("/webgpu-wasm/avatar.jpg", "./avatar.jpg");
+    emscripten_wget("/resources/textures/avatar.jpg", "./avatar.jpg");
     stbi_set_flip_vertically_on_load(true);
     int texwidth, texheight, texchannels;
-    unsigned char* imageData = stbi_load("./avatar.jpg", &texwidth, &texheight, &texchannels, 4);
+    unsigned char *imageData = stbi_load("./avatar.jpg", &texwidth, &texheight, &texchannels, 4);
 
     // wgpu::TextureDescriptor texDesc{};
     // texDesc.label = "Test texture";
@@ -59,7 +59,7 @@ PBRMaterial::PBRMaterial(const std::string& name, const glm::vec3& color, WGpuDe
     texDataLayout.rowsPerImage = texheight;
     texDataLayout.offset = 0;
 
-    queue.WriteTexture(&imgCpyTex, imageData, texwidth*texheight*4, &texDataLayout, &texExtent);
+    queue.WriteTexture(&imgCpyTex, imageData, texwidth * texheight * 4, &texDataLayout, &texExtent);
 
     m_MaterialBindGroupLayout = new WGpuBindGroupLayout(m_Name + "_Material_BGL");
     m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);

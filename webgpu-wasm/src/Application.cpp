@@ -25,23 +25,24 @@ static uint32_t WINDOW_HEIGHT = 600;
 static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 static float fovY = glm::radians(45.f);
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
-static Application * s_Instance = nullptr;
+static Application *s_Instance = nullptr;
 
-static WGpuTexture* depthTexture = nullptr;
+static WGpuTexture *depthTexture = nullptr;
 
-void GetDevice(){
+void GetDevice()
+{
     const WGPUInstance instance = nullptr;
 
-    WGPURequestAdapterOptions *options = (WGPURequestAdapterOptions*)malloc(sizeof(WGPURequestAdapterOptions));
+    WGPURequestAdapterOptions *options = (WGPURequestAdapterOptions *)malloc(sizeof(WGPURequestAdapterOptions));
     memset(options, 0, sizeof(WGPURequestAdapterOptions));
     options->powerPreference = WGPUPowerPreference::WGPUPowerPreference_HighPerformance;
     options->forceFallbackAdapter = false;
-    
-    wgpuInstanceRequestAdapter(instance, options, [](WGPURequestAdapterStatus status, WGPUAdapter adapter, char const * message, void * userdata) {
+
+    wgpuInstanceRequestAdapter(
+        instance, options, [](WGPURequestAdapterStatus status, WGPUAdapter adapter, char const *message, void *userdata)
+        {
 
         if(status != WGPURequestAdapterStatus::WGPURequestAdapterStatus_Success){
             printf("Failed to get adapter: %s\n", message);
@@ -77,11 +78,11 @@ void GetDevice(){
                 }
             }, userdata);
             
-        }
-    }, nullptr);
+        } },
+        nullptr);
 }
 
-Application::Application(const std::string& applicationName) 
+Application::Application(const std::string &applicationName)
 {
     assert(!s_Instance);
 
@@ -91,13 +92,11 @@ Application::Application(const std::string& applicationName)
     m_IsInitialized = false;
     m_Scene = nullptr;
     // Get the device and then continue with initialization
-    GetDevice(); 
+    GetDevice();
 }
-
 
 Application::~Application()
 {
-
 }
 
 void Application::setDevice(wgpu::Device device_)
@@ -109,18 +108,29 @@ void Application::initializeAndRun()
 {
     printf("Do some initialization\n");
 
-    const char* battleDroidFile = "b1_battle_droid.obj";
+    const char *battleDroidFile = "character.obj";
     // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
 
     SceneDescription scene{};
     scene.name = "Test Scene";
     std::vector<ModelDescription> models;
-    ModelDescription model1{};
-    model1.filename = battleDroidFile;
-    model1.position = glm::vec3(0.f);
-    model1.scale = glm::vec3(1.f);
-    model1.rotation = glm::vec3(0.f);
-    models.push_back(model1);
+    int xFactor = 5;
+    int zFactor = 5;
+    float xOffset = float(xFactor) / 2.f;
+    float zOffset = float(zFactor) / 2.f;
+
+    for (int x = 0; x < xFactor; ++x)
+    {
+        for (int z = 0; z < zFactor; ++z)
+        {
+            ModelDescription model1{};
+            model1.filename = battleDroidFile;
+            model1.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
+            model1.scale = glm::vec3(1.f);
+            model1.rotation = glm::vec3(0.f);
+            models.push_back(model1);
+        }
+    }
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();
@@ -129,19 +139,21 @@ void Application::initializeAndRun()
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
-
 }
 
 void Application::onUpdate()
 {
-    if(!m_IsInitialized) return;
+    if (!m_IsInitialized)
+        return;
 
-    if(m_Scene) m_Scene->onUpdate();
+    if (m_Scene)
+        m_Scene->onUpdate();
 
-    if(m_Renderer) m_Renderer->render(m_Scene);
+    if (m_Renderer)
+        m_Renderer->render(m_Scene);
 }
 
-Application* Application::get()
+Application *Application::get()
 {
     return s_Instance;
 }

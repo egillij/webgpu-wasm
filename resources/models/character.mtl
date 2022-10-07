@@ -1,0 +1,62 @@
+# Blender MTL File: 'None'
+# Material Count: 5
+
+newmtl Arm.001
+Ns 285.917354
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.413636 0.413636 0.413636
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Bump C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Arm_Normal_DirectX.png
+map_Ns C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Arm_Roughness.png
+
+newmtl Chest.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Bump C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Chest_Normal_DirectX.png
+map_Ns C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Chest_Roughness.png
+
+newmtl Helmet.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Bump C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Helmet_Normal_DirectX.png
+map_Ns C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Helmet_Roughness.png
+
+newmtl Legs.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.709091 0.709091 0.709091
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Bump C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Legs_Normal_DirectX.png
+map_Ns C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Legs_Roughness.png
+
+newmtl Mask.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Bump C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Mask_Normal_DirectX.png
+map_Ns C:\\Users\\egill\\Downloads\\free-game-character-ancient\\source\\Pack\\Textures\\Mask_Roughness.png

@@ -73,6 +73,6 @@ SET(LINKER_FLAGS
 -s ASYNCIFY
 )
 
-set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-s USE_WEBGPU=1 -o index.html -s ASYNCIFY -s ALLOW_MEMORY_GROWTH")
+set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-sUSE_WEBGPU=1 -o index.html -sASYNCIFY -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING")
 target_link_libraries(wgpu_wasm PUBLIC glm)
 target_include_directories(wgpu_wasm PUBLIC src/ ../3pp/)
