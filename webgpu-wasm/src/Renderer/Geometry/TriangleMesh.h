@@ -19,20 +19,15 @@ public:
     TriangleMesh(const std::string& name);
     ~TriangleMesh();
 
-    void loadFromFile(const std::string& filename, WGpuDevice* device);
+    void update(const float* vertices, size_t verticesSize, const uint32_t* indices, uint32_t indexCount, WGpuDevice* device);
 
-    inline size_t getNumberOfParts() const {return m_Parts.size();}
-    inline bool isPartReady(uint32_t index) const { return m_Parts.at(index).isReady(); }
-    inline WGpuVertexBuffer* getPartVertexBuffer(uint32_t index) const {return m_Parts.at(index).vertexBuffer;}
-    inline WGpuIndexBuffer* getPartIndexBuffer(uint32_t index) const { return m_Parts.at(index).indexBuffer; }
+    inline bool isReady() const { return m_VertexBuffer != nullptr && m_IndexBuffer != nullptr; }
+    inline WGpuVertexBuffer* getVertexBuffer() const {return m_VertexBuffer;}
+    inline WGpuIndexBuffer* getIndexBuffer() const { return m_IndexBuffer; }
 
 private:
     std::string m_Name;
     
-    // A triangle mesh should not contain parts, parts should be the basic building block
-    std::vector<MeshPart> m_Parts;
-
-    // Resource location
-    std::string m_ServerResource;
-    std::string m_LocalResource;
+    WGpuVertexBuffer* m_VertexBuffer;
+    WGpuIndexBuffer* m_IndexBuffer;
 };

@@ -6,8 +6,10 @@ class TriangleMesh;
 
 class Part {
 public:
-    Part(const std::string& name);
+    Part(const std::string& name, TriangleMesh* mesh);
     ~Part();
+
+    TriangleMesh* getMesh() const { return m_Mesh; }
 
 private:
     std::string m_Name;

@@ -1,11 +1,14 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include <glm/mat4x4.hpp>
 
 #include "Utils/UniformStructs.h"
 
-class TriangleMesh;
+// class TriangleMesh;
+class Part;
 class WGpuDevice;
 class WGpuBindGroup;
 class WGpuBindGroupLayout;
@@ -19,7 +22,8 @@ public:
     ~GameObject();
 
     void setMesh(const std::string& meshFile, const glm::mat4& transform, WGpuDevice* device);
-    TriangleMesh* getMesh() { return m_Mesh; }
+    // TriangleMesh* getMesh() { return m_Mesh; }
+    std::vector<Part*>& getParts() { return m_Parts; }
     WGpuBindGroup* getModelBindGroup() { return m_BindGroup; }
     WGpuBindGroup* getMaterialBindGroup();
 
@@ -30,7 +34,8 @@ private:
 
     ////////////
     // All of this is a model/part
-    TriangleMesh* m_Mesh;
+    std::vector<Part*> m_Parts;
+    // TriangleMesh* m_Mesh;
     ModelUniforms m_ModelUniforms;
     WGpuBindGroupLayout* m_BindGroupLayout;
     WGpuBindGroup* m_BindGroup;

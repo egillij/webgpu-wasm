@@ -21,13 +21,28 @@ class WGpuTexture;
 class WGpuSampler;
 
 struct ModelDescription {
+    uint32_t id;
     std::string filename;
 
     glm::vec3 position;
     glm::vec3 rotation;
     glm::vec3 scale;
+};
 
-    //TODO: Material
+struct MaterialDescription {
+    uint32_t id;
+    glm::vec3 color;
+};
+
+struct GameObjectNode {
+    uint32_t id;
+    
+    int modelId;
+    int materialId;
+
+    glm::vec3 position;
+    glm::vec3 rotation;
+    glm::vec3 scale;
 };
 
 struct SceneDescription {
@@ -36,6 +51,12 @@ struct SceneDescription {
     // Information about what models are in the scene
     ModelDescription* modelDescriptions;
     uint64_t numberOfModels;
+
+    MaterialDescription* materialDescriptons;
+    uint64_t numberOfMaterials;
+
+    GameObjectNode* gameObjects;
+    uint64_t numberOfGameObjects;
 };
 
 class Scene {

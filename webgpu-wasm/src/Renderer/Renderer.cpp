@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
-#include "Renderer/TriangleMesh.h"
+#include "Renderer/Geometry/TriangleMesh.h"
+#include "Renderer/Geometry/Part.h"
 #include "Renderer/Material.h"
 
 #include "Renderer/WebGPU/wgpuDevice.h"
@@ -166,22 +167,22 @@ void Renderer::render(Scene* scene)
 
             for(int i = 0; i < gameObjects.size(); ++i){
                 GameObject* object = gameObjects.at(i);
-                TriangleMesh* mesh = object->getMesh();
-                if(!mesh) continue;
+                std::vector<Part*>& parts = object->getParts();
 
                 WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
                 renderPass.SetBindGroup(2, object->getMaterialBindGroup()->get());
 
-                for(size_t j = 0; j < mesh->getNumberOfParts(); ++j){
-                    if(!mesh->isPartReady(j)) {
+                for(size_t j = 0; j < parts.size(); ++j){
+                    TriangleMesh* mesh = parts[j]->getMesh();
+                    if(!mesh->isReady()) {
                         continue;
                     }
                     
-                    renderPass.SetVertexBuffer(0, mesh->getPartVertexBuffer(j)->getHandle());
+                    renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
 
-                    WGpuIndexBuffer* indexBuffer = mesh->getPartIndexBuffer(j);
+                    WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
                     renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
 
                     renderPass.DrawIndexed(indexBuffer->getIndexCount());

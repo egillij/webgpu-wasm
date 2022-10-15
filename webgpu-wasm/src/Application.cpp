@@ -114,6 +114,20 @@ void Application::initializeAndRun()
     SceneDescription scene{};
     scene.name = "Test Scene";
     std::vector<ModelDescription> models;
+
+    ModelDescription model1{};
+    model1.id = 1;
+    model1.filename = battleDroidFile;
+    model1.position = glm::vec3(0.f);
+    model1.scale = glm::vec3(1.f);
+    model1.rotation = glm::vec3(0.f);
+    models.push_back(model1);
+
+    scene.modelDescriptions = models.data();
+    scene.numberOfModels = models.size();
+
+    std::vector<GameObjectNode> gameObjects;
+
     int xFactor = 5;
     int zFactor = 5;
     float xOffset = float(xFactor) / 2.f;
@@ -123,17 +137,19 @@ void Application::initializeAndRun()
     {
         for (int z = 0; z < zFactor; ++z)
         {
-            ModelDescription model1{};
-            model1.filename = battleDroidFile;
-            model1.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
-            model1.scale = glm::vec3(1.f);
-            model1.rotation = glm::vec3(0.f);
-            models.push_back(model1);
+            GameObjectNode object{};
+            object.id = 10+x*zFactor+z;
+            object.modelId = 1;
+            object.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
+            object.scale = glm::vec3(1.f);
+            object.rotation = glm::vec3(0.f);
+            gameObjects.push_back(object);
         }
     }
+    scene.gameObjects = gameObjects.data();
+    scene.numberOfGameObjects = gameObjects.size();
 
-    scene.modelDescriptions = models.data();
-    scene.numberOfModels = models.size();
+
 
     m_Scene = new Scene(&scene, m_Device);
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);

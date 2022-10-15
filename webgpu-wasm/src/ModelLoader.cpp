@@ -179,6 +179,7 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
         }
 
         ModelData::PartData part{};
+        part.name = shape.name;
         part.vertexData = (float *)malloc(modelVertices.size() * 8 * sizeof(float));
         memcpy((void *)part.vertexData, (void *)modelVertices.data(), modelVertices.size() * sizeof(Vertex));
         part.numberOfVertices = modelVertices.size();

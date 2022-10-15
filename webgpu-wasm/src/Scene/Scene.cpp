@@ -118,6 +118,7 @@ Scene::Scene(const SceneDescription* description, WGpuDevice* device)
 
     for(int i = 0; i < description->numberOfModels; ++i){
         ModelDescription* model = description->modelDescriptions+i;
+        //TODO: Make and register meshes here instead of gameobjects
         GameObject* object = new GameObject(model->filename);
         glm::mat4 rotation = glm::mat4(1.f);
         rotation = glm::rotate(glm::mat4(1.f), model->rotation.z, glm::vec3(0.f, 0.f, 1.f));
@@ -129,6 +130,10 @@ Scene::Scene(const SceneDescription* description, WGpuDevice* device)
 
         m_GameObjects.push_back(object);
     }
+
+    //TODO: Make and register materials
+
+    //TODO: make gameobjects and construct the scene hierarchy
 }
 
 Scene::~Scene()
