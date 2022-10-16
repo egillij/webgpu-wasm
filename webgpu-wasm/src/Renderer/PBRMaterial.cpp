@@ -15,7 +15,11 @@
 PBRMaterial::PBRMaterial(const std::string &name, const glm::vec3 &color, WGpuDevice *device)
     : Material(name, MaterialType::PBR)
 {
-    m_Uniforms.m_Color = color;
+    m_Uniforms.albedo = color;
+    m_Uniforms.ambient = glm::vec3(0.0f, 0.0f, 1.0f);
+    m_Uniforms.specular = glm::vec3(1.f);
+    m_Uniforms.shininess = 32.f;
+
     m_UniformBuffer = new WGpuUniformBuffer(device, m_Name + "_Material_UB", sizeof(PBRUniforms));
 
     wgpu::Queue queue = device->getHandle().GetQueue();

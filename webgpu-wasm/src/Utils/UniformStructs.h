@@ -4,8 +4,10 @@
 
 struct SceneUniforms {
     glm::mat4 viewProjection;
+    glm::vec3 cameraPosition;
 };
 
 struct ModelUniforms {
     glm::mat4 transform;
+    glm::mat4 normalMatrix;
 };

@@ -16,7 +16,12 @@ enum class MaterialType {
 };
 
 struct PBRUniforms {
-    glm::vec3 m_Color;
+    glm::vec3 albedo;
+    float filler;
+    glm::vec3 ambient;
+    float filler2;
+    glm::vec3 specular;
+    float shininess;
 };
 
 class Material {

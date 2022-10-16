@@ -72,11 +72,17 @@ private:
 
     friend class Renderer;
 
+    // Ekki skalanlegt að gera þetta svona. Breyta pipeline til að taka á móti
+    // hlutum til að teikna. Nota material t.d. til að ákvarða í hvaða pipeline hlutur endar
+    // Nota lista af unique material týpum til að búa til allar pipelines sem þarf?
+    friend class PBRRenderPipeline;
+
 private:
     std::string m_Name;
     std::vector<GameObject*> m_GameObjects;
 
     struct Camera {
+        glm::vec3 position;
         glm::mat4x4 projectionMatrix;
         glm::mat4x4 viewMatrix;
     } m_Camera;

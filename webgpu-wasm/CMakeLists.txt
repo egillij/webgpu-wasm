@@ -25,6 +25,12 @@ SET(WW_SOURCES
 	src/Renderer/Geometry/Part.h
 	src/Renderer/Geometry/Part.cpp
 
+	src/Renderer/Pipelines/RenderPipeline.h
+	src/Renderer/Pipelines/RenderPipeline.cpp
+
+	src/Renderer/Pipelines/PBRRenderPipeline.h
+	src/Renderer/Pipelines/PBRRenderPipeline.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 

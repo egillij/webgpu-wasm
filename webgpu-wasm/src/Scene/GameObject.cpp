@@ -31,6 +31,7 @@ GameObject::GameObject(const std::string& name)
 :m_Name(name), m_BindGroup(nullptr), m_Material(nullptr)
 {
     m_ModelUniforms.transform = glm::mat4(1.f);
+    m_ModelUniforms.normalMatrix = glm::transpose(glm::inverse(m_ModelUniforms.transform));
 }
 
 GameObject::~GameObject()

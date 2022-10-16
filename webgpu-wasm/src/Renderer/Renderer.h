@@ -14,6 +14,8 @@ class WGpuShader;
 
 class Scene;
 
+class RenderPipeline;
+
 class Renderer {
 public:
     Renderer(uint32_t width, uint32_t height, WGpuDevice* device);
@@ -24,13 +26,6 @@ public:
 private:
     WGpuDevice* m_Device = nullptr;
     WGpuSwapChain* m_SwapChain = nullptr;
-    WGpuPipeline* m_Pipeline = nullptr;
-    WGpuTexture* m_DepthTexture = nullptr;
 
-    WGpuBindGroupLayout* m_ModelUniformBindGroupLayout = nullptr;
-    WGpuBindGroupLayout* m_MaterialBindGroupLayout = nullptr;
-    WGpuBindGroupLayout* m_SceneUniformBindGroupLayout = nullptr;
-
-    //Temp. Move shader to material class
-    WGpuShader* shader = nullptr;
+    RenderPipeline* m_Pipeline;
 };

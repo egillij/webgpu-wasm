@@ -106,12 +106,12 @@ Scene::Scene(const SceneDescription* description, WGpuDevice* device)
     sceneUniformBuffer = new WGpuUniformBuffer(device, "Scene Uniform Buffer", sizeof(SceneUniforms));
 
     sceneUniformBindGroupLayout = new WGpuBindGroupLayout("Scene Uniform Bind Group Layout");
-    sceneUniformBindGroupLayout->addBuffer(BufferBindingType::Uniform, sceneUniformBuffer->getSize(), 0, wgpu::ShaderStage::Vertex);
+    sceneUniformBindGroupLayout->addBuffer(BufferBindingType::Uniform, sceneUniformBuffer->getSize(), 0, wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment);
     sceneUniformBindGroupLayout->build(device_);
 
     sceneUniformBindGroup = new WGpuBindGroup("Scene Uniform Bind Group");
     sceneUniformBindGroup->setLayout(sceneUniformBindGroupLayout);
-    sceneUniformBindGroup->addBuffer(sceneUniformBuffer, BufferBindingType::Uniform, sceneUniformBuffer->getSize(), 0, wgpu::ShaderStage::Vertex);
+    sceneUniformBindGroup->addBuffer(sceneUniformBuffer, BufferBindingType::Uniform, sceneUniformBuffer->getSize(), 0, wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment);
     // sceneUniformBindGroup->addSampler(sampler, SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
     // sceneUniformBindGroup->addTexture(texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     sceneUniformBindGroup->build(device_);
@@ -158,8 +158,11 @@ void Scene::onUpdate()
     float z = radius * glm::cos(theta);
 
     //TODO: make camera spin
-    m_Camera.viewMatrix = glm::lookAt(glm::vec3(x, y, z)+glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    static glm::vec3 cameraPosition;
+    m_Camera.position = glm::vec3(x, y, z)+glm::vec3(0.f, 0.5f, 0.f);
+    m_Camera.viewMatrix = glm::lookAt(m_Camera.position, glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
+    sceneUniforms.cameraPosition = m_Camera.position;
 
 
     // printf("Frame %f\n", weight);
