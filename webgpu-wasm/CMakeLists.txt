@@ -19,6 +19,9 @@ SET(WW_SOURCES
 	src/Renderer/Material.cpp
 	src/Renderer/PBRMaterial.cpp
 
+	src/Renderer/MaterialSystem.h
+	src/Renderer/MaterialSystem.cpp
+
 	src/Renderer/Geometry/TriangleMesh.h
 	src/Renderer/Geometry/TriangleMesh.cpp
 	

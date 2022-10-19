@@ -16,21 +16,22 @@ enum class MaterialType {
 };
 
 struct PBRUniforms {
-    glm::vec3 albedo;
+    glm::vec3 albedo = glm::vec3(0.7f);
     float filler;
-    glm::vec3 ambient;
+    glm::vec3 ambient = glm::vec3(0.1f);
     float filler2;
-    glm::vec3 specular;
-    float shininess;
+    glm::vec3 specular = glm::vec3(1.f);
+    float shininess = 100.f;
 };
 
 class Material {
 public:
     WGpuBindGroup* getBindGroup() { return m_MaterialBindGroup; }
+    ~Material();
 
 protected:
     Material(const std::string& name, MaterialType type);
-    ~Material();
+    
 // private:
     std::string m_Name;
     MaterialType m_Type;
@@ -43,6 +44,7 @@ protected:
 class PBRMaterial final : public Material {
 public:
     PBRMaterial(const std::string& name, const glm::vec3& color, WGpuDevice* device);
+    PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuDevice* device);
     ~PBRMaterial();
 
 private:

@@ -1,42 +1,15 @@
 #include "ModelLoader.h"
 
+#include "Renderer/MaterialSystem.h"
+
+#include <unordered_map>
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
 
 #include <emscripten.h>
 
-namespace std
-{
-    // inline bool operator<(const tinyobj::index_t& a,
-    //     const tinyobj::index_t& b)
-    // {
-    //     if (a.vertex_index < b.vertex_index) return true;
-    //     if (a.vertex_index > b.vertex_index) return false;
-
-    //     if (a.normal_index < b.normal_index) return true;
-    //     if (a.normal_index > b.normal_index) return false;
-
-    //     if (a.texcoord_index < b.texcoord_index) return true;
-    //     if (a.texcoord_index > b.texcoord_index) return false;
-
-    //     return false;
-    // }
-
-    // inline bool operator<(const tinyobj::index_t a,
-    //     const tinyobj::index_t b)
-    // {
-    //     if (a.vertex_index < b.vertex_index) return true;
-    //     if (a.vertex_index > b.vertex_index) return false;
-
-    //     if (a.normal_index < b.normal_index) return true;
-    //     if (a.normal_index > b.normal_index) return false;
-
-    //     if (a.texcoord_index < b.texcoord_index) return true;
-    //     if (a.texcoord_index > b.texcoord_index) return false;
-
-    //     return false;
-    // }
-}
+#include <glm/gtx/string_cast.hpp>
 
 struct Vertex
 {
@@ -50,7 +23,7 @@ struct Face
     uint32_t indices[3];
 };
 
-ModelData ModelLoader::loadModelFromFile(const char *filename)
+ModelData ModelLoader::loadModelFromFile(const char *filename, MaterialSystem* materialSystem)
 {
     ModelData modelData;
 
@@ -81,8 +54,24 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
 
     // Append `default` material
     materials.push_back(tinyobj::material_t());
+    printf("Number of materials: %zu\n", materials.size());
+    // TODO: make all materials and register them into the material library so they can be used later
+    // TODO: add material reference/id to the parts that are created here
 
-    // TODO: make all materials and register them into the material library so they can be read during OBJ processing
+    uint32_t materialId = 0u;
+    std::unordered_map<uint32_t, Material*> materialMap;
+    for(auto material : materials) {
+        PBRUniforms materialData{};
+        materialData.ambient = { material.ambient[0], material.ambient[1], material.ambient[2] };
+        materialData.albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2] };
+        printf("Albedo: %s\n", glm::to_string(materialData.albedo).c_str());
+        materialData.specular = { material.specular[0], material.specular[1], material.specular[2] };
+        materialData.shininess = material.shininess;
+        materialMap[materialId] = materialSystem->registerMaterial(materialId, material.name, materialData);
+
+        ++materialId;
+    }
+
     //  for (auto material : materials)
     //  {
     //      if (!MaterialLibrary::Exists(material.name))
@@ -99,7 +88,6 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
     //             base_dir);
     //         MaterialLibrary::Add(material.name, mat);
     //     }
-
     // }
 
     // Go through shapes and create an indexed face set
@@ -110,10 +98,10 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
         unsigned int i = 0;
         unsigned int offset = 0;
 
-        std::vector<Vertex> modelVertices;
-        std::vector<Face> modelFaces;
+        std::unordered_map<int, std::vector<Vertex>> modelVertices;
+        std::unordered_map<int, std::vector<Face>> modelFaces;
 
-        std::map<tinyobj::index_t, int> knownVertices;
+        std::unordered_map<int, std::map<tinyobj::index_t, int>> knownVertices;
         while (true)
         {
             // Expect this to be 3 for triangles
@@ -124,14 +112,25 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
 
             std::vector<uint32_t> indexList;
             int faceIndices[3] = {-1, -1, -1};
+            int materialId = objMesh.material_ids[i];
+
             for (int j = 0; j < faceSize; j++)
             {
                 auto vertexIndices = objMesh.indices[j + offset];
-                auto found = knownVertices.find(vertexIndices);
+                auto matIt = knownVertices.find(materialId);
+                if(matIt == knownVertices.end()){ 
+                    knownVertices[materialId] = {};
+                    matIt = knownVertices.find(materialId);
+                }
 
-                if (found == knownVertices.end())
+                auto it = modelVertices.find(materialId);
+                if(it == modelVertices.end()) modelVertices[materialId] = {};
+
+                auto found = matIt->second.find(vertexIndices);
+
+                if (found == matIt->second.end())
                 {
-                    knownVertices[vertexIndices] = modelVertices.size();
+                    knownVertices[materialId][vertexIndices] = modelVertices.at(materialId).size();
 
                     std::vector<float> vertexPosition(&attrib.vertices[vertexIndices.vertex_index * 3], &attrib.vertices[vertexIndices.vertex_index * 3] + 3);
 
@@ -159,16 +158,20 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
                         faceVertex.uv[0] = vertexTexCoord[1];
                     }
 
-                    modelVertices.push_back(faceVertex);
-                    indexList.push_back(modelVertices.size() - 1);
+                    
+
+                    modelVertices.at(materialId).push_back(faceVertex);
+                    indexList.push_back(modelVertices.at(materialId).size() - 1);
                 }
                 else
                 {
                     indexList.push_back(found->second);
                 }
             }
-
-            modelFaces.push_back({indexList[0], indexList[1], indexList[2]});
+            
+            auto it = modelFaces.find(materialId);
+            if(it == modelFaces.end()) modelFaces[materialId] = {};
+            modelFaces.at(materialId).push_back({indexList[0], indexList[1], indexList[2]});
 
             offset += faceSize;
 
@@ -178,18 +181,31 @@ ModelData ModelLoader::loadModelFromFile(const char *filename)
                 break;
         }
 
-        ModelData::PartData part{};
-        part.name = shape.name;
-        part.vertexData = (float *)malloc(modelVertices.size() * 8 * sizeof(float));
-        memcpy((void *)part.vertexData, (void *)modelVertices.data(), modelVertices.size() * sizeof(Vertex));
-        part.numberOfVertices = modelVertices.size();
+        for(auto& vert : modelVertices){
+            int matId = vert.first;
+            printf("Creating buffers for material: %i\n", matId);
+            auto& vertData = vert.second;
 
-        part.indexData = (uint32_t *)malloc(modelFaces.size() * 3 * sizeof(uint32_t));
-        memcpy((void *)part.indexData, (void *)modelFaces.data(), modelFaces.size() * sizeof(Face));
-        part.numberOfIndices = modelFaces.size() * 3;
+            auto& indData = modelFaces.at(matId);
 
-        modelData.modelData.push_back(part);
+            ModelData::PartData part{};
+            part.name = shape.name;
+            printf("Vertex data: %zu\n", vertData.size());
+            part.vertexData = (float *)malloc(vertData.size() * 8 * sizeof(float));
+            memcpy((void *)part.vertexData, (void *)vertData.data(), vertData.size() * sizeof(Vertex));
+            part.numberOfVertices = vertData.size();
+            
+            printf("Index data: %zu\n", indData.size());
+            part.indexData = (uint32_t *)malloc(indData.size() * 3 * sizeof(uint32_t));
+            memcpy((void *)part.indexData, (void *)indData.data(), indData.size() * sizeof(Face));
+            part.numberOfIndices = indData.size() * 3;
+
+            part.material = materialMap.at(matId);
+
+            modelData.modelData.push_back(part);
+        }
+        
     }
-
+    printf("Returning model with parts: %zu\n", modelData.modelData.size());    
     return modelData;
 }

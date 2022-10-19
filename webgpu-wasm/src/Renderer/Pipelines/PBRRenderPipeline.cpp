@@ -64,11 +64,11 @@ static const char shaderCode[] = R"(
     };
 
     @group(2) @binding(0) var<uniform> materialUniforms : MaterialUniforms;
-    @group(2) @binding(1) var mySampler : sampler;
-    @group(2) @binding(2) var myTexture : texture_2d<f32>;
+    // @group(2) @binding(1) var mySampler : sampler;
+    // @group(2) @binding(2) var myTexture : texture_2d<f32>;
 
     const lDir = vec3<f32>(0.0, 0.0, -1.0);
-    const lCol = vec3<f32>(0.8, 0.1, 0.6);
+    const lCol = vec3<f32>(1.0, 1.0, 1.0);
 
     @fragment
     fn main_f(
@@ -76,7 +76,7 @@ static const char shaderCode[] = R"(
         @location(1) fragNormal : vec3<f32>,
         @location(2) fragPosition : vec3<f32>
     ) -> @location(0) vec4<f32> {
-        var texSample : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
+        // var texSample : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
         
         var norm = normalize(fragNormal);
         let lightDir = lDir; // Already normalized
@@ -90,7 +90,7 @@ static const char shaderCode[] = R"(
 
         let R = reflect(lightDir, norm);
 
-        let ambient = materialUniforms.ambient * lCol;
+        let ambient = materialUniforms.ambient * materialUniforms.albedo;
 
         let N_dot_L = dot(norm, -lightDir);
 
@@ -101,7 +101,7 @@ static const char shaderCode[] = R"(
         let spec = pow(max(0.0, V_dot_R), materialUniforms.shininess);
         let specular = spec * materialUniforms.specular * lCol;
 
-        let color = ambient + diffuse + specular; 
+        let color = ambient +  diffuse + specular; 
 
         let gamma : f32 = 1.0 / 2.2;
         let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
@@ -123,8 +123,8 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
 
     m_MaterialBindGroupLayout = new WGpuBindGroupLayout("Material Bind Group Layout");
     m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->build(device);
 
     m_ModelUniformBindGroupLayout = new WGpuBindGroupLayout("Model Bind Group Layout");
@@ -202,19 +202,20 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
             for(int i = 0; i < gameObjects.size(); ++i){
                 GameObject* object = gameObjects.at(i);
-                std::vector<Part*>& parts = object->getParts();
+                std::vector<std::pair<Part*, Material*>>& parts = object->getParts();
 
                 WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
-                renderPass.SetBindGroup(2, object->getMaterialBindGroup()->get());
 
                 for(size_t j = 0; j < parts.size(); ++j){
-                    TriangleMesh* mesh = parts[j]->getMesh();
+                    TriangleMesh* mesh = parts[j].first->getMesh();
                     if(!mesh->isReady()) {
                         continue;
                     }
                     
+                    renderPass.SetBindGroup(2, parts[j].second->getBindGroup()->get());
+
                     renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
 
                     WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
@@ -222,6 +223,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
                     renderPass.DrawIndexed(indexBuffer->getIndexCount());
                     frameTriangles += indexBuffer->getIndexCount() / 3;
+
                 }
             }
             

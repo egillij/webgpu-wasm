@@ -67,14 +67,38 @@ PBRMaterial::PBRMaterial(const std::string &name, const glm::vec3 &color, WGpuDe
 
     m_MaterialBindGroupLayout = new WGpuBindGroupLayout(m_Name + "_Material_BGL");
     m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->build(device);
 
     m_MaterialBindGroup = new WGpuBindGroup("Material Bind Group");
     m_MaterialBindGroup->setLayout(m_MaterialBindGroupLayout);
     m_MaterialBindGroup->addBuffer(m_UniformBuffer, BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroup->addSampler(m_Sampler, SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
-    m_MaterialBindGroup->addTexture(m_Texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroup->addSampler(m_Sampler, SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
+    // m_MaterialBindGroup->addTexture(m_Texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroup->build(device);
+}
+
+PBRMaterial::PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuDevice* device)
+    : Material(name, MaterialType::PBR)
+{
+    m_Uniforms = data;
+
+    m_UniformBuffer = new WGpuUniformBuffer(device, m_Name + "_Material_UB", sizeof(PBRUniforms));
+
+    wgpu::Queue queue = device->getHandle().GetQueue();
+    queue.WriteBuffer(m_UniformBuffer->getHandle(), 0, &m_Uniforms, sizeof(PBRUniforms));
+
+    m_MaterialBindGroupLayout = new WGpuBindGroupLayout(m_Name + "_Material_BGL");
+    m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->build(device);
+
+    m_MaterialBindGroup = new WGpuBindGroup("Material Bind Group");
+    m_MaterialBindGroup->setLayout(m_MaterialBindGroupLayout);
+    m_MaterialBindGroup->addBuffer(m_UniformBuffer, BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroup->build(device);
+}
+
+PBRMaterial::~PBRMaterial()
+{
 }

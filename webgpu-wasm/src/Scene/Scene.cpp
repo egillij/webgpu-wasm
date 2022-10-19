@@ -93,7 +93,7 @@ static uint32_t WINDOW_HEIGHT = 600;
 static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 static float fovY = glm::radians(45.f);
 
-Scene::Scene(const SceneDescription* description, WGpuDevice* device)
+Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem, WGpuDevice* device)
 {
     m_Name = description->name;
 
@@ -126,7 +126,7 @@ Scene::Scene(const SceneDescription* description, WGpuDevice* device)
         rotation = rotation * glm::rotate(glm::mat4(1.f), model->rotation.x, glm::vec3(1.f, 0.f, 0.f));
 
         glm::mat4 transform = rotation * glm::translate(glm::mat4(1.f), model->position) * glm::scale(glm::mat4(1.f), model->scale);
-        object->setMesh(model->filename, transform, device);
+        object->setMesh(model->filename, materialSystem, transform, device);
 
         m_GameObjects.push_back(object);
     }
@@ -149,7 +149,7 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 8.f;
+    static float radius = 4.f;
     static float phi = 0.f;
     static float theta = 0.f;
 
@@ -160,7 +160,7 @@ void Scene::onUpdate()
     //TODO: make camera spin
     static glm::vec3 cameraPosition;
     m_Camera.position = glm::vec3(x, y, z)+glm::vec3(0.f, 0.5f, 0.f);
-    m_Camera.viewMatrix = glm::lookAt(m_Camera.position, glm::vec3(0.f, 0.5f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    m_Camera.viewMatrix = glm::lookAt(m_Camera.position, glm::vec3(0.f, 1.5f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
     sceneUniforms.cameraPosition = m_Camera.position;
 

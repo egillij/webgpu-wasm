@@ -9,6 +9,8 @@
 
 #include "Utils/UniformStructs.h"
 
+class MaterialSystem;
+
 class WGpuDevice;
 class WGpuBindGroup;
 class WGpuBindGroupLayout;
@@ -61,7 +63,7 @@ struct SceneDescription {
 
 class Scene {
 public:
-    Scene(const SceneDescription* description, WGpuDevice* device);
+    Scene(const SceneDescription* description, MaterialSystem* materialSystem, WGpuDevice* device);
     ~Scene();
 
     void onUpdate();

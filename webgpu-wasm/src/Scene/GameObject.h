@@ -15,15 +15,16 @@ class WGpuBindGroupLayout;
 class WGpuUniformBuffer;
 
 class Material;
+class MaterialSystem;
 
 class GameObject {
 public:
     GameObject(const std::string& name);
     ~GameObject();
 
-    void setMesh(const std::string& meshFile, const glm::mat4& transform, WGpuDevice* device);
+    void setMesh(const std::string& meshFile, MaterialSystem* materialSystem, const glm::mat4& transform, WGpuDevice* device);
     // TriangleMesh* getMesh() { return m_Mesh; }
-    std::vector<Part*>& getParts() { return m_Parts; }
+    std::vector<std::pair<Part*, Material*>>& getParts() { return m_Parts; }
     WGpuBindGroup* getModelBindGroup() { return m_BindGroup; }
     WGpuBindGroup* getMaterialBindGroup();
 
@@ -34,7 +35,7 @@ private:
 
     ////////////
     // All of this is a model/part
-    std::vector<Part*> m_Parts;
+    std::vector<std::pair<Part*, Material*>> m_Parts;
     // TriangleMesh* m_Mesh;
     ModelUniforms m_ModelUniforms;
     WGpuBindGroupLayout* m_BindGroupLayout;

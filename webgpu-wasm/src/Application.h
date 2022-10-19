@@ -19,6 +19,8 @@ class WGpuTexture;
 class WGpuSampler;
 class Renderer;
 
+class MaterialSystem;
+
 namespace wgpu {
     class Device;
 }
@@ -40,6 +42,8 @@ private:
 
     Scene* m_Scene = nullptr;
     Renderer* m_Renderer = nullptr;
+
+    MaterialSystem* m_MaterialSystem = nullptr;
 
     WGpuDevice* m_Device = nullptr;
 

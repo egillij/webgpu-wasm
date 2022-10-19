@@ -12,7 +12,7 @@
 #include "ModelLoader.h"
 #include <emscripten.h>
 
-ModelData loadFromFile(const std::string &filename)
+ModelData loadFromFile(const std::string &filename, MaterialSystem* materialSystem)
 {
     std::string m_ServerResource = "/resources/models/" + filename;
     std::string m_LocalResource = "./models/" + filename;
@@ -22,7 +22,7 @@ ModelData loadFromFile(const std::string &filename)
     std::string m_LocalMtl = m_LocalResource.substr(0, m_LocalResource.size() - 3) + "mtl";
     emscripten_wget(m_ServerMtl.c_str(), m_LocalMtl.c_str());
 
-    ModelData model = ModelLoader::loadModelFromFile(m_LocalResource.c_str());
+    ModelData model = ModelLoader::loadModelFromFile(m_LocalResource.c_str(), materialSystem);
     return model;
 }
 
@@ -36,24 +36,23 @@ GameObject::GameObject(const std::string& name)
 
 GameObject::~GameObject()
 {
-    for(int i = 0; i < m_Parts.size(); ++i) delete m_Parts[i];
+    for(int i = 0; i < m_Parts.size(); ++i) delete m_Parts[i].first;
     m_Parts.clear();
     if(m_BindGroup) delete m_BindGroup;
 }
 
-void GameObject::setMesh(const std::string& meshFile, const glm::mat4& transform, WGpuDevice* device)
+void GameObject::setMesh(const std::string& meshFile, MaterialSystem* materialSystem, const glm::mat4& transform, WGpuDevice* device)
 {
-    ModelData modelData = loadFromFile(meshFile);
+    ModelData modelData = loadFromFile(meshFile, materialSystem);
     for(size_t i = 0; i < modelData.modelData.size(); ++i){
         ModelData::PartData &part = modelData.modelData.at(i);
 
         TriangleMesh* mesh = new TriangleMesh(part.name);
         mesh->update(part.vertexData, part.numberOfVertices*8*sizeof(float), part.indexData, part.numberOfIndices, device);
         Part* part_ = new Part(part.name, mesh);
-        m_Parts.push_back(part_);
+        m_Parts.push_back({part_, part.material});
     }
 
-    
     m_ModelUniforms.transform = transform;
 
     m_UniformBuffer = new WGpuUniformBuffer(device, m_Name + "_UniformBuffer", sizeof(ModelUniforms));

@@ -7,6 +7,8 @@
 #include "Renderer/Renderer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
 
+#include "Renderer/MaterialSystem.h"
+
 #include <emscripten.h>
 // #include <emscripten/html5.h>
 #include <emscripten/html5_webgpu.h>
@@ -108,7 +110,9 @@ void Application::initializeAndRun()
 {
     printf("Do some initialization\n");
 
-    const char *battleDroidFile = "character.obj";
+    m_MaterialSystem = new MaterialSystem(m_Device);
+
+    const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
     // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
 
     SceneDescription scene{};
@@ -151,7 +155,7 @@ void Application::initializeAndRun()
 
 
 
-    m_Scene = new Scene(&scene, m_Device);
+    m_Scene = new Scene(&scene, m_MaterialSystem, m_Device);
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
