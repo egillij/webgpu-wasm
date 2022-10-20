@@ -32,4 +32,5 @@
 *.app
 
 build/
+model_maker_build/
 .vscode/
