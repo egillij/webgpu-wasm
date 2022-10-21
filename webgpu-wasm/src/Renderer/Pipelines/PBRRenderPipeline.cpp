@@ -16,6 +16,14 @@
 
 #include "Scene/Scene.h"
 
+// Tímabundið á meðan fjöldi þríhyrninga er prentaður héðan
+#include <emscripten.h>
+#ifndef __EMSCRIPTEN__
+#define EM_ASM(x, y)
+#endif
+
+static uint32_t totalTriangles = 0;
+
 static const char shaderCode[] = R"(
 
     struct VertexOutput {
@@ -188,7 +196,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     static uint64_t frameNr = 0;
 
-    int frameTriangles = 0;
+    totalTriangles = 0;
 
     wgpu::CommandBuffer commands;
     {
@@ -219,17 +227,20 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                 WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
                 renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
                 renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                frameTriangles += indexBuffer->getIndexCount() / 3;
-
-                
+                totalTriangles+= indexBuffer->getIndexCount() / 3;
             }
             
             renderPass.End();
-            
         }
         commands = encoder.Finish();
         frameNr++;
     }
 
     queue.Submit(1, &commands);
+
+    // Tímabundið
+    EM_ASM({
+        let elm = document.getElementById("TriangleCount");
+        elm.innerHTML = $0;
+    }, totalTriangles);
 }

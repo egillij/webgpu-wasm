@@ -190,18 +190,20 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 4.f;
+    static float radius = 30.f;
     static float phi = 0.f;
     static float theta = 0.f;
 
+    static glm::vec3 focusPoint = glm::vec3(0.f, 1.5f, -20.f);
+
     float x = radius * glm::cos(phi) * glm::sin(theta);
-    float y = radius * glm::sin(phi) * glm::sin(theta);
+    float y = radius * glm::sin(phi) * glm::sin(theta) + 4.0;
     float z = radius * glm::cos(theta);
 
     //TODO: make camera spin
     static glm::vec3 cameraPosition;
-    m_Camera.position = glm::vec3(x, y, z)+glm::vec3(0.f, 0.5f, 0.f);
-    m_Camera.viewMatrix = glm::lookAt(m_Camera.position, glm::vec3(0.f, 1.5f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    m_Camera.position = glm::vec3(x, y, z) + focusPoint;
+    m_Camera.viewMatrix = glm::lookAt(m_Camera.position, focusPoint, glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
     sceneUniforms.cameraPosition = m_Camera.position;
 
@@ -212,10 +214,6 @@ void Scene::onUpdate()
     // phi = glm::clamp(glm::radians(10.f)*t, 0.f, glm::radians(180.f));
     theta = glm::radians(5.f)*t;
     // radius = 50.f*glm::cos(t*glm::radians(5.f));
-    // uniformColor.color[0] = 1.0f;
-    // uniformColor.color[1] = 0.502f;
-    // uniformColor.color[2] = 0.f;
-    // uniformColor.color[3] = 1.f;
 
     queue.WriteBuffer(sceneUniformBuffer->getHandle(), 0, (void*) &sceneUniforms, sizeof(SceneUniforms));
 
