@@ -16,7 +16,7 @@ enum class MaterialType {
 };
 
 struct PBRUniforms {
-    glm::vec3 albedo = glm::vec3(0.7f);
+    glm::vec3 albedo = glm::vec3(0.9f, 0.2f, 0.3f);
     float filler;
     glm::vec3 ambient = glm::vec3(0.1f);
     float filler2;
@@ -26,7 +26,8 @@ struct PBRUniforms {
 
 class Material {
 public:
-    WGpuBindGroup* getBindGroup() { return m_MaterialBindGroup; }
+    // WGpuBindGroup* getBindGroup() { return m_MaterialBindGroup; }
+    WGpuBindGroup* getBindGroup() const { return m_MaterialBindGroup; }
     ~Material();
 
 protected:

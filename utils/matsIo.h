@@ -7,6 +7,8 @@
 
 #include <glm/vec4.hpp>
 
+namespace mats {
+
 enum class MaterialType : uint32_t{
     Invalid = 0,
     Phong
@@ -86,12 +88,14 @@ public:
         if(std::fread(&header, sizeof(header), 1, fp) != 1)
         {
             printf("Failed to read header from material file %s\n", filename);
+            std::fclose(fp);
             return false;
         }
 
         if(std::fread(material, sizeof(PhongMaterial), 1, fp) != 1)
         {
             printf("Failed to load material data from file %s\n", filename);
+            std::fclose(fp);
             return false;
         }
         
@@ -113,3 +117,5 @@ public:
     }
 #endif
 };
+
+}

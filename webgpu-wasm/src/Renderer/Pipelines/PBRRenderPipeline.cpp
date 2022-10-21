@@ -202,29 +202,26 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
             for(int i = 0; i < gameObjects.size(); ++i){
                 GameObject* object = gameObjects.at(i);
-                std::vector<std::pair<Part*, Material*>>& parts = object->getParts();
+                const TriangleMesh* mesh = object->getMesh();
+                const Material* material = object->getMaterial();
+
+                if(!mesh || !material) continue;
+                if(!mesh->isReady()) continue;
 
                 WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
-
-                for(size_t j = 0; j < parts.size(); ++j){
-                    TriangleMesh* mesh = parts[j].first->getMesh();
-                    if(!mesh->isReady()) {
-                        continue;
-                    }
                     
-                    renderPass.SetBindGroup(2, parts[j].second->getBindGroup()->get());
+                renderPass.SetBindGroup(2, material->getBindGroup()->get());
 
-                    renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+                renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
 
-                    WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
-                    renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
+                renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                frameTriangles += indexBuffer->getIndexCount() / 3;
 
-                    renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                    frameTriangles += indexBuffer->getIndexCount() / 3;
-
-                }
+                
             }
             
             renderPass.End();

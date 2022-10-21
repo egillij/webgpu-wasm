@@ -1,0 +1,10 @@
+Shape: Mesh51.001
+	{
+		Mesh: Mesh51.001_0
+		Material: 01___Def
+	}
+	{
+		Mesh: Mesh51.001_1
+		Material: 07___Def
+	}
+

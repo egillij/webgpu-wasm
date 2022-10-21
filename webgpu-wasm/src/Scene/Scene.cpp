@@ -15,6 +15,11 @@
 #include "Renderer/WebGPU/wgpuShader.h"
 #include "Renderer/WebGPU/wgpuPipeline.h"
 
+#include "Renderer/MaterialSystem.h"
+#include "Renderer/Geometry/GeometrySystem.h"
+
+#include <emscripten.h>
+
 
 
 ///////////////////////////////////////////////////////////////////
@@ -93,7 +98,7 @@ static uint32_t WINDOW_HEIGHT = 600;
 static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 static float fovY = glm::radians(45.f);
 
-Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem, WGpuDevice* device)
+Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem, GeometrySystem* geometrySystem, WGpuDevice* device)
 {
     m_Name = description->name;
 
@@ -118,15 +123,48 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
 
     for(int i = 0; i < description->numberOfModels; ++i){
         ModelDescription* model = description->modelDescriptions+i;
-        //TODO: Make and register meshes here instead of gameobjects
-        GameObject* object = new GameObject(model->filename);
-        glm::mat4 rotation = glm::mat4(1.f);
-        rotation = glm::rotate(glm::mat4(1.f), model->rotation.z, glm::vec3(0.f, 0.f, 1.f));
-        rotation = rotation * glm::rotate(glm::mat4(1.f), model->rotation.y, glm::vec3(0.f, 1.f, 0.f));
-        rotation = rotation * glm::rotate(glm::mat4(1.f), model->rotation.x, glm::vec3(1.f, 0.f, 0.f));
+        std::string m_ServerResource = "/resources/models/" + model->filename;
+        std::string m_LocalResource = "./models/" + model->filename;
+        //TODO: make async
+        emscripten_wget(m_ServerResource.c_str(), m_LocalResource.c_str());
+        geometrySystem->registerTriangleMesh(model->id, model->name, m_LocalResource);
+    }
 
-        glm::mat4 transform = rotation * glm::translate(glm::mat4(1.f), model->position) * glm::scale(glm::mat4(1.f), model->scale);
-        object->setMesh(model->filename, materialSystem, transform, device);
+    for(int i = 0; i < description->numberOfMaterials; ++i){
+        MaterialDescription* material = description->materialDescriptons+i;
+
+
+        PBRUniforms mat{};
+        if(material->filename.empty()){
+            mat.albedo = material->albedo;
+            mat.specular = material->specular;
+            mat.ambient = material->ambient;
+            mat.shininess = material->shininess;
+
+            materialSystem->registerMaterial(material->id, material->name, mat);
+        }
+        else {
+            std::string m_ServerResource = "/resources/models/" + material->filename;
+            std::string m_LocalResource = "./models/" + material->filename;
+            //TODO: make async
+            emscripten_wget(m_ServerResource.c_str(), m_LocalResource.c_str());
+
+            materialSystem->registerMaterial(material->id, material->name, m_LocalResource);
+        }
+        
+    }
+
+    for(int i = 0; i < description->numberOfGameObjects; ++i){
+        //TODO: Make and register meshes here instead of gameobjects
+        GameObjectNode* node = description->gameObjects + i;
+        GameObject* object = new GameObject(node->name);
+        glm::mat4 rotation = glm::mat4(1.f);
+        rotation = glm::rotate(glm::mat4(1.f), node->rotation.z, glm::vec3(0.f, 0.f, 1.f));
+        rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.y, glm::vec3(0.f, 1.f, 0.f));
+        rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.x, glm::vec3(1.f, 0.f, 0.f));
+
+        glm::mat4 transform = rotation * glm::translate(glm::mat4(1.f), node->position) * glm::scale(glm::mat4(1.f), node->scale);
+        object->setMesh(node->modelId, node->materialId, transform, geometrySystem, materialSystem, device);
 
         m_GameObjects.push_back(object);
     }
@@ -138,7 +176,10 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
 
 Scene::~Scene()
 {
-
+    for(int i = 0; i < m_GameObjects.size(); ++i){
+        delete m_GameObjects[i];
+    }
+    m_GameObjects.clear();
 }
 
 void Scene::onUpdate()

@@ -10,6 +10,7 @@
 #include "Utils/UniformStructs.h"
 
 class MaterialSystem;
+class GeometrySystem;
 
 class WGpuDevice;
 class WGpuBindGroup;
@@ -22,48 +23,59 @@ class WGpuShader;
 class WGpuTexture;
 class WGpuSampler;
 
-struct ModelDescription {
-    uint32_t id;
-    std::string filename;
+#define MATERIAL_NO_ID 0
+#define MODEL_NO_ID 0
+#define NODE_NO_ID 0
 
-    glm::vec3 position;
-    glm::vec3 rotation;
-    glm::vec3 scale;
+struct ModelDescription {
+    uint32_t id = MODEL_NO_ID;
+    std::string name = {};
+    std::string filename = {};
+
+    glm::vec3 position = glm::vec3(0.f);
+    glm::vec3 rotation = glm::vec3(0.f);
+    glm::vec3 scale = glm::vec3(1.f);
 };
 
 struct MaterialDescription {
-    uint32_t id;
-    glm::vec3 color;
+    uint32_t id = MATERIAL_NO_ID;
+    std::string name = {};
+    std::string filename = {};
+    glm::vec4 ambient = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
+    glm::vec4 albedo = glm::vec4(0.6f, 0.6f, 0.6f, 1.f);
+    glm::vec4 specular = glm::vec4(1.f);
+    float shininess = 100.f;
 };
 
 struct GameObjectNode {
-    uint32_t id;
-    
-    int modelId;
-    int materialId;
+    uint32_t id = NODE_NO_ID;
+    std::string name = {};
 
-    glm::vec3 position;
-    glm::vec3 rotation;
-    glm::vec3 scale;
+    int modelId = MODEL_NO_ID;
+    int materialId = MATERIAL_NO_ID;
+
+    glm::vec3 position = glm::vec3(0.f);
+    glm::vec3 rotation = glm::vec3(0.f);
+    glm::vec3 scale = glm::vec3(1.f);
 };
 
 struct SceneDescription {
-    std::string name;
+    std::string name = {};
 
     // Information about what models are in the scene
-    ModelDescription* modelDescriptions;
-    uint64_t numberOfModels;
+    ModelDescription* modelDescriptions = nullptr;
+    uint64_t numberOfModels = 0;
 
-    MaterialDescription* materialDescriptons;
-    uint64_t numberOfMaterials;
+    MaterialDescription* materialDescriptons = nullptr;
+    uint64_t numberOfMaterials = 0;
 
-    GameObjectNode* gameObjects;
-    uint64_t numberOfGameObjects;
+    GameObjectNode* gameObjects = nullptr;
+    uint64_t numberOfGameObjects = 0;
 };
 
 class Scene {
 public:
-    Scene(const SceneDescription* description, MaterialSystem* materialSystem, WGpuDevice* device);
+    Scene(const SceneDescription* description, MaterialSystem* materialSystem, GeometrySystem* geometrySystem, WGpuDevice* device);
     ~Scene();
 
     void onUpdate();

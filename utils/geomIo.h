@@ -4,8 +4,9 @@
 #include <memory>
 
 
-//#define GEOM_IO_SAVE
+// #define GEOM_IO_SAVE
 // #define GEOM_IO_LOAD
+namespace geom {
 
 struct geom_header {
     char iden[4];
@@ -40,12 +41,17 @@ public:
         if(m_Indices) free(m_Indices);
     };
 
+    float* vertices() const { return m_Vertices; }
+    uint64_t noVertices() const { return m_NoVertices; }
+    uint32_t* indices() const { return m_Indices; }
+    uint64_t noIndices() const { return m_NoIndices; }
+
 private:
     float* m_Vertices;
-    uint64_t m_NoVertices;
+    uint64_t m_NoVertices; // Should be number of floats in m_Vertices
 
     uint32_t* m_Indices;
-    uint64_t m_NoIndices;
+    uint64_t m_NoIndices; // Should be number of uint_32t in m_Indices
 
     friend class GeomIO;
 };
@@ -89,9 +95,18 @@ public:
 
         header.indexDataOffset = std::ftell(fp);
         header.indexDataSize = geom->m_NoIndices * sizeof(uint32_t);
+
         if(std::fwrite(geom->m_Indices, sizeof(uint32_t), geom->m_NoIndices, fp) != geom->m_NoIndices)
         {
             printf("Failed to write index data to file %s\n", filename);
+            std::fclose(fp);
+            return false;
+        }
+
+        std::fseek(fp, SEEK_SET, 0);
+        
+        if(std::fwrite(&header, sizeof(header), 1, fp) != 1){
+            printf("Failed to write header to file %s\n", filename);
             std::fclose(fp);
             return false;
         }
@@ -138,6 +153,14 @@ public:
         if(std::fwrite(indices, sizeof(uint32_t), noIndices, fp) != noIndices)
         {
             printf("Failed to write index data to file %s\n", filename);
+            std::fclose(fp);
+            return false;
+        }
+
+        std::fseek(fp, SEEK_SET, 0);
+        
+        if(std::fwrite(&header, sizeof(header), 1, fp) != 1){
+            printf("Failed to write header to file %s\n", filename);
             std::fclose(fp);
             return false;
         }
@@ -195,3 +218,5 @@ public:
     };
 #endif
 };
+
+}

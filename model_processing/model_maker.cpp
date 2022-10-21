@@ -18,20 +18,6 @@
 #include <cstdio>
 #include <vector>
 
-struct MeshFileHeader {
-    char iden[4];
-    uint64_t meshNameOffset;
-    uint64_t meshNameSize;
-    uint64_t vertexDataOffset;
-    uint64_t vertexDataSize;
-    uint64_t indexDataOffset;
-    uint64_t indexDataSize;
-};
-
-struct MaterialFileHeader {
-    char iden[4];
-};
-
 struct MaterialUniforms {
     glm::vec4 ambient;
     glm::vec4 albedo;
@@ -85,8 +71,8 @@ static void loadModelFromFile(const std::string& filename)
     printf("Number of materials: %zu\n", materials.size());
     // TODO: make all materials and register them into the material library so they can be used later
     // TODO: add material reference/id to the parts that are created here
-
-    MatsIO matsIo_ = MatsIO();
+    
+    mats::MatsIO matsIo_ = mats::MatsIO();
 
     uint32_t materialId = 0u;
     //TODO: make material file format
@@ -104,7 +90,7 @@ static void loadModelFromFile(const std::string& filename)
 
         ++materialId;
          
-        PhongMaterial phong{};
+        mats::PhongMaterial phong{};
         phong.ambient = materialData.ambient;
         phong.albedo = materialData.albedo;
         phong.specular = materialData.specular;
@@ -131,7 +117,7 @@ static void loadModelFromFile(const std::string& filename)
      }
      
 
-     GeomIO geomIo_ = GeomIO();
+     geom::GeomIO geomIo_ = geom::GeomIO();
 
      std::string toc = "";
 
@@ -247,41 +233,6 @@ static void loadModelFromFile(const std::string& filename)
 
             
             geomIo_.save(meshFilename.c_str(), (float*)vertData.data(), vertData.size()*8, (uint32_t*)indData.data(), indData.size()*3);
-
-
-            /*std::FILE* meshFile = std::fopen(meshFilename.c_str(), "wb");
-            if(!meshFile){
-                printf("Failed to open file '%s' for mesh\n", meshFilename.c_str());
-                continue;
-            }
-
-            MeshFileHeader header{};
-            memset(&header, 0, sizeof(MeshFileHeader));
-            header.iden[0] = 'g';
-            header.iden[1] = 'e';
-            header.iden[2] = 'o';
-            header.iden[3] = 'm';
-
-            std::fwrite(&header, sizeof(MeshFileHeader), 1, meshFile);
-            
-            
-            header.meshNameOffset = std::ftell(meshFile);
-            header.meshNameSize = meshName.size();
-            std::fwrite(meshName.c_str(), 1, meshName.size(), meshFile);
-
-            header.vertexDataOffset = std::ftell(meshFile);
-            header.vertexDataSize = vertData.size() * 8 * sizeof(float);
-            std::fwrite(vertData.data(), sizeof(float), vertData.size() * 8, meshFile);
-
-            header.indexDataOffset = std::ftell(meshFile);
-            header.indexDataSize = indData.size() * 3 * sizeof(uint32_t);
-            std::fwrite(indData.data(), sizeof(uint32_t), indData.size() * 3, meshFile);
-
-            std::fseek(meshFile, 0, SEEK_SET);
-            std::fwrite(&header, sizeof(MeshFileHeader), 1, meshFile);
-
-            std::fflush(meshFile);
-            std::fclose(meshFile);*/
 
             ++meshIndex;
         }

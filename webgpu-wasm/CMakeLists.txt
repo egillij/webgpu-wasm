@@ -22,6 +22,9 @@ SET(WW_SOURCES
 	src/Renderer/MaterialSystem.h
 	src/Renderer/MaterialSystem.cpp
 
+	src/Renderer/Geometry/GeometrySystem.h
+	src/Renderer/Geometry/GeometrySystem.cpp
+
 	src/Renderer/Geometry/TriangleMesh.h
 	src/Renderer/Geometry/TriangleMesh.cpp
 	
@@ -85,6 +88,8 @@ SET(LINKER_FLAGS
 -s ASYNCIFY
 )
 
-set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-sUSE_WEBGPU=1 -o index.html -sASYNCIFY -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING")
+configure_file(custom_shell.html custom_shell.html COPYONLY)
+
+set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-sUSE_WEBGPU=1 -o index.html -sASYNCIFY -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING --shell-file custom_shell.html")
 target_link_libraries(wgpu_wasm PUBLIC glm)
-target_include_directories(wgpu_wasm PUBLIC src/ ../3pp/)
+target_include_directories(wgpu_wasm PUBLIC src/ ../3pp/ ../utils/)

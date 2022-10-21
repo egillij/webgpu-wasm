@@ -13,6 +13,9 @@ public:
     ~MaterialSystem();
 
     Material* registerMaterial(uint32_t id, const std::string& name, const PBRUniforms& data);
+    Material* registerMaterial(uint32_t id, const std::string& name, const std::string& filename);
+
+    Material* find(uint32_t id);
 
 private:
     WGpuDevice* m_Device;

@@ -20,6 +20,7 @@ class WGpuSampler;
 class Renderer;
 
 class MaterialSystem;
+class GeometrySystem;
 
 namespace wgpu {
     class Device;
@@ -44,6 +45,7 @@ private:
     Renderer* m_Renderer = nullptr;
 
     MaterialSystem* m_MaterialSystem = nullptr;
+    GeometrySystem* m_GeometrySystem = nullptr;
 
     WGpuDevice* m_Device = nullptr;
 
