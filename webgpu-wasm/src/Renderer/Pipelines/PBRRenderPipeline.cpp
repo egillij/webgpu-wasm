@@ -72,8 +72,11 @@ static const char shaderCode[] = R"(
     };
 
     @group(2) @binding(0) var<uniform> materialUniforms : MaterialUniforms;
-    // @group(2) @binding(1) var mySampler : sampler;
-    // @group(2) @binding(2) var myTexture : texture_2d<f32>;
+    @group(2) @binding(1) var albedoTexture : texture_2d<f32>;
+    @group(2) @binding(2) var ambientTexture : texture_2d<f32>;
+    @group(2) @binding(3) var specularTexture : texture_2d<f32>;
+
+    @group(3) @binding(0) var nearestSampler : sampler;
 
     const lDir = vec3<f32>(0.0, 0.0, -1.0);
     const lCol = vec3<f32>(1.0, 1.0, 1.0);
@@ -84,7 +87,6 @@ static const char shaderCode[] = R"(
         @location(1) fragNormal : vec3<f32>,
         @location(2) fragPosition : vec3<f32>
     ) -> @location(0) vec4<f32> {
-        // var texSample : vec4<f32> = textureSample(myTexture, mySampler, fragUV);
         
         var norm = normalize(fragNormal);
         let lightDir = lDir; // Already normalized
@@ -98,18 +100,24 @@ static const char shaderCode[] = R"(
 
         let R = reflect(lightDir, norm);
 
-        let ambient = materialUniforms.ambient * materialUniforms.albedo;
+        var albedo = materialUniforms.albedo;
+        let albedoSample : vec4<f32> = textureSample(albedoTexture, nearestSampler, fragUV);
+        albedo = pow(albedoSample.rgb, vec3<f32>(2.2));
+
+        let ambientSample : vec4<f32> = textureSample(ambientTexture, nearestSampler, fragUV);
+        let ambient = ambientSample.rgb * albedo;
 
         let N_dot_L = dot(norm, -lightDir);
 
-        let diffuse = max(0.0, N_dot_L) * materialUniforms.albedo * lCol;
+        let diffuse = max(0.0, N_dot_L) * albedo * lCol;
 
         let V_dot_R = dot(-V, R);
 
         let spec = pow(max(0.0, V_dot_R), materialUniforms.shininess);
-        let specular = spec * materialUniforms.specular * lCol;
+        let specularSample : vec4<f32> = textureSample(specularTexture, nearestSampler, fragUV); 
+        let specular = spec * specularSample.rgb * lCol;
 
-        let color = ambient +  diffuse + specular; 
+        let color = ambient +  diffuse + specular;
 
         let gamma : f32 = 1.0 / 2.2;
         let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
@@ -130,20 +138,26 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     m_SceneUniformBindGroupLayout->build(device);
 
     m_MaterialBindGroupLayout = new WGpuBindGroupLayout("Material Bind Group Layout");
-    m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms), 0, wgpu::ShaderStage::Fragment);
-    // m_MaterialBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
-    // m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(PBRUniforms::ShaderUniforms), 0, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 1, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 3, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->build(device);
 
     m_ModelUniformBindGroupLayout = new WGpuBindGroupLayout("Model Bind Group Layout");
     m_ModelUniformBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(ModelUniforms), 0, wgpu::ShaderStage::Vertex);
     m_ModelUniformBindGroupLayout->build(device);
 
+    m_SamplerBindGroupLayout = new WGpuBindGroupLayout("Sampler Bind Group Layout");
+    m_SamplerBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroupLayout->build(device);
+
     m_Shader = new WGpuShader("Color Shader", shaderCode, device);
 
     m_Pipeline->addBindGroup(m_SceneUniformBindGroupLayout);
     m_Pipeline->addBindGroup(m_ModelUniformBindGroupLayout);
     m_Pipeline->addBindGroup(m_MaterialBindGroupLayout);
+    m_Pipeline->addBindGroup(m_SamplerBindGroupLayout);
     m_Pipeline->setShader(m_Shader);
     m_Pipeline->build(device);
 
@@ -205,6 +219,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
             wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
             renderPass.SetPipeline(m_Pipeline->getPipeline());
             renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
+            renderPass.SetBindGroup(3, scene->m_SamplerBindGroup->get());
             
             auto gameObjects = scene->getGameObjects();
 

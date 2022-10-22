@@ -121,6 +121,20 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
     // sceneUniformBindGroup->addTexture(texture, TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     sceneUniformBindGroup->build(device_);
 
+    SamplerCreateInfo samplerInfo{};
+    m_NearestSampler = new WGpuSampler("Sampler", &samplerInfo, device_);
+
+    m_SamplerBindGroupLayout = new WGpuBindGroupLayout("Sampler Bind Group Layout");
+    m_SamplerBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroupLayout->build(device);
+
+    m_SamplerBindGroup = new WGpuBindGroup("Sampler Bind Group");
+    m_SamplerBindGroup->setLayout(m_SamplerBindGroupLayout);
+    m_SamplerBindGroup->addSampler(m_NearestSampler, SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroup->build(device);
+
+    // Make scene from description
+
     for(int i = 0; i < description->numberOfModels; ++i){
         ModelDescription* model = description->modelDescriptions+i;
         std::string m_ServerResource = "/resources/models/" + model->filename;
@@ -136,17 +150,17 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
 
         PBRUniforms mat{};
         if(material->filename.empty()){
-            mat.albedo = material->albedo;
-            mat.specular = material->specular;
-            mat.ambient = material->ambient;
-            mat.shininess = material->shininess;
+            mat.shaderUniforms.albedo = material->albedo;
+            mat.shaderUniforms.specular = material->specular;
+            mat.shaderUniforms.ambient = material->ambient;
+            mat.shaderUniforms.shininess = material->shininess;
 
             materialSystem->registerMaterial(material->id, material->name, mat);
         }
         else {
             std::string m_ServerResource = "/resources/models/" + material->filename;
             std::string m_LocalResource = "./models/" + material->filename;
-            //TODO: make async
+            //TODO: gera async og ekki hér, heldur sem hluti af register material???
             emscripten_wget(m_ServerResource.c_str(), m_LocalResource.c_str());
 
             materialSystem->registerMaterial(material->id, material->name, m_LocalResource);
@@ -190,14 +204,14 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 30.f;
+    static float radius = 3.f;
     static float phi = 0.f;
-    static float theta = 0.f;
+    static float theta = 0.1f;
 
-    static glm::vec3 focusPoint = glm::vec3(0.f, 1.5f, -20.f);
+    static glm::vec3 focusPoint = glm::vec3(0.f, 1.5f, 0.f);
 
     float x = radius * glm::cos(phi) * glm::sin(theta);
-    float y = radius * glm::sin(phi) * glm::sin(theta) + 4.0;
+    float y = radius * glm::sin(phi) * glm::sin(theta);
     float z = radius * glm::cos(theta);
 
     //TODO: make camera spin

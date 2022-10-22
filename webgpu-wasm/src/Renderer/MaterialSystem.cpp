@@ -38,10 +38,22 @@ Material* MaterialSystem::registerMaterial(uint32_t id, const std::string& name,
 
     PBRUniforms materialData{};
     if(success){
-        materialData.albedo = data.albedo;
-        materialData.ambient = data.ambient;
-        materialData.specular = data.specular;
-        materialData.shininess = data.shininess;
+        materialData.shaderUniforms.albedo = data.albedo;
+        materialData.shaderUniforms.ambient = data.ambient;
+        materialData.shaderUniforms.specular = data.specular;
+        materialData.shaderUniforms.shininess = data.shininess;
+
+        if(data.albedoTextureSize > 0){
+            materialData.textures.albedo = std::string(data.albedoTexture);
+        }
+
+        if(data.specularTextureSize > 0){
+            materialData.textures.specular = std::string(data.specularTexture);
+        }
+
+        if(data.ambientTextureSize > 0){
+            materialData.textures.ambient = std::string(data.ambientTexture);
+        }
     }
     
     m_Materials[id] = std::make_shared<PBRMaterial>(name, materialData, m_Device);

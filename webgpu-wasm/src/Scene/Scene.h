@@ -104,6 +104,10 @@ private:
     WGpuUniformBuffer* sceneUniformBuffer = nullptr;
     WGpuBindGroupLayout* sceneUniformBindGroupLayout = nullptr;
     WGpuBindGroup* sceneUniformBindGroup = nullptr;
+
+    WGpuSampler* m_NearestSampler = nullptr;
+    WGpuBindGroupLayout* m_SamplerBindGroupLayout = nullptr;
+    WGpuBindGroup* m_SamplerBindGroup = nullptr;
     
     SceneUniforms sceneUniforms;
 

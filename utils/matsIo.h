@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <string>
 
 #include <glm/vec4.hpp>
 
@@ -19,6 +20,13 @@ struct PhongMaterial {
     glm::vec4 albedo;
     glm::vec4 specular;
     float shininess;
+
+    uint64_t ambientTextureSize;
+    char ambientTexture[512];
+    uint64_t albedoTextureSize;
+    char albedoTexture[512];
+    uint64_t specularTextureSize;
+    char specularTexture[512];
 };
 
 struct mats_header {

@@ -8,6 +8,7 @@
 #include "Renderer/WebGPU/wgpuDevice.h"
 
 #include "Renderer/MaterialSystem.h"
+#include "Renderer/TextureSystem.h"
 #include "Renderer/Geometry/GeometrySystem.h"
 
 #include <emscripten.h>
@@ -127,6 +128,7 @@ void Application::initializeAndRun()
 
     m_MaterialSystem = new MaterialSystem(m_Device);
     m_GeometrySystem = new GeometrySystem(m_Device);
+    m_TextureSystem = new TextureSystem(m_Device);
 
     const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
     // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
@@ -173,7 +175,6 @@ void Application::initializeAndRun()
         material.albedo = glm::vec4(0.0f, 0.0f, 1.0f, 1.f);
         materials.push_back(material);
     }
-
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();

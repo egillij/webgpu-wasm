@@ -91,29 +91,33 @@ static void loadModelFromFile(const std::string& filename)
         ++materialId;
          
         mats::PhongMaterial phong{};
+        memset(&phong, 0, sizeof(phong));
+
         phong.ambient = materialData.ambient;
         phong.albedo = materialData.albedo;
         phong.specular = materialData.specular;
         phong.shininess = materialData.shininess;
+
+        phong.ambientTextureSize = material.ambient_texname.size();
+        phong.albedoTextureSize = material.diffuse_texname.size();
+        phong.specularTextureSize = material.specular_texname.size();
+
+        if (!material.ambient_texname.empty() && material.ambient_texname.size() <= 512)
+        {
+            memcpy(&phong.ambientTexture[0], material.ambient_texname.c_str(), std::fmin(512, material.ambient_texname.size()));
+        }
+        if (!material.diffuse_texname.empty() && material.diffuse_texname.size() <= 512) 
+        {
+            memcpy(&phong.albedoTexture[0], material.diffuse_texname.c_str(), std::fmin(512, material.diffuse_texname.size()));
+        }
+        if (!material.specular_texname.empty() && material.specular_texname.size() <= 512) 
+        {
+            memcpy(&phong.specularTexture[0], material.specular_texname.c_str(), std::fmin(512, material.specular_texname.size()));
+        }
+
+
         printf("Saving material file %s\n", materialFilename.c_str());
         matsIo_.save(materialFilename.c_str(), phong);
-        // MaterialFileHeader header{};
-        // memset(&header, 0, sizeof(MaterialFileHeader));
-        // header.iden[0] = 'm';
-        // header.iden[1] = 'a';
-        // header.iden[2] = 't';
-        // header.iden[3] = 's';
-
-        // std::FILE* matFile = std::fopen(materialFilename.c_str(), "wb");
-        // if(!matFile){
-        //     printf("Failed to create material file %s\n", materialFilename.c_str());
-        //     continue;
-        // }
-
-        // std::fwrite(&header, sizeof(MaterialFileHeader), 1, matFile);
-        // std::fwrite(&materialData, sizeof(MaterialUniforms), 1, matFile);
-        // std::fflush(matFile);
-        // std::fclose(matFile);
      }
      
 
@@ -186,7 +190,7 @@ static void loadModelFromFile(const std::string& filename)
                     {
                         std::vector<float> vertexTexCoord(&attrib.texcoords[vertexIndices.texcoord_index * 2], &attrib.texcoords[vertexIndices.texcoord_index * 2] + 2);
                         faceVertex.uv[0] = vertexTexCoord[0];
-                        faceVertex.uv[0] = vertexTexCoord[1];
+                        faceVertex.uv[1] = vertexTexCoord[1];
                     }
 
                     

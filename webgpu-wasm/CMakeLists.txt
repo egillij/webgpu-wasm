@@ -22,6 +22,9 @@ SET(WW_SOURCES
 	src/Renderer/MaterialSystem.h
 	src/Renderer/MaterialSystem.cpp
 
+	src/Renderer/TextureSystem.h
+	src/Renderer/TextureSystem.cpp
+
 	src/Renderer/Geometry/GeometrySystem.h
 	src/Renderer/Geometry/GeometrySystem.cpp
 

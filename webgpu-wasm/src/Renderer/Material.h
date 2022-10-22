@@ -16,12 +16,19 @@ enum class MaterialType {
 };
 
 struct PBRUniforms {
-    glm::vec3 albedo = glm::vec3(0.9f, 0.2f, 0.3f);
-    float filler;
-    glm::vec3 ambient = glm::vec3(0.1f);
-    float filler2;
-    glm::vec3 specular = glm::vec3(1.f);
-    float shininess = 100.f;
+    struct ShaderUniforms{
+        glm::vec3 albedo = glm::vec3(0.9f, 0.2f, 0.3f);
+        float filler;
+        glm::vec3 ambient = glm::vec3(0.1f);
+        float filler2;
+        glm::vec3 specular = glm::vec3(1.f);
+        float shininess = 100.f;
+    } shaderUniforms;
+    struct Textures {
+        std::string ambient = {};
+        std::string albedo = {};
+        std::string specular = {};
+    } textures;
 };
 
 class Material {
@@ -52,8 +59,7 @@ private:
     PBRUniforms m_Uniforms;
     WGpuUniformBuffer* m_UniformBuffer;
     
-    WGpuTexture* m_Texture;
-
-    //TODO: samplers can be reused across textures. We should not store them here
-    WGpuSampler* m_Sampler;
+    WGpuTexture* m_AlbedoTexture;
+    WGpuTexture* m_AmbientTexture;
+    WGpuTexture* m_SpecularTexture;
 };

@@ -21,6 +21,7 @@ class Renderer;
 
 class MaterialSystem;
 class GeometrySystem;
+class TextureSystem;
 
 namespace wgpu {
     class Device;
@@ -36,6 +37,8 @@ public:
 
     void onUpdate();
 
+    TextureSystem* getTextureSystem() { return m_TextureSystem; }
+
     static Application* get();
 
 private:
@@ -46,6 +49,7 @@ private:
 
     MaterialSystem* m_MaterialSystem = nullptr;
     GeometrySystem* m_GeometrySystem = nullptr;
+    TextureSystem* m_TextureSystem = nullptr;
 
     WGpuDevice* m_Device = nullptr;
 

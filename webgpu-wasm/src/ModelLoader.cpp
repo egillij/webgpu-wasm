@@ -62,11 +62,10 @@ ModelData ModelLoader::loadModelFromFile(const char *filename, MaterialSystem* m
     std::unordered_map<uint32_t, Material*> materialMap;
     for(auto material : materials) {
         PBRUniforms materialData{};
-        materialData.ambient = { material.ambient[0], material.ambient[1], material.ambient[2] };
-        materialData.albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2] };
-        printf("Albedo: %s\n", glm::to_string(materialData.albedo).c_str());
-        materialData.specular = { material.specular[0], material.specular[1], material.specular[2] };
-        materialData.shininess = material.shininess;
+        materialData.shaderUniforms.ambient = { material.ambient[0], material.ambient[1], material.ambient[2] };
+        materialData.shaderUniforms.albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2] };
+        materialData.shaderUniforms.specular = { material.specular[0], material.specular[1], material.specular[2] };
+        materialData.shaderUniforms.shininess = material.shininess;
         materialMap[materialId] = materialSystem->registerMaterial(materialId, material.name, materialData);
 
         ++materialId;
