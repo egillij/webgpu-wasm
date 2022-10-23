@@ -41,10 +41,10 @@ struct MaterialDescription {
     uint32_t id = MATERIAL_NO_ID;
     std::string name = {};
     std::string filename = {};
-    glm::vec4 ambient = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
     glm::vec4 albedo = glm::vec4(0.6f, 0.6f, 0.6f, 1.f);
-    glm::vec4 specular = glm::vec4(1.f);
-    float shininess = 100.f;
+    float metallic = 0.f;
+    float roughness = 0.f;
+    float ao = 0.1f;
 };
 
 struct GameObjectNode {
@@ -57,6 +57,8 @@ struct GameObjectNode {
     glm::vec3 position = glm::vec3(0.f);
     glm::vec3 rotation = glm::vec3(0.f);
     glm::vec3 scale = glm::vec3(1.f);
+
+    std::vector<GameObjectNode> children;
 };
 
 struct SceneDescription {

@@ -71,12 +71,57 @@ static const char shaderCode[] = R"(
         shininess : f32,
     };
 
-    @group(2) @binding(0) var<uniform> materialUniforms : MaterialUniforms;
+    struct MaterialParameters {
+        albedo : vec3<f32>,
+        metallic : f32,
+        specular : vec3<f32>,
+        roughness : f32,
+    };
+
+    @group(2) @binding(0) var<uniform> materialParameters : MaterialParameters;
     @group(2) @binding(1) var albedoTexture : texture_2d<f32>;
-    @group(2) @binding(2) var ambientTexture : texture_2d<f32>;
-    @group(2) @binding(3) var specularTexture : texture_2d<f32>;
+    @group(2) @binding(2) var metallicTexture : texture_2d<f32>;
+    @group(2) @binding(3) var roughnessTexture : texture_2d<f32>;
+    @group(2) @binding(4) var aoTexture : texture_2d<f32>;
 
     @group(3) @binding(0) var nearestSampler : sampler;
+
+    const M_PI : f32 = 3.141592653589793;
+    const M_1_PI : f32 = 0.318309886183791;
+
+    fn fresnelSchlick(cosTheta : f32, F0 : vec3<f32>) -> vec3<f32> {
+        //return F0 + (1.0 - F0) * pow(clamp(1.0-clampcosTheta, 0.0, 1.0), 5);
+        return F0 + (1.0 - F0) * pow(1.0-cosTheta, 5);
+    }
+
+    fn DistributionGGX(NdotH : f32, roughness : f32) -> f32 {
+        let a : f32 = roughness * roughness;
+        let a2 : f32 = a * a;
+        let NdotH2 : f32 = NdotH * NdotH;
+
+        var den : f32 = NdotH2 * (a2 - 1.0) + 1.0;
+        den = M_PI * den * den;
+
+        return a2 / den;
+    }
+
+    fn GeometrySchlickGGX(NdotV : f32, roughness : f32) -> f32 {
+        let r : f32 = roughness + 1.0;
+        let k : f32 = r * r / 8.0;
+
+        let den : f32 = NdotV * (1.0 - k) + k;
+
+        return NdotV / den;
+    }
+
+    // V is vector from world position to eye
+    // L is vector from world position to light
+    fn GeometrySmith(NdotV : f32, NdotL : f32, roughness : f32) -> f32 {
+        let ggx2 : f32 = GeometrySchlickGGX(NdotV, roughness);
+        let ggx1 : f32 = GeometrySchlickGGX(NdotL, roughness);
+
+        return ggx1 * ggx2;
+    }
 
     const lDir = vec3<f32>(0.0, 0.0, -1.0);
     const lCol = vec3<f32>(1.0, 1.0, 1.0);
@@ -88,37 +133,64 @@ static const char shaderCode[] = R"(
         @location(2) fragPosition : vec3<f32>
     ) -> @location(0) vec4<f32> {
         
-        var norm = normalize(fragNormal);
-        let lightDir = lDir; // Already normalized
+        var N = normalize(fragNormal);
         
         let V = normalize(fragPosition - sceneUniforms.cameraPosition);
 
-        let N_dot_V = dot(norm, -V);
+        let N_dot_V = dot(N, -V);
         if(N_dot_V < 0.0)   {
-            norm = -norm;
+            N = -N;
         }
 
-        let R = reflect(lightDir, norm);
+        // let R = reflect(lightDir, norm);
 
-        var albedo = materialUniforms.albedo;
+        var albedo = materialParameters.albedo;
         let albedoSample : vec4<f32> = textureSample(albedoTexture, nearestSampler, fragUV);
         albedo = pow(albedoSample.rgb, vec3<f32>(2.2));
 
-        let ambientSample : vec4<f32> = textureSample(ambientTexture, nearestSampler, fragUV);
-        let ambient = ambientSample.rgb * albedo;
+        let metallic : f32 = textureSample(metallicTexture, nearestSampler, fragUV).r;
+        let roughness : f32 = textureSample(roughnessTexture, nearestSampler, fragUV).r;
+        let ao : f32 = textureSample(aoTexture, nearestSampler, fragUV).r;
 
-        let N_dot_L = dot(norm, -lightDir);
+        var F0 : vec3<f32> = vec3<f32>(0.04);
+        F0 = mix(F0, albedo, metallic);
 
-        let diffuse = max(0.0, N_dot_L) * albedo * lCol;
+        var Lo : vec3<f32> = vec3<f32>(0.0);
 
-        let V_dot_R = dot(-V, R);
+        // Lighting
+        let L = lDir; // Already normalized
 
-        let spec = pow(max(0.0, V_dot_R), materialUniforms.shininess);
-        let specularSample : vec4<f32> = textureSample(specularTexture, nearestSampler, fragUV); 
-        let specular = spec * specularSample.rgb * lCol;
+        let H : vec3<f32> = normalize(-V-L);
 
-        let color = ambient +  diffuse + specular;
+        let NdotL : f32 = max(0.0, dot(N, -L));
+        let NdotV : f32 = max(0.0, dot(N, -V));
+        let NdotH : f32 = max(0.0, dot(N, H));
+        let HdotV : f32 = max(0.0, dot(H, -V));
 
+        let radiance : vec3<f32> = lCol;
+
+        let NDF : f32 = DistributionGGX(NdotH, roughness);
+        let G : f32 = GeometrySmith(NdotV, NdotL, roughness);
+        let F : vec3<f32> = fresnelSchlick(HdotV, F0);
+
+        let kS : vec3<f32> = F;
+        var kD : vec3<f32> = vec3<f32>(1.0) - kS;
+        kD *= 1.0 - metallic;
+
+        let num : vec3<f32> = NDF * G * F;
+        let den : f32 = 4.0 * NdotV * NdotL + 0.0001;
+        let specular = num / den;
+
+        Lo = (M_1_PI * kD * albedo + specular) * radiance * NdotL;
+        
+        let ambient = ao * albedo;
+
+        var color = ambient +  Lo;
+
+        // Tone mapping
+        color = color / (color + vec3(1.0));
+
+        // Gamma correction
         let gamma : f32 = 1.0 / 2.2;
         let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
 
@@ -142,6 +214,7 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 1, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 2, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 3, wgpu::ShaderStage::Fragment);
+    m_MaterialBindGroupLayout->addTexture(TextureSampleType::Float, 4, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroupLayout->build(device);
 
     m_ModelUniformBindGroupLayout = new WGpuBindGroupLayout("Model Bind Group Layout");
@@ -212,6 +285,8 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     totalTriangles = 0;
 
+    static bool cacheTransforms = true;
+
     wgpu::CommandBuffer commands;
     {
         wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
@@ -222,27 +297,57 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
             renderPass.SetBindGroup(3, scene->m_SamplerBindGroup->get());
             
             auto gameObjects = scene->getGameObjects();
-
+            
             for(int i = 0; i < gameObjects.size(); ++i){
                 GameObject* object = gameObjects.at(i);
+                glm::mat4 transform = object->getTransform();
+
                 const TriangleMesh* mesh = object->getMesh();
                 const Material* material = object->getMaterial();
 
-                if(!mesh || !material) continue;
-                if(!mesh->isReady()) continue;
+                if(mesh != nullptr && material != nullptr && mesh->isReady()){
+                    WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
+                    if(cacheTransforms)
+                        object->cacheTransform(transform, device);
 
-                WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
+                    renderPass.SetBindGroup(1, modelBindGroup->get());
+                        
+                    renderPass.SetBindGroup(2, material->getBindGroup()->get());
 
-                renderPass.SetBindGroup(1, modelBindGroup->get());
+                    renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+
+                    WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
+                    renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                    renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                    totalTriangles+= indexBuffer->getIndexCount() / 3;
+                }
+
+                GameObject* child = object->getNext();
+                while(child != nullptr) {
+                    transform = child->getTransform() * transform;
                     
-                renderPass.SetBindGroup(2, material->getBindGroup()->get());
+                    const TriangleMesh* mesh = child->getMesh();
+                    const Material* material = child->getMaterial();
 
-                renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+                    if(mesh != nullptr && material != nullptr && mesh->isReady()){
+                        WGpuBindGroup* modelBindGroup = child->getModelBindGroup();
+                        if(cacheTransforms)
+                            child->cacheTransform(transform, device);
 
-                WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
-                renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
-                renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                totalTriangles+= indexBuffer->getIndexCount() / 3;
+                        renderPass.SetBindGroup(1, modelBindGroup->get());
+                            
+                        renderPass.SetBindGroup(2, material->getBindGroup()->get());
+
+                        renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+
+                        WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
+                        renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                        renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                        totalTriangles+= indexBuffer->getIndexCount() / 3;
+                    }
+
+                    child = child->getNext();
+                }
             }
             
             renderPass.End();
@@ -252,6 +357,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     }
 
     queue.Submit(1, &commands);
+    cacheTransforms = false;
 
     // Tímabundið
     EM_ASM({

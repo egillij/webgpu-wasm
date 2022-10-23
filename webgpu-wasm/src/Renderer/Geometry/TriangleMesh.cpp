@@ -1,7 +1,5 @@
 #include "TriangleMesh.h"
 
-#include "ModelLoader.h"
-
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"
 #include "Renderer/WebGPU/wgpuIndexBuffer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"

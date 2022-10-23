@@ -9,9 +9,6 @@ SET(WW_SOURCES
 	src/Application.h
 	src/Application.cpp
 
-	src/ModelLoader.h
-	src/ModelLoader.cpp
-
 	src/Renderer/Renderer.h
 	src/Renderer/Renderer.cpp
 

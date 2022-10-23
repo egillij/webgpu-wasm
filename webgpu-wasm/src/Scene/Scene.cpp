@@ -151,9 +151,9 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         PBRUniforms mat{};
         if(material->filename.empty()){
             mat.shaderUniforms.albedo = material->albedo;
-            mat.shaderUniforms.specular = material->specular;
-            mat.shaderUniforms.ambient = material->ambient;
-            mat.shaderUniforms.shininess = material->shininess;
+            mat.shaderUniforms.metallic = material->metallic;
+            mat.shaderUniforms.roughness = material->roughness;
+            mat.shaderUniforms.ambientOcclusions = material->ao;
 
             materialSystem->registerMaterial(material->id, material->name, mat);
         }
@@ -168,8 +168,10 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         
     }
 
+
     for(int i = 0; i < description->numberOfGameObjects; ++i){
         //TODO: Make and register meshes here instead of gameobjects
+        
         GameObjectNode* node = description->gameObjects + i;
         GameObject* object = new GameObject(node->name);
         glm::mat4 rotation = glm::mat4(1.f);
@@ -178,7 +180,31 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.x, glm::vec3(1.f, 0.f, 0.f));
 
         glm::mat4 transform = rotation * glm::translate(glm::mat4(1.f), node->position) * glm::scale(glm::mat4(1.f), node->scale);
-        object->setMesh(node->modelId, node->materialId, transform, geometrySystem, materialSystem, device);
+        object->setTransform(transform);
+
+        if(node->modelId != MODEL_NO_ID && node->materialId != MATERIAL_NO_ID) {
+            object->setMesh(node->modelId, node->materialId, geometrySystem, materialSystem, device);
+        }
+
+        GameObject* lastObject = object;
+        
+        for(uint64_t j = 0; j < node->children.size(); ++j) {
+            GameObjectNode& childNode = node->children.at(j);
+            GameObject* child = new GameObject(childNode.name);
+            rotation = glm::rotate(glm::mat4(1.f), childNode.rotation.z, glm::vec3(0.f, 0.f, 1.f));
+            rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.y, glm::vec3(0.f, 1.f, 0.f));
+            rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.x, glm::vec3(1.f, 0.f, 0.f));
+            transform = rotation * glm::translate(glm::mat4(1.f), childNode.position) * glm::scale(glm::mat4(1.f), node->scale);
+            child->setTransform(transform);
+
+
+            if(childNode.modelId != MODEL_NO_ID && childNode.materialId != MATERIAL_NO_ID) {
+                child->setMesh(childNode.modelId, childNode.materialId, geometrySystem, materialSystem, device);
+            }
+
+            lastObject->setNext(child);
+            lastObject = child;
+        }
 
         m_GameObjects.push_back(object);
     }

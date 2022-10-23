@@ -22,8 +22,12 @@ public:
     GameObject(const std::string& name);
     ~GameObject();
 
-    void setMesh(const uint32_t meshId, const uint32_t materialId, const glm::mat4& transform,
+    void setTransform(const glm::mat4& transform);
+    void setMesh(const uint32_t meshId, const uint32_t materialId,
                  GeometrySystem* geometrySystem, MaterialSystem* materialSystem, WGpuDevice* device);
+
+
+    const glm::mat4& getTransform() { return m_Transform; }
     // TriangleMesh* getMesh() { return m_Mesh; }
     // std::vector<std::pair<Part*, Material*>>& getParts() { return m_Parts; }
     const TriangleMesh* getMesh() const { return m_Mesh; }
@@ -33,17 +37,32 @@ public:
 
     const std::string& getName() const {return m_Name;}
 
+    GameObject* getNext() { return next; }
+    void setNext(GameObject* object) { next = object; }
+
+    void cacheTransform(const glm::mat4& transform, WGpuDevice* device);
+
 private:
     std::string m_Name;
+
+    // Native transform
+    glm::mat4 m_Transform;
+
+    // Complete transforms used in shaders, i.e. hierarchically calculated transform
+    ModelUniforms m_ModelUniforms;
+    WGpuUniformBuffer* m_UniformBuffer;
 
     ////////////
     // All of this is a model/part
     TriangleMesh* m_Mesh;
     Material* m_Material;
     
-    ModelUniforms m_ModelUniforms;
     WGpuBindGroupLayout* m_BindGroupLayout;
     WGpuBindGroup* m_BindGroup;
-    WGpuUniformBuffer* m_UniformBuffer;
+
+    
     ////////////
+
+    // TODO: ætti ég að hafa lista hér í staðinn?
+    GameObject* next;
 };

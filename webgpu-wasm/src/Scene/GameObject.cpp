@@ -15,10 +15,10 @@
 #include <emscripten.h>
 
 GameObject::GameObject(const std::string& name)
-: m_Name(name), m_BindGroup(nullptr), m_Material(nullptr)
+: m_Name(name), m_Transform(glm::mat4(1.f)), m_UniformBuffer(nullptr),
+  m_BindGroup(nullptr), m_Material(nullptr), next(nullptr)
 {
-    m_ModelUniforms.transform = glm::mat4(1.f);
-    m_ModelUniforms.normalMatrix = glm::transpose(glm::inverse(m_ModelUniforms.transform));
+    cacheTransform(m_Transform, nullptr);
 }
 
 GameObject::~GameObject()
@@ -28,22 +28,17 @@ GameObject::~GameObject()
     if(m_BindGroup) delete m_BindGroup;
 }
 
-void GameObject::setMesh(const uint32_t meshId, const uint32_t materialId, const glm::mat4& transform,
+void GameObject::setTransform(const glm::mat4& transform)
+{
+    m_Transform = transform;
+    cacheTransform(m_Transform, nullptr);
+}
+
+void GameObject::setMesh(const uint32_t meshId, const uint32_t materialId,
                          GeometrySystem* geometrySystem, MaterialSystem* materialSystem, WGpuDevice* device)
 {
-    // ModelData modelData = loadFromFile(meshFile, materialSystem);
-    // for(size_t i = 0; i < modelData.modelData.size(); ++i){
-    //     ModelData::PartData &part = modelData.modelData.at(i);
-
-    //     TriangleMesh* mesh = new TriangleMesh(part.name);
-    //     mesh->update(part.vertexData, part.numberOfVertices*8*sizeof(float), part.indexData, part.numberOfIndices, device);
-    //     Part* part_ = new Part(part.name, mesh);
-    //     m_Parts.push_back({part_, part.material});
-    // }
     m_Mesh = geometrySystem->find(meshId);
     m_Material = materialSystem->find(materialId);
-
-    m_ModelUniforms.transform = transform;
 
     m_UniformBuffer = new WGpuUniformBuffer(device, m_Name + "_UniformBuffer", sizeof(ModelUniforms));
 
@@ -64,4 +59,15 @@ WGpuBindGroup* GameObject::getMaterialBindGroup()
 {
     if(!m_Material) return nullptr;
     return m_Material->getBindGroup();
+}
+
+void GameObject::cacheTransform(const glm::mat4& transform, WGpuDevice* device)
+{
+    m_ModelUniforms.transform = transform;
+    m_ModelUniforms.normalMatrix = glm::transpose(glm::inverse(m_ModelUniforms.transform));
+
+    if(device && m_UniformBuffer){
+        wgpu::Queue queue = device->getHandle().GetQueue();
+        queue.WriteBuffer(m_UniformBuffer->getHandle(), 0, (void*) &m_ModelUniforms, sizeof(ModelUniforms));
+    }
 }

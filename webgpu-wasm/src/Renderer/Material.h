@@ -18,16 +18,16 @@ enum class MaterialType {
 struct PBRUniforms {
     struct ShaderUniforms{
         glm::vec3 albedo = glm::vec3(0.9f, 0.2f, 0.3f);
-        float filler;
-        glm::vec3 ambient = glm::vec3(0.1f);
-        float filler2;
-        glm::vec3 specular = glm::vec3(1.f);
-        float shininess = 100.f;
+        float metallic = 0.f;
+        float roughness = 0.f;
+        float ambientOcclusions = 0.1f;
+        float padding[2];
     } shaderUniforms;
     struct Textures {
-        std::string ambient = {};
         std::string albedo = {};
-        std::string specular = {};
+        std::string metallic = {};
+        std::string roughness = {};
+        std::string ambientOcclusion = {};
     } textures;
 };
 
@@ -51,7 +51,6 @@ protected:
 
 class PBRMaterial final : public Material {
 public:
-    PBRMaterial(const std::string& name, const glm::vec3& color, WGpuDevice* device);
     PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuDevice* device);
     ~PBRMaterial();
 
@@ -60,6 +59,7 @@ private:
     WGpuUniformBuffer* m_UniformBuffer;
     
     WGpuTexture* m_AlbedoTexture;
-    WGpuTexture* m_AmbientTexture;
-    WGpuTexture* m_SpecularTexture;
+    WGpuTexture* m_MetallicTexture;
+    WGpuTexture* m_RoughnessTexture;
+    WGpuTexture* m_AoTexture;
 };

@@ -1,7 +1,5 @@
 #include "Application.h"
 
-#include "ModelLoader.h"
-
 #include "Scene/Scene.h"
 
 #include "Renderer/Renderer.h"
@@ -189,33 +187,43 @@ void Application::initializeAndRun()
     float xOffset = float(xFactor) / 2.f;
     float zOffset = float(zFactor) / 2.f;
 
+    uint32_t nodeId = 0;
+
     for (int x = 0; x < xFactor; ++x)
     {
         for (int z = 0; z < zFactor; ++z)
         {
+            GameObjectNode node{};
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(x*zFactor+z) + ")";
+            node.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
             {
                 GameObjectNode object{};
-                object.id = x*zFactor+z;
-                object.name = "Droid " + std::to_string(object.id);
+                object.id = nodeId++;
+                object.name = "Droid " + std::to_string(x*zFactor+z);
                 object.modelId = 1;
                 object.materialId = 1;
-                object.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
-                object.scale = glm::vec3(1.f);
+                object.position = glm::vec3(0.f);
+                object.scale = glm::vec3(0.f);
                 object.rotation = glm::vec3(0.f);
-                gameObjects.push_back(object);
+                node.children.push_back(object);
             }
             
             {
                 GameObjectNode object{};
-                object.id = x*zFactor+z;
-                object.name = "Blaster " + std::to_string(object.id);
+                object.id = nodeId++;
+                object.name = "Blaster " + std::to_string(x*zFactor+z);
                 object.modelId = 2;
                 object.materialId = 2;
-                object.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
-                object.scale = glm::vec3(1.f);
+                object.position = glm::vec3(0.f);
+                object.scale = glm::vec3(0.f);
                 object.rotation = glm::vec3(0.f);
-                gameObjects.push_back(object);
+                node.children.push_back(object);
             }
+
+            gameObjects.push_back(node);
             
         }
     }

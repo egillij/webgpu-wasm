@@ -18,13 +18,6 @@
 #include <cstdio>
 #include <vector>
 
-struct MaterialUniforms {
-    glm::vec4 ambient;
-    glm::vec4 albedo;
-    glm::vec4 specular;
-    float shininess;
-};
-
 
 struct Vertex
 {
@@ -76,33 +69,54 @@ static void loadModelFromFile(const std::string& filename)
 
     uint32_t materialId = 0u;
     //TODO: make material file format
-    std::unordered_map<uint32_t, MaterialUniforms> materialMap;
      for(auto material : materials) {
-        MaterialUniforms materialData{};
-        materialData.ambient = { material.ambient[0], material.ambient[1], material.ambient[2], 1.0f };
-        materialData.albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0f };
-        materialData.specular = { material.specular[0], material.specular[1], material.specular[2], 1.0f };
-        materialData.shininess = material.shininess;
-
-        materialMap[materialId] = materialData;
         std::string matName = material.name.empty() ? "Default" : material.name;
         std::string materialFilename = matName  + ".mats";
 
         ++materialId;
          
-        mats::PhongMaterial phong{};
-        memset(&phong, 0, sizeof(phong));
+        mats::MaterialParameters mat{};
+        memset(&mat, 0, sizeof(mat));
 
-        phong.ambient = materialData.ambient;
-        phong.albedo = materialData.albedo;
-        phong.specular = materialData.specular;
-        phong.shininess = materialData.shininess;
+        mat.albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2] };
+        mat.metallic = material.metallic;
+        mat.roughness = material.roughness;
+        mat.ao = (material.ambient[0] + material.ambient[1] + material.ambient[2]) / 3.f;
 
-        phong.ambientTextureSize = material.ambient_texname.size();
-        phong.albedoTextureSize = material.diffuse_texname.size();
-        phong.specularTextureSize = material.specular_texname.size();
+        mat.albedoTextureSize = material.diffuse_texname.size();
+        mat.metallicTextureSize = material.metallic_texname.size();
+        mat.roughnessTextureSize = material.roughness_texname.size();
+        mat.aoTextureSize = material.ambient_texname.size();
+
+        if (!material.diffuse_texname.empty() && material.diffuse_texname.size() <= 512)
+        {
+            memcpy(&mat.albedoTexture[0], material.diffuse_texname.c_str(), std::fmin(512, material.diffuse_texname.size()));
+        }
+
+        if (!material.metallic_texname.empty() && material.metallic_texname.size() <= 512)
+        {
+            memcpy(&mat.metallicTexture[0], material.metallic_texname.c_str(), std::fmin(512, material.metallic_texname.size()));
+        }
+
+        if (!material.roughness_texname.empty() && material.roughness_texname.size() <= 512)
+        {
+            memcpy(&mat.roughnessTexture[0], material.roughness_texname.c_str(), std::fmin(512, material.roughness_texname.size()));
+        }
 
         if (!material.ambient_texname.empty() && material.ambient_texname.size() <= 512)
+        {
+            memcpy(&mat.aoTexture[0], material.ambient_texname.c_str(), std::fmin(512, material.ambient_texname.size()));
+        }
+
+        /*phong.ambient = materialData.ambient;
+        phong.specular = materialData.specular;
+        phong.shininess = materialData.shininess;*/
+
+        //phong.ambientTextureSize = material.ambient_texname.size();
+        /*phong.albedoTextureSize = material.diffuse_texname.size();
+        phong.specularTextureSize = material.specular_texname.size();*/
+
+        /*if (!material.ambient_texname.empty() && material.ambient_texname.size() <= 512)
         {
             memcpy(&phong.ambientTexture[0], material.ambient_texname.c_str(), std::fmin(512, material.ambient_texname.size()));
         }
@@ -113,11 +127,11 @@ static void loadModelFromFile(const std::string& filename)
         if (!material.specular_texname.empty() && material.specular_texname.size() <= 512) 
         {
             memcpy(&phong.specularTexture[0], material.specular_texname.c_str(), std::fmin(512, material.specular_texname.size()));
-        }
+        }*/
 
 
         printf("Saving material file %s\n", materialFilename.c_str());
-        matsIo_.save(materialFilename.c_str(), phong);
+        matsIo_.save(materialFilename.c_str(), mat);
      }
      
 
