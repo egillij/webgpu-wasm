@@ -334,6 +334,14 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                     renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
                     renderPass.DrawIndexed(indexBuffer->getIndexCount());
                     totalTriangles+= indexBuffer->getIndexCount() / 3;
+
+                    //TODO: þarf að nota mesh id hér
+                    if(uniqueIds.count(mesh->getId()) <= 0) {
+                        ++uniqueParts;
+                        uniqueTriangles += indexBuffer->getIndexCount() / 3;
+                    }
+                    
+                    uniqueIds.insert(mesh->getId());
                 }
 
                 GameObject* child = object->getNext();
@@ -359,12 +367,13 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                         renderPass.DrawIndexed(indexBuffer->getIndexCount());
                         totalTriangles += indexBuffer->getIndexCount() / 3;
 
-                        if(uniqueIds.count(child->getId()) <= 0) {
+                        //TODO: þarf að nota mesh id hér
+                        if(uniqueIds.count(mesh->getId()) <= 0) {
                             ++uniqueParts;
                             uniqueTriangles += indexBuffer->getIndexCount() / 3;
                         }
                         
-                        uniqueIds.insert(child->getId());
+                        uniqueIds.insert(mesh->getId());
                     }
 
                     child = child->getNext();

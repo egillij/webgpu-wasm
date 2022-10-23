@@ -25,7 +25,7 @@ TriangleMesh* GeometrySystem::registerTriangleMesh(uint32_t id, const std::strin
     geom::Geom geom = geom::Geom();
     bool success = io.load(filename.c_str(), &geom);
     if(success){
-        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(name);
+        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(id, name);
 
         mesh->update(geom.vertices(), geom.noVertices()*sizeof(float), geom.indices(), geom.noIndices(), m_Device);
 

@@ -7,16 +7,9 @@ class WGpuVertexBuffer;
 class WGpuIndexBuffer;
 class WGpuDevice;
 
-struct MeshPart {
-    WGpuVertexBuffer* vertexBuffer;
-    WGpuIndexBuffer* indexBuffer;
-
-    bool isReady() const { return vertexBuffer != nullptr && indexBuffer != nullptr; }
-};
-
 class TriangleMesh {
 public:
-    TriangleMesh(const std::string& name);
+    TriangleMesh(const uint32_t id, const std::string& name);
     ~TriangleMesh();
 
     void update(const float* vertices, size_t verticesSize, const uint32_t* indices, uint32_t indexCount, WGpuDevice* device);
@@ -25,7 +18,10 @@ public:
     inline WGpuVertexBuffer* getVertexBuffer() const {return m_VertexBuffer;}
     inline WGpuIndexBuffer* getIndexBuffer() const { return m_IndexBuffer; }
 
+    inline uint32_t getId() const { return m_Id; }
+
 private:
+    uint32_t m_Id;
     std::string m_Name;
     
     WGpuVertexBuffer* m_VertexBuffer;

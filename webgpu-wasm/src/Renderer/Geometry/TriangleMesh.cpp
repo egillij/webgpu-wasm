@@ -6,8 +6,8 @@
 
 #include <emscripten.h>
 
-TriangleMesh::TriangleMesh(const std::string &name)
-    : m_Name(name), m_VertexBuffer(nullptr), m_IndexBuffer(nullptr)
+TriangleMesh::TriangleMesh(const uint32_t id, const std::string &name)
+    : m_Id(id), m_Name(name), m_VertexBuffer(nullptr), m_IndexBuffer(nullptr)
 {
 }
 
