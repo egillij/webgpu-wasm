@@ -173,7 +173,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         //TODO: Make and register meshes here instead of gameobjects
         
         GameObjectNode* node = description->gameObjects + i;
-        GameObject* object = new GameObject(node->name);
+        GameObject* object = new GameObject(node->id, node->name);
         glm::mat4 rotation = glm::mat4(1.f);
         rotation = glm::rotate(glm::mat4(1.f), node->rotation.z, glm::vec3(0.f, 0.f, 1.f));
         rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.y, glm::vec3(0.f, 1.f, 0.f));
@@ -190,7 +190,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         
         for(uint64_t j = 0; j < node->children.size(); ++j) {
             GameObjectNode& childNode = node->children.at(j);
-            GameObject* child = new GameObject(childNode.name);
+            GameObject* child = new GameObject(childNode.id, childNode.name);
             rotation = glm::rotate(glm::mat4(1.f), childNode.rotation.z, glm::vec3(0.f, 0.f, 1.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.y, glm::vec3(0.f, 1.f, 0.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.x, glm::vec3(1.f, 0.f, 0.f));

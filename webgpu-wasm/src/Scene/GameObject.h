@@ -19,14 +19,14 @@ class GeometrySystem;
 
 class GameObject {
 public:
-    GameObject(const std::string& name);
+    GameObject(const uint32_t id, const std::string& name);
     ~GameObject();
 
     void setTransform(const glm::mat4& transform);
     void setMesh(const uint32_t meshId, const uint32_t materialId,
                  GeometrySystem* geometrySystem, MaterialSystem* materialSystem, WGpuDevice* device);
 
-
+    const uint32_t getId() const { return m_Id; }
     const glm::mat4& getTransform() { return m_Transform; }
     // TriangleMesh* getMesh() { return m_Mesh; }
     // std::vector<std::pair<Part*, Material*>>& getParts() { return m_Parts; }
@@ -43,6 +43,7 @@ public:
     void cacheTransform(const glm::mat4& transform, WGpuDevice* device);
 
 private:
+    uint32_t m_Id;
     std::string m_Name;
 
     // Native transform

@@ -16,6 +16,8 @@
 
 #include "Scene/Scene.h"
 
+#include <set>
+
 // Tímabundið á meðan fjöldi þríhyrninga er prentaður héðan
 #include <emscripten.h>
 #ifndef __EMSCRIPTEN__
@@ -23,6 +25,9 @@
 #endif
 
 static uint32_t totalTriangles = 0;
+static uint32_t uniqueTriangles = 0;
+static uint32_t uniqueObjects = 0;
+static uint32_t uniqueParts = 0;
 
 static const char shaderCode[] = R"(
 
@@ -286,6 +291,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     totalTriangles = 0;
 
     static bool cacheTransforms = true;
+    static std::set<uint32_t> uniqueIds;
 
     wgpu::CommandBuffer commands;
     {
@@ -297,9 +303,17 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
             renderPass.SetBindGroup(3, scene->m_SamplerBindGroup->get());
             
             auto gameObjects = scene->getGameObjects();
-            
+            uniqueObjects = gameObjects.size();
+
+
             for(int i = 0; i < gameObjects.size(); ++i){
                 GameObject* object = gameObjects.at(i);
+                // if(uniqueIds.count(object->getId()) <= 0) {
+                //     ++uniqueParts;
+                // }
+
+                // uniqueIds.insert(object->getId());
+
                 glm::mat4 transform = object->getTransform();
 
                 const TriangleMesh* mesh = object->getMesh();
@@ -343,7 +357,14 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                         WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
                         renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
                         renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                        totalTriangles+= indexBuffer->getIndexCount() / 3;
+                        totalTriangles += indexBuffer->getIndexCount() / 3;
+
+                        if(uniqueIds.count(child->getId()) <= 0) {
+                            ++uniqueParts;
+                            uniqueTriangles += indexBuffer->getIndexCount() / 3;
+                        }
+                        
+                        uniqueIds.insert(child->getId());
                     }
 
                     child = child->getNext();
@@ -361,7 +382,13 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     // Tímabundið
     EM_ASM({
-        let elm = document.getElementById("TriangleCount");
+        var elm = document.getElementById("TotalTriangleCount");
         elm.innerHTML = $0;
-    }, totalTriangles);
+        elm = document.getElementById("UniqueObjectCount");
+        elm.innerHTML = $1;
+        elm = document.getElementById("UniquePartCount");
+        elm.innerHTML = $2;
+        elm = document.getElementById("UniqueTriangleCount");
+        elm.innerHTML = $3;
+    }, totalTriangles, uniqueObjects, uniqueParts, uniqueTriangles);
 }

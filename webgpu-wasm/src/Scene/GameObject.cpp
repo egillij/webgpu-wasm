@@ -14,8 +14,8 @@
 
 #include <emscripten.h>
 
-GameObject::GameObject(const std::string& name)
-: m_Name(name), m_Transform(glm::mat4(1.f)), m_UniformBuffer(nullptr),
+GameObject::GameObject(const uint32_t id, const std::string& name)
+: m_Id(id), m_Name(name), m_Transform(glm::mat4(1.f)), m_UniformBuffer(nullptr),
   m_BindGroup(nullptr), m_Material(nullptr), next(nullptr)
 {
     cacheTransform(m_Transform, nullptr);
