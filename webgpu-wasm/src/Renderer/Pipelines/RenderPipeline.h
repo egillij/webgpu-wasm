@@ -11,7 +11,8 @@ class WGpuTexture;
 
 class RenderPipeline {
 public:
-    virtual void render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain) = 0;
+    virtual void run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain) = 0;
+
 
 protected:
     RenderPipeline(const std::string& name);
@@ -19,9 +20,4 @@ protected:
 
 private:
     std::string m_Name;
-
-protected:
-    WGpuPipeline* m_Pipeline;
-
-    WGpuTexture* m_DepthTexture;
 };

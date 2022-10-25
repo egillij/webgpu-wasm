@@ -236,6 +236,8 @@ void Application::initializeAndRun()
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
+
+    onUpdate();
 }
 
 void Application::onUpdate()

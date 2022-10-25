@@ -1,5 +1,7 @@
 #include "PBRRenderPipeline.h"
 
+#include "PBRShaders.h"
+
 #include "Renderer/Material.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuBindGroup.h"
@@ -9,6 +11,7 @@
 #include "Renderer/WebGPU/wgpuTexture.h"
 #include "Renderer/WebGPU/wgpuIndexBuffer.h"
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"
+#include "Renderer/WebGPU/wgpuSampler.h"
 
 #include "Scene/GameObject.h"
 #include "Renderer/Geometry/TriangleMesh.h"
@@ -16,200 +19,53 @@
 
 #include "Scene/Scene.h"
 
+#include "Application.h"
+
 #include <set>
 
 // Tímabundið á meðan fjöldi þríhyrninga er prentaður héðan
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #ifndef __EMSCRIPTEN__
 #define EM_ASM(x, y)
 #endif
+
+// #define WAIT_FOR_QUEUE 1
 
 static uint32_t totalTriangles = 0;
 static uint32_t uniqueTriangles = 0;
 static uint32_t uniqueObjects = 0;
 static uint32_t uniqueParts = 0;
 
-static const char shaderCode[] = R"(
+struct RenderParams {
+    Scene* scene = nullptr;
+    WGpuSwapChain* swapChain = nullptr;
+    WGpuDevice* device = nullptr;
+    PBRRenderPipeline* pipeline = nullptr;
+};
 
-    struct VertexOutput {
-        @builtin(position) position : vec4<f32>,
-        @location(0) fragUV : vec2<f32>,
-        @location(1) fragNormal : vec3<f32>,
-        @location(2) fragPosition : vec3<f32>,
+static RenderParams params{};
+
+int animFrameRender(double t, void* userData) {
+    // params.pipeline->run(params.scene, params.device, params.swapChain);
+    Application::get()->onUpdate();
+    return 1;
+}
+
+void queueDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata){
+    if(status == WGPUQueueWorkDoneStatus_Success){
+        params.pipeline->light(params.scene, params.device, params.swapChain);
+        emscripten_request_animation_frame(animFrameRender, nullptr);
     }
-
-    struct SceneUniforms {
-        viewProjection : mat4x4<f32>,
-        cameraPosition : vec3<f32>
-    };
-
-    struct ModelUniforms {
-        modelMatrix : mat4x4<f32>,
-        normalMatrix : mat4x4<f32>,
-    };
-
-    @group(0) @binding(0) var<uniform> sceneUniforms : SceneUniforms;
-    @group(1) @binding(0) var<uniform> modelUniforms : ModelUniforms;
-
-    @vertex
-    fn main_v(
-        @location(0) positionIn : vec3<f32>,
-        @location(1) normalIn : vec3<f32>,
-        @location(2) uvIn : vec2<f32>
-    ) -> VertexOutput {
-
-        var output : VertexOutput;
-        let fragPosition = modelUniforms.modelMatrix * vec4<f32>(positionIn, 1.0);
-        output.position = sceneUniforms.viewProjection * fragPosition;
-        output.fragUV = uvIn;
-        output.fragNormal = (modelUniforms.normalMatrix * vec4<f32>(normalIn, 0.0)).xyz;
-        output.fragPosition = fragPosition.xyz;
-        return output;
-    }
-
-    struct MaterialUniforms {
-        albedo   : vec3<f32>,
-        filler   : f32,
-        ambient  : vec3<f32>,
-        filler2  : f32,
-        specular : vec3<f32>,
-        shininess : f32,
-    };
-
-    struct MaterialParameters {
-        albedo : vec3<f32>,
-        metallic : f32,
-        specular : vec3<f32>,
-        roughness : f32,
-    };
-
-    @group(2) @binding(0) var<uniform> materialParameters : MaterialParameters;
-    @group(2) @binding(1) var albedoTexture : texture_2d<f32>;
-    @group(2) @binding(2) var metallicTexture : texture_2d<f32>;
-    @group(2) @binding(3) var roughnessTexture : texture_2d<f32>;
-    @group(2) @binding(4) var aoTexture : texture_2d<f32>;
-
-    @group(3) @binding(0) var nearestSampler : sampler;
-
-    const M_PI : f32 = 3.141592653589793;
-    const M_1_PI : f32 = 0.318309886183791;
-
-    fn fresnelSchlick(cosTheta : f32, F0 : vec3<f32>) -> vec3<f32> {
-        //return F0 + (1.0 - F0) * pow(clamp(1.0-clampcosTheta, 0.0, 1.0), 5);
-        return F0 + (1.0 - F0) * pow(1.0-cosTheta, 5);
-    }
-
-    fn DistributionGGX(NdotH : f32, roughness : f32) -> f32 {
-        let a : f32 = roughness * roughness;
-        let a2 : f32 = a * a;
-        let NdotH2 : f32 = NdotH * NdotH;
-
-        var den : f32 = NdotH2 * (a2 - 1.0) + 1.0;
-        den = M_PI * den * den;
-
-        return a2 / den;
-    }
-
-    fn GeometrySchlickGGX(NdotV : f32, roughness : f32) -> f32 {
-        let r : f32 = roughness + 1.0;
-        let k : f32 = r * r / 8.0;
-
-        let den : f32 = NdotV * (1.0 - k) + k;
-
-        return NdotV / den;
-    }
-
-    // V is vector from world position to eye
-    // L is vector from world position to light
-    fn GeometrySmith(NdotV : f32, NdotL : f32, roughness : f32) -> f32 {
-        let ggx2 : f32 = GeometrySchlickGGX(NdotV, roughness);
-        let ggx1 : f32 = GeometrySchlickGGX(NdotL, roughness);
-
-        return ggx1 * ggx2;
-    }
-
-    const lDir = vec3<f32>(0.0, 0.0, -1.0);
-    const lCol = vec3<f32>(1.0, 1.0, 1.0);
-
-    @fragment
-    fn main_f(
-        @location(0) fragUV : vec2<f32>,
-        @location(1) fragNormal : vec3<f32>,
-        @location(2) fragPosition : vec3<f32>
-    ) -> @location(0) vec4<f32> {
-        
-        var N = normalize(fragNormal);
-        
-        let V = normalize(fragPosition - sceneUniforms.cameraPosition);
-
-        let N_dot_V = dot(N, -V);
-        if(N_dot_V < 0.0)   {
-            N = -N;
-        }
-
-        // let R = reflect(lightDir, norm);
-
-        var albedo = materialParameters.albedo;
-        let albedoSample : vec4<f32> = textureSample(albedoTexture, nearestSampler, fragUV);
-        albedo = pow(albedoSample.rgb, vec3<f32>(2.2));
-
-        let metallic : f32 = textureSample(metallicTexture, nearestSampler, fragUV).r;
-        let roughness : f32 = textureSample(roughnessTexture, nearestSampler, fragUV).r;
-        let ao : f32 = textureSample(aoTexture, nearestSampler, fragUV).r;
-
-        var F0 : vec3<f32> = vec3<f32>(0.04);
-        F0 = mix(F0, albedo, metallic);
-
-        var Lo : vec3<f32> = vec3<f32>(0.0);
-
-        // Lighting
-        let L = lDir; // Already normalized
-
-        let H : vec3<f32> = normalize(-V-L);
-
-        let NdotL : f32 = max(0.0, dot(N, -L));
-        let NdotV : f32 = max(0.0, dot(N, -V));
-        let NdotH : f32 = max(0.0, dot(N, H));
-        let HdotV : f32 = max(0.0, dot(H, -V));
-
-        let radiance : vec3<f32> = lCol;
-
-        let NDF : f32 = DistributionGGX(NdotH, roughness);
-        let G : f32 = GeometrySmith(NdotV, NdotL, roughness);
-        let F : vec3<f32> = fresnelSchlick(HdotV, F0);
-
-        let kS : vec3<f32> = F;
-        var kD : vec3<f32> = vec3<f32>(1.0) - kS;
-        kD *= 1.0 - metallic;
-
-        let num : vec3<f32> = NDF * G * F;
-        let den : f32 = 4.0 * NdotV * NdotL + 0.0001;
-        let specular = num / den;
-
-        Lo = (M_1_PI * kD * albedo + specular) * radiance * NdotL;
-        
-        let ambient = ao * albedo;
-
-        var color = ambient +  Lo;
-
-        // Tone mapping
-        color = color / (color + vec3(1.0));
-
-        // Gamma correction
-        let gamma : f32 = 1.0 / 2.2;
-        let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
-
-        let fragColor = vec4<f32>(pow(color, gammaVec), 1.0);
-        return fragColor;
-    }
-)";
+}
 
 
 PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice* device)
-: RenderPipeline("PBR Render Pipeline")
+: RenderPipeline("PBR Render Pipeline"), m_ModelUniformBindGroupLayout(nullptr), m_MaterialBindGroupLayout(nullptr),
+  m_SceneUniformBindGroupLayout(nullptr), m_SamplerBindGroupLayout(nullptr), m_RenderShader(nullptr),
+  m_LightingShader(nullptr), m_RenderPipeline(nullptr), m_LightingPipeline(nullptr),
+  m_GBufferBindGroupLayout(nullptr), m_GBufferBindGroup(nullptr), m_DepthTexture(nullptr)
 {
-    m_Pipeline = new WGpuPipeline();
-
     m_SceneUniformBindGroupLayout = new WGpuBindGroupLayout("Scene Uniform Bind Group Layout");
     m_SceneUniformBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(SceneUniforms), 0, wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment);
     m_SceneUniformBindGroupLayout->build(device);
@@ -230,14 +86,59 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     m_SamplerBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
     m_SamplerBindGroupLayout->build(device);
 
-    m_Shader = new WGpuShader("Color Shader", shaderCode, device);
+    ShaderDescription pbrDescription{};
+    pbrDescription.shaderCode = pbrRenderCode;
+    pbrDescription.colorTargets = {TextureFormat::RGBA8Unorm, TextureFormat::RGBA32Float, TextureFormat::RGBA32Float};
+    m_RenderShader = new WGpuShader("PBR_Render_Shader", pbrDescription, device);
+    m_RenderPipeline = new WGpuPipeline("PBR Render Pipeline");
+    m_RenderPipeline->addBindGroup(m_SceneUniformBindGroupLayout);
+    m_RenderPipeline->addBindGroup(m_ModelUniformBindGroupLayout);
+    m_RenderPipeline->addBindGroup(m_MaterialBindGroupLayout);
+    m_RenderPipeline->addBindGroup(m_SamplerBindGroupLayout);
+    m_RenderPipeline->setShader(m_RenderShader);
+    m_RenderPipeline->build(device, true);
 
-    m_Pipeline->addBindGroup(m_SceneUniformBindGroupLayout);
-    m_Pipeline->addBindGroup(m_ModelUniformBindGroupLayout);
-    m_Pipeline->addBindGroup(m_MaterialBindGroupLayout);
-    m_Pipeline->addBindGroup(m_SamplerBindGroupLayout);
-    m_Pipeline->setShader(m_Shader);
-    m_Pipeline->build(device);
+    // Lighting pipeline
+
+    m_GBufferBindGroupLayout = new WGpuBindGroupLayout("PBR GBuffer Bind Group Layout");
+    m_GBufferBindGroupLayout->addTexture(TextureSampleType::Float, 0, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroupLayout->addTexture(TextureSampleType::UnfilterableFloat, 1, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroupLayout->addTexture(TextureSampleType::UnfilterableFloat, 2, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroupLayout->build(device);
+
+    ShaderDescription pbrLightingDescription{};
+    pbrLightingDescription.shaderCode = pbrLightingCode;
+    pbrLightingDescription.colorTargets = {TextureFormat::BGRA8Unorm};
+    m_LightingShader = new WGpuShader("PBR_Lighting_Shader", pbrLightingDescription, device);  
+    m_LightingPipeline = new WGpuPipeline("PBR Lighting Pipeline");
+    m_LightingPipeline->addBindGroup(m_SceneUniformBindGroupLayout);
+    m_LightingPipeline->addBindGroup(m_GBufferBindGroupLayout);
+    m_LightingPipeline->addBindGroup(m_SamplerBindGroupLayout);
+    m_LightingPipeline->setShader(m_LightingShader);
+    m_LightingPipeline->build(device, false);
+
+    TextureCreateInfo rgbaFloatInfo{};
+    rgbaFloatInfo.format = TextureFormat::RGBA32Float;
+    rgbaFloatInfo.height = height;
+    rgbaFloatInfo.width = width;
+    rgbaFloatInfo.usage = {TextureUsage::RenderAttachment, TextureUsage::TextureBinding};
+
+    TextureCreateInfo rgbaUnsignedInfo{};
+    rgbaUnsignedInfo.format = TextureFormat::RGBA8Unorm;
+    rgbaUnsignedInfo.height = height;
+    rgbaUnsignedInfo.width = width;
+    rgbaUnsignedInfo.usage = {TextureUsage::RenderAttachment, TextureUsage::TextureBinding};
+
+    m_GBuffer.albedoMetallic = new WGpuTexture("GBuffer_Albedo_Metallic", &rgbaUnsignedInfo, device);
+    m_GBuffer.positionRoughness = new WGpuTexture("GBuffer_Position_Roughness", &rgbaFloatInfo, device);
+    m_GBuffer.normalsAo = new WGpuTexture("GBuffer_Normals_AO", &rgbaFloatInfo, device);
+
+    m_GBufferBindGroup = new WGpuBindGroup("PBR GBuffer Bind Group");
+    m_GBufferBindGroup->setLayout(m_GBufferBindGroupLayout); // TODO: ekki besta leiðin. Auðvelt að gleyma þessu. Setja assert í bindground ef layout er ekki til staðar.
+    m_GBufferBindGroup->addTexture(m_GBuffer.albedoMetallic, TextureSampleType::Float, 0, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroup->addTexture(m_GBuffer.positionRoughness, TextureSampleType::UnfilterableFloat, 1, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroup->addTexture(m_GBuffer.normalsAo, TextureSampleType::UnfilterableFloat, 2, wgpu::ShaderStage::Fragment);
+    m_GBufferBindGroup->build(device);
 
     TextureCreateInfo depthInfo{};
     depthInfo.format = TextureFormat::Depth32Float;
@@ -246,25 +147,68 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     depthInfo.usage = {TextureUsage::RenderAttachment};
     m_DepthTexture = new WGpuTexture("Depth texture", &depthInfo, device);
 
+
+    SamplerCreateInfo samplerInfo{};
+    m_NearestSampler = new WGpuSampler("Sampler", &samplerInfo, device);
+    m_NearestSampler2 = new WGpuSampler("Sampler2", &samplerInfo, device);
+
+    m_SamplerBindGroupLayout = new WGpuBindGroupLayout("Sampler Bind Group Layout");
+    m_SamplerBindGroupLayout->addSampler(SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroupLayout->build(device);
+
+    m_SamplerBindGroup = new WGpuBindGroup("Sampler Bind Group");
+    m_SamplerBindGroup->setLayout(m_SamplerBindGroupLayout);
+    m_SamplerBindGroup->addSampler(m_NearestSampler, SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroup->build(device);
+
+    m_SamplerBindGroup2 = new WGpuBindGroup("Sampler Bind Group2");
+    m_SamplerBindGroup2->setLayout(m_SamplerBindGroupLayout);
+    m_SamplerBindGroup2->addSampler(m_NearestSampler2, SamplerBindingType::NonFiltering, 0, wgpu::ShaderStage::Fragment);
+    m_SamplerBindGroup2->build(device);
 }
 
 PBRRenderPipeline::~PBRRenderPipeline()
 {
-    if(m_Pipeline) delete m_Pipeline;
+    //TODO: hreinsa allt sem þarf
+    if(m_RenderPipeline) delete m_RenderPipeline;
+    if(m_LightingPipeline) delete m_LightingPipeline;
 }
 
-void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)
+void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)
 {
-    if(!scene) return;
-    wgpu::Queue queue = device->getHandle().GetQueue();
-    
-    wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
+    if(!scene || !device || !swapChain) return;
 
-    wgpu::RenderPassColorAttachment attachment{};
-    attachment.view = backBuffer;
-    attachment.loadOp = wgpu::LoadOp::Clear;
-    attachment.storeOp = wgpu::StoreOp::Store;
-    attachment.clearValue = {0, 0, 0, 1};
+    params.scene = scene;
+    params.device = device;
+    params.swapChain = swapChain;
+    params.pipeline = this;
+
+    render(scene, device, swapChain);
+
+    #ifndef WAIT_FOR_QUEUE
+    light(scene, device, swapChain);
+    #endif
+    // swapChain->present();
+}
+
+void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)//, wgpu::CommandEncoder& encoder)
+{
+    wgpu::RenderPassColorAttachment gbufferAttachments[3];
+
+    gbufferAttachments[0].view = m_GBuffer.albedoMetallic->createView();
+    gbufferAttachments[0].loadOp = wgpu::LoadOp::Clear;
+    gbufferAttachments[0].storeOp = wgpu::StoreOp::Store;
+    gbufferAttachments[0].clearValue = {0, 0, 0, 0};
+
+    gbufferAttachments[1].view = m_GBuffer.positionRoughness->createView();
+    gbufferAttachments[1].loadOp = wgpu::LoadOp::Clear;
+    gbufferAttachments[1].storeOp = wgpu::StoreOp::Store;
+    gbufferAttachments[1].clearValue = {0, 0, 0, 0};
+
+    gbufferAttachments[2].view = m_GBuffer.normalsAo->createView();
+    gbufferAttachments[2].loadOp = wgpu::LoadOp::Clear;
+    gbufferAttachments[2].storeOp = wgpu::StoreOp::Store;
+    gbufferAttachments[2].clearValue = {0, 0, 0, 0};
  
     wgpu::RenderPassDepthStencilAttachment depthAttachment{};
     
@@ -282,8 +226,8 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     depthAttachment.depthReadOnly = false;
 
     wgpu::RenderPassDescriptor renderPassDescription{};
-    renderPassDescription.colorAttachmentCount = 1;
-    renderPassDescription.colorAttachments = &attachment;
+    renderPassDescription.colorAttachmentCount = 3;
+    renderPassDescription.colorAttachments = &gbufferAttachments[0];
     renderPassDescription.depthStencilAttachment = &depthAttachment;
 
     static uint64_t frameNr = 0;
@@ -292,37 +236,60 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     static bool cacheTransforms = true;
     static std::set<uint32_t> uniqueIds;
-
-    wgpu::CommandBuffer commands;
-    {
-        wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
-        {   
-            wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
-            renderPass.SetPipeline(m_Pipeline->getPipeline());
-            renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
-            renderPass.SetBindGroup(3, scene->m_SamplerBindGroup->get());
-            
-            auto gameObjects = scene->getGameObjects();
-            uniqueObjects = gameObjects.size();
+    wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
+    {   
+        wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
+        renderPass.SetPipeline(m_RenderPipeline->getPipeline());
+        renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
+        renderPass.SetBindGroup(3, m_SamplerBindGroup->get());
+        
+        auto gameObjects = scene->getGameObjects();
+        uniqueObjects = gameObjects.size();
 
 
-            for(int i = 0; i < gameObjects.size(); ++i){
-                GameObject* object = gameObjects.at(i);
-                // if(uniqueIds.count(object->getId()) <= 0) {
-                //     ++uniqueParts;
-                // }
+        for(int i = 0; i < gameObjects.size(); ++i){
+            GameObject* object = gameObjects.at(i);
 
-                // uniqueIds.insert(object->getId());
+            glm::mat4 transform = object->getTransform();
 
-                glm::mat4 transform = object->getTransform();
+            const TriangleMesh* mesh = object->getMesh();
+            const Material* material = object->getMaterial();
 
-                const TriangleMesh* mesh = object->getMesh();
-                const Material* material = object->getMaterial();
+            if(mesh != nullptr && material != nullptr && mesh->isReady()){
+                WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
+                if(cacheTransforms)
+                    object->cacheTransform(transform, device);
+
+                renderPass.SetBindGroup(1, modelBindGroup->get());
+                    
+                renderPass.SetBindGroup(2, material->getBindGroup()->get());
+
+                renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+
+                WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
+                renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                totalTriangles+= indexBuffer->getIndexCount() / 3;
+
+                if(uniqueIds.count(mesh->getId()) <= 0) {
+                    ++uniqueParts;
+                    uniqueTriangles += indexBuffer->getIndexCount() / 3;
+                }
+                
+                uniqueIds.insert(mesh->getId());
+            }
+
+            GameObject* child = object->getNext();
+            while(child != nullptr) {
+                transform = child->getTransform() * transform;
+                
+                const TriangleMesh* mesh = child->getMesh();
+                const Material* material = child->getMaterial();
 
                 if(mesh != nullptr && material != nullptr && mesh->isReady()){
-                    WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
+                    WGpuBindGroup* modelBindGroup = child->getModelBindGroup();
                     if(cacheTransforms)
-                        object->cacheTransform(transform, device);
+                        child->cacheTransform(transform, device);
 
                     renderPass.SetBindGroup(1, modelBindGroup->get());
                         
@@ -333,9 +300,8 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                     WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
                     renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
                     renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                    totalTriangles+= indexBuffer->getIndexCount() / 3;
+                    totalTriangles += indexBuffer->getIndexCount() / 3;
 
-                    //TODO: þarf að nota mesh id hér
                     if(uniqueIds.count(mesh->getId()) <= 0) {
                         ++uniqueParts;
                         uniqueTriangles += indexBuffer->getIndexCount() / 3;
@@ -344,49 +310,14 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                     uniqueIds.insert(mesh->getId());
                 }
 
-                GameObject* child = object->getNext();
-                while(child != nullptr) {
-                    transform = child->getTransform() * transform;
-                    
-                    const TriangleMesh* mesh = child->getMesh();
-                    const Material* material = child->getMaterial();
-
-                    if(mesh != nullptr && material != nullptr && mesh->isReady()){
-                        WGpuBindGroup* modelBindGroup = child->getModelBindGroup();
-                        if(cacheTransforms)
-                            child->cacheTransform(transform, device);
-
-                        renderPass.SetBindGroup(1, modelBindGroup->get());
-                            
-                        renderPass.SetBindGroup(2, material->getBindGroup()->get());
-
-                        renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
-
-                        WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
-                        renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
-                        renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                        totalTriangles += indexBuffer->getIndexCount() / 3;
-
-                        //TODO: þarf að nota mesh id hér
-                        if(uniqueIds.count(mesh->getId()) <= 0) {
-                            ++uniqueParts;
-                            uniqueTriangles += indexBuffer->getIndexCount() / 3;
-                        }
-                        
-                        uniqueIds.insert(mesh->getId());
-                    }
-
-                    child = child->getNext();
-                }
+                child = child->getNext();
             }
-            
-            renderPass.End();
         }
-        commands = encoder.Finish();
-        frameNr++;
+        
+        renderPass.End();
     }
+    frameNr++;
 
-    queue.Submit(1, &commands);
     cacheTransforms = false;
 
     // Tímabundið
@@ -400,4 +331,68 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
         elm = document.getElementById("UniqueTriangleCount");
         elm.innerHTML = $3;
     }, totalTriangles, uniqueObjects, uniqueParts, uniqueTriangles);
+
+    // wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
+
+    // wgpu::RenderPassColorAttachment attachment{};
+    // attachment.view = backBuffer;
+    // attachment.loadOp = wgpu::LoadOp::Clear;
+    // attachment.storeOp = wgpu::StoreOp::Store;
+    // attachment.clearValue = {0, 0, 0, 1};
+
+    // wgpu::RenderPassDescriptor lightingPassDescription{};
+    // lightingPassDescription.colorAttachmentCount = 1;
+    // lightingPassDescription.colorAttachments = &attachment;
+
+    // {   
+    //     wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&lightingPassDescription);
+    //     renderPass.SetPipeline(m_LightingPipeline->getPipeline());
+    //     renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
+    //     renderPass.SetBindGroup(1, m_GBufferBindGroup->get());
+    //     renderPass.SetBindGroup(2, scene->m_SamplerBindGroup->get());
+    //     renderPass.Draw(3);
+    //     renderPass.End();
+    // }
+
+    wgpu::Queue queue = device->getHandle().GetQueue();
+    wgpu::CommandBuffer commands = encoder.Finish();
+    queue.Submit(1, &commands);
+
+    #ifdef WAIT_FOR_QUEUE
+    queue.OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
+    #endif
+    
+}
+
+void PBRRenderPipeline::light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)//, wgpu::CommandEncoder& encoder)
+{
+    wgpu::Queue queue = device->getHandle().GetQueue();
+    wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
+
+    wgpu::RenderPassColorAttachment attachment{};
+    attachment.view = backBuffer;
+    attachment.loadOp = wgpu::LoadOp::Clear;
+    attachment.storeOp = wgpu::StoreOp::Store;
+    attachment.clearValue = {0, 0, 0, 1};
+
+    wgpu::RenderPassDescriptor renderPassDescription{};
+    renderPassDescription.colorAttachmentCount = 1;
+    renderPassDescription.colorAttachments = &attachment;
+
+    wgpu::CommandBuffer commands;
+    {
+        wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
+        {   
+            wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
+            renderPass.SetPipeline(m_LightingPipeline->getPipeline());
+            renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
+            renderPass.SetBindGroup(1, m_GBufferBindGroup->get());
+            renderPass.SetBindGroup(2, scene->m_SamplerBindGroup->get());
+            renderPass.Draw(3);
+            renderPass.End();
+        }
+        commands = encoder.Finish();
+    }
+    
+    queue.Submit(1, &commands);
 }

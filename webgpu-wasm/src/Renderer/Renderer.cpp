@@ -42,6 +42,7 @@ void Renderer::render(Scene* scene)
 {
     if(!scene) return; //TODO: report error?
 
-    if(m_Pipeline) m_Pipeline->render(scene, m_Device, m_SwapChain);
+    if(m_Pipeline) m_Pipeline->run(scene, m_Device, m_SwapChain);
+    
     // printf("Triangles drawn: %i\n", frameTriangles);
 }

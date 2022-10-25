@@ -12,6 +12,8 @@ public:
 
     wgpu::TextureView getCurrentFrameTexture() const;
 
+    // void present();
+
 private:
     void createSwapChain(uint32_t width, uint32_t height);
 

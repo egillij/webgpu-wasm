@@ -34,6 +34,7 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/RenderPipeline.h
 	src/Renderer/Pipelines/RenderPipeline.cpp
 
+	src/Renderer/Pipelines/PBRShaders.h
 	src/Renderer/Pipelines/PBRRenderPipeline.h
 	src/Renderer/Pipelines/PBRRenderPipeline.cpp
 
@@ -87,6 +88,8 @@ SET(LINKER_FLAGS
 -s ASSERTIONS=2
 -s ASYNCIFY
 )
+
+add_compile_definitions("WAIT_FOR_QUEUE")
 
 configure_file(custom_shell.html custom_shell.html COPYONLY)
 
