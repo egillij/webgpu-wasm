@@ -21,6 +21,8 @@
 
 #include "Application.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <set>
 
 // Tímabundið á meðan fjöldi þríhyrninga er prentaður héðan
@@ -31,6 +33,9 @@
 #endif
 
 // #define WAIT_FOR_QUEUE 1
+// #ifdef WAIT_FOR_QUEUE
+// #undef WAIT_FOR_QUEUE
+// #endif
 
 static uint32_t totalTriangles = 0;
 static uint32_t uniqueTriangles = 0;
@@ -257,8 +262,8 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
             if(mesh != nullptr && material != nullptr && mesh->isReady()){
                 WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
-                if(cacheTransforms)
-                    object->cacheTransform(transform, device);
+                // if(cacheTransforms)
+                object->cacheTransform(transform, device);
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
                     
@@ -286,28 +291,31 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                 const TriangleMesh* mesh = child->getMesh();
                 const Material* material = child->getMaterial();
 
-                if(mesh != nullptr && material != nullptr && mesh->isReady()){
-                    WGpuBindGroup* modelBindGroup = child->getModelBindGroup();
-                    if(cacheTransforms)
+                if(mesh != nullptr && material != nullptr){ // && mesh->isReady()){
+                    if(cacheTransforms) //TODO: need to move caching transform from renderer. In case mesh is not loaded first frame the transform will never be cached right now
                         child->cacheTransform(transform, device);
 
-                    renderPass.SetBindGroup(1, modelBindGroup->get());
+                    if(mesh->isReady()){ //Temporarily moved down since we don't have proper updating of transform buffer
+                        WGpuBindGroup* modelBindGroup = child->getModelBindGroup();
+                        renderPass.SetBindGroup(1, modelBindGroup->get());
+                            
+                        renderPass.SetBindGroup(2, material->getBindGroup()->get());
+
+                        renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
+
+                        WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
+                        renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
+                        renderPass.DrawIndexed(indexBuffer->getIndexCount());
+                        totalTriangles += indexBuffer->getIndexCount() / 3;
+
+                        if(uniqueIds.count(mesh->getId()) <= 0) {
+                            ++uniqueParts;
+                            uniqueTriangles += indexBuffer->getIndexCount() / 3;
+                        }
                         
-                    renderPass.SetBindGroup(2, material->getBindGroup()->get());
-
-                    renderPass.SetVertexBuffer(0, mesh->getVertexBuffer()->getHandle());
-
-                    WGpuIndexBuffer* indexBuffer = mesh->getIndexBuffer();
-                    renderPass.SetIndexBuffer(indexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(indexBuffer->getDataFormat()));
-                    renderPass.DrawIndexed(indexBuffer->getIndexCount());
-                    totalTriangles += indexBuffer->getIndexCount() / 3;
-
-                    if(uniqueIds.count(mesh->getId()) <= 0) {
-                        ++uniqueParts;
-                        uniqueTriangles += indexBuffer->getIndexCount() / 3;
+                        uniqueIds.insert(mesh->getId());
                     }
                     
-                    uniqueIds.insert(mesh->getId());
                 }
 
                 child = child->getNext();

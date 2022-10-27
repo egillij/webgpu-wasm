@@ -128,7 +128,7 @@ WGpuBindGroup::WGpuBindGroup(const std::string& label)
     
 WGpuBindGroup::~WGpuBindGroup()
 {
-
+    m_BindGroup.Release();
 }
 
 void WGpuBindGroup::setLayout(WGpuBindGroupLayout* layout)

@@ -138,10 +138,8 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
     for(int i = 0; i < description->numberOfModels; ++i){
         ModelDescription* model = description->modelDescriptions+i;
         std::string m_ServerResource = "/resources/models/" + model->filename;
-        std::string m_LocalResource = "./models/" + model->filename;
-        //TODO: make async
-        emscripten_wget(m_ServerResource.c_str(), m_LocalResource.c_str());
-        geometrySystem->registerTriangleMesh(model->id, model->name, m_LocalResource);
+        
+        geometrySystem->registerTriangleMesh(model->id, model->name, m_ServerResource);
     }
 
     for(int i = 0; i < description->numberOfMaterials; ++i){
@@ -159,11 +157,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         }
         else {
             std::string m_ServerResource = "/resources/models/" + material->filename;
-            std::string m_LocalResource = "./models/" + material->filename;
-            //TODO: gera async og ekki hér, heldur sem hluti af register material???
-            emscripten_wget(m_ServerResource.c_str(), m_LocalResource.c_str());
-
-            materialSystem->registerMaterial(material->id, material->name, m_LocalResource);
+            materialSystem->registerMaterial(material->id, material->name, m_ServerResource);
         }
         
     }
@@ -201,7 +195,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
             if(childNode.modelId != MODEL_NO_ID && childNode.materialId != MATERIAL_NO_ID) {
                 child->setMesh(childNode.modelId, childNode.materialId, geometrySystem, materialSystem, device);
             }
-
+            
             lastObject->setNext(child);
             lastObject = child;
         }

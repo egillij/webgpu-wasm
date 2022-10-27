@@ -129,7 +129,6 @@ void Application::initializeAndRun()
     m_TextureSystem = new TextureSystem(m_Device);
 
     const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
-    // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
 
     SceneDescription scene{};
     scene.name = "Test Scene";

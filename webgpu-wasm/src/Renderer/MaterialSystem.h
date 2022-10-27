@@ -17,6 +17,10 @@ public:
 
     Material* find(uint32_t id);
 
+    void updateMaterial(uint32_t id, void* data, int size);
+
+    void updateBindgroups();
+
 private:
     WGpuDevice* m_Device;
     std::unordered_map<uint32_t, std::shared_ptr<Material>> m_Materials;

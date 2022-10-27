@@ -93,6 +93,6 @@ add_compile_definitions("WAIT_FOR_QUEUE")
 
 configure_file(custom_shell.html custom_shell.html COPYONLY)
 
-set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-sUSE_WEBGPU=1 -o index.html -sASYNCIFY -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING --shell-file custom_shell.html")
+set_target_properties(wgpu_wasm PROPERTIES LINK_FLAGS "-sUSE_WEBGPU=1 -o index.html -sALLOW_MEMORY_GROWTH -sNO_DISABLE_EXCEPTION_CATCHING --shell-file custom_shell.html")
 target_link_libraries(wgpu_wasm PUBLIC glm)
 target_include_directories(wgpu_wasm PUBLIC src/ ../3pp/ ../utils/)

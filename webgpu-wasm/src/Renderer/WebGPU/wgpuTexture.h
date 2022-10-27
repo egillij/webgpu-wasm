@@ -33,6 +33,7 @@ struct TextureCreateInfo {
 
 class WGpuTexture {
 public:
+    WGpuTexture(const std::string& label, WGpuDevice* device);
     WGpuTexture(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device);
     ~WGpuTexture();
 
@@ -44,6 +45,8 @@ public:
     uint32_t getHeight() const { return m_Height; }
 
     wgpu::TextureView createView();
+
+    void update(const TextureCreateInfo* createInfo, WGpuDevice* device);
 
 private:
     std::string m_Label;

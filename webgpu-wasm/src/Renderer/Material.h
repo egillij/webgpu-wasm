@@ -23,6 +23,7 @@ struct PBRUniforms {
         float ambientOcclusions = 0.1f;
         float padding[2];
     } shaderUniforms;
+
     struct Textures {
         std::string albedo = {};
         std::string metallic = {};
@@ -36,6 +37,9 @@ public:
     // WGpuBindGroup* getBindGroup() { return m_MaterialBindGroup; }
     WGpuBindGroup* getBindGroup() const { return m_MaterialBindGroup; }
     ~Material();
+
+    virtual void update(const PBRUniforms& data, WGpuDevice* device) = 0;
+    virtual void updateBindGroup(WGpuDevice* device) = 0;
 
 protected:
     Material(const std::string& name, MaterialType type);
@@ -51,8 +55,12 @@ protected:
 
 class PBRMaterial final : public Material {
 public:
+    PBRMaterial(const std::string& name, WGpuDevice* device);
     PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuDevice* device);
     ~PBRMaterial();
+
+    virtual void update(const PBRUniforms& data, WGpuDevice* device) override;
+    virtual void updateBindGroup(WGpuDevice* device) override;
 
 private:
     PBRUniforms m_Uniforms;
