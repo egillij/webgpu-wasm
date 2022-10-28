@@ -38,6 +38,10 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/PBRRenderPipeline.h
 	src/Renderer/Pipelines/PBRRenderPipeline.cpp
 
+	src/Renderer/Pipelines/PresentShader.h
+	src/Renderer/Pipelines/PresentPipeline.h
+	src/Renderer/Pipelines/PresentPipeline.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 

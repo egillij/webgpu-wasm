@@ -45,9 +45,10 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
 
     rpDescription.vertex.module = m_Shader->getModule();
     rpDescription.vertex.entryPoint = "main_v";
-    if(forRendering){ //TODO: gera þetta betur. Hafa sem hluta af inntaki
-        wgpu::VertexAttribute vAttribute[3];
 
+    wgpu::VertexAttribute vAttribute[3];
+    wgpu::VertexBufferLayout vertexBufferLayout{};
+    if(forRendering){ //TODO: gera þetta betur. Hafa sem hluta af inntaki
         vAttribute[0].format = wgpu::VertexFormat::Float32x3;
         vAttribute[0].offset = 0;
         vAttribute[0].shaderLocation = 0;
@@ -60,7 +61,7 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
         vAttribute[2].offset = 6*sizeof(float);
         vAttribute[2].shaderLocation = 2;
         
-        wgpu::VertexBufferLayout vertexBufferLayout{};
+        
         vertexBufferLayout.attributeCount = 3;
         vertexBufferLayout.attributes = vAttribute;
         vertexBufferLayout.arrayStride = 8 * sizeof(float);
@@ -79,8 +80,8 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
     rpDescription.primitive.frontFace = wgpu::FrontFace::CCW;
     rpDescription.primitive.cullMode = wgpu::CullMode::Back;
 
+    wgpu::DepthStencilState depthStencil{};
     if(forRendering){
-        wgpu::DepthStencilState depthStencil{};
         depthStencil.format = wgpu::TextureFormat::Depth32Float;
         depthStencil.depthWriteEnabled = true;
         depthStencil.depthCompare = wgpu::CompareFunction::LessEqual;

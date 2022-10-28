@@ -51,7 +51,7 @@ struct RenderParams {
 
 static RenderParams params{};
 
-int animFrameRender(double t, void* userData) {
+int pbrAnimationFrame(double t, void* userData) {
     // params.pipeline->run(params.scene, params.device, params.swapChain);
     Application::get()->onUpdate();
     return 1;
@@ -60,7 +60,7 @@ int animFrameRender(double t, void* userData) {
 void queueDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata){
     if(status == WGPUQueueWorkDoneStatus_Success){
         params.pipeline->light(params.scene, params.device, params.swapChain);
-        emscripten_request_animation_frame(animFrameRender, nullptr);
+        emscripten_request_animation_frame(pbrAnimationFrame, nullptr);
     }
 }
 
@@ -138,6 +138,8 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     m_GBuffer.positionRoughness = new WGpuTexture("GBuffer_Position_Roughness", &rgbaFloatInfo, device);
     m_GBuffer.normalsAo = new WGpuTexture("GBuffer_Normals_AO", &rgbaFloatInfo, device);
 
+    m_OutputTexture = new WGpuTexture("PBR_Output_Texture", &rgbaFloatInfo, device);
+
     m_GBufferBindGroup = new WGpuBindGroup("PBR GBuffer Bind Group");
     m_GBufferBindGroup->setLayout(m_GBufferBindGroupLayout); // TODO: ekki besta leiðin. Auðvelt að gleyma þessu. Setja assert í bindground ef layout er ekki til staðar.
     m_GBufferBindGroup->addTexture(m_GBuffer.albedoMetallic, TextureSampleType::Float, 0, wgpu::ShaderStage::Fragment);
@@ -179,24 +181,36 @@ PBRRenderPipeline::~PBRRenderPipeline()
     if(m_LightingPipeline) delete m_LightingPipeline;
 }
 
-void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)
+void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue *queue)
 {
     if(!scene || !device || !swapChain) return;
 
-    params.scene = scene;
-    params.device = device;
-    params.swapChain = swapChain;
     params.pipeline = this;
+    params.device = device;
+    params.scene = scene;
+    params.swapChain = swapChain;
 
-    render(scene, device, swapChain);
+    wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
 
-    #ifndef WAIT_FOR_QUEUE
-    light(scene, device, swapChain);
+    render(scene, device, swapChain, &encoder);
+
+    wgpu::CommandBuffer commands = encoder.Finish();
+    queue->Submit(1, &commands);
+
+    #ifdef WAIT_FOR_QUEUE
+    queue->OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
     #endif
+
+    // #ifndef WAIT_FOR_QUEUE
+    // light(scene, device, swapChain, &encoder);
+    // #endif
     // swapChain->present();
+
+    // wgpu::CommandBuffer commands = encoder.Finish();
+    // queue->Submit(1, &commands);
 }
 
-void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)//, wgpu::CommandEncoder& encoder)
+void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::CommandEncoder* encoder)
 {
     wgpu::RenderPassColorAttachment gbufferAttachments[3];
 
@@ -241,9 +255,9 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     static bool cacheTransforms = true;
     static std::set<uint32_t> uniqueIds;
-    wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
+    // wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
     {   
-        wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
+        wgpu::RenderPassEncoder renderPass = encoder->BeginRenderPass(&renderPassDescription);
         renderPass.SetPipeline(m_RenderPipeline->getPipeline());
         renderPass.SetBindGroup(0, scene->getUniformsBindGroup()->get());
         renderPass.SetBindGroup(3, m_SamplerBindGroup->get());
@@ -362,23 +376,23 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     //     renderPass.End();
     // }
 
-    wgpu::Queue queue = device->getHandle().GetQueue();
-    wgpu::CommandBuffer commands = encoder.Finish();
-    queue.Submit(1, &commands);
+    // wgpu::Queue queue = device->getHandle().GetQueue();
+    // wgpu::CommandBuffer commands = encoder.Finish();
+    // queue.Submit(1, &commands);
 
-    #ifdef WAIT_FOR_QUEUE
-    queue.OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
-    #endif
+    // #ifdef WAIT_FOR_QUEUE
+    // queue.OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
+    // #endif
     
 }
 
-void PBRRenderPipeline::light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)//, wgpu::CommandEncoder& encoder)
+void PBRRenderPipeline::light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)
 {
     wgpu::Queue queue = device->getHandle().GetQueue();
     wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
 
     wgpu::RenderPassColorAttachment attachment{};
-    attachment.view = backBuffer;
+    attachment.view = backBuffer;// m_OutputTexture->createView();
     attachment.loadOp = wgpu::LoadOp::Clear;
     attachment.storeOp = wgpu::StoreOp::Store;
     attachment.clearValue = {0, 0, 0, 1};

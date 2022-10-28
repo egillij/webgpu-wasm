@@ -26,12 +26,13 @@ class PBRRenderPipeline final : public RenderPipeline {
 public:
     PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice* device);
     ~PBRRenderPipeline();
-
-    virtual void run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain) override;
+ 
+    virtual void run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue* queue) override;
+    virtual WGpuTexture* getOutputTexture() override { return m_OutputTexture; };
     
 // private:
-    void render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain);//, wgpu::CommandEncoder& encoder);
-    void light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain);//, wgpu::CommandEncoder& encoder);
+    void render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::CommandEncoder* commandEncoder);//, wgpu::CommandEncoder& encoder);
+    void light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain);//, wgpu::CommandEncoder* commandEncoder);//, wgpu::CommandEncoder& encoder);
 
 private:
     GBuffer m_GBuffer;
@@ -57,4 +58,5 @@ private:
 
 
     WGpuTexture* m_DepthTexture;
+    WGpuTexture* m_OutputTexture;
 };
