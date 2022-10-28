@@ -1,0 +1,12 @@
+Shape: main_mainShape_jsf_mainMat
+	{
+		Mesh: main_mainShape_jsf_mainMat_0
+		Material: jsf_mainMat
+	}
+
+Shape: aux_auxShape_jsf_auxMat
+	{
+		Mesh: aux_auxShape_jsf_auxMat_0
+		Material: jsf_auxMat
+	}
+

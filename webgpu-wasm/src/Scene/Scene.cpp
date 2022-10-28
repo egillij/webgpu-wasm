@@ -173,7 +173,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
         rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.y, glm::vec3(0.f, 1.f, 0.f));
         rotation = rotation * glm::rotate(glm::mat4(1.f), node->rotation.x, glm::vec3(1.f, 0.f, 0.f));
 
-        glm::mat4 transform = rotation * glm::translate(glm::mat4(1.f), node->position) * glm::scale(glm::mat4(1.f), node->scale);
+        glm::mat4 transform = glm::translate(glm::mat4(1.f), node->position) * rotation *  glm::scale(glm::mat4(1.f), node->scale);
         object->setTransform(transform);
 
         if(node->modelId != MODEL_NO_ID && node->materialId != MATERIAL_NO_ID) {
@@ -188,7 +188,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
             rotation = glm::rotate(glm::mat4(1.f), childNode.rotation.z, glm::vec3(0.f, 0.f, 1.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.y, glm::vec3(0.f, 1.f, 0.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.x, glm::vec3(1.f, 0.f, 0.f));
-            transform = rotation * glm::translate(glm::mat4(1.f), childNode.position) * glm::scale(glm::mat4(1.f), node->scale);
+            transform = glm::translate(glm::mat4(1.f), childNode.position) * rotation * glm::scale(glm::mat4(1.f), node->scale);
             child->setTransform(transform);
 
 
@@ -224,7 +224,7 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 3.f;
+    static float radius = 5.f;
     static float phi = 0.f;
     static float theta = 0.1f;
 

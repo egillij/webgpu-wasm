@@ -1,0 +1,30 @@
+Shape: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal02_d
+	{
+		Mesh: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal02_d_0
+		Material: veh_rep_destroyer_metal02_d
+	}
+
+Shape: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_detail_d
+	{
+		Mesh: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_detail_d_0
+		Material: veh_rep_destroyer_detail_d
+	}
+
+Shape: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal01_d
+	{
+		Mesh: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal01_d_0
+		Material: veh_rep_destroyer_metal01_d
+	}
+
+Shape: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_engine_d
+	{
+		Mesh: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_engine_d_0
+		Material: veh_rep_destroyer_engine_d
+	}
+
+Shape: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_trim_d
+	{
+		Mesh: Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_trim_d_0
+		Material: veh_rep_destroyer_trim_d
+	}
+

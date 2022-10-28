@@ -1,0 +1,12 @@
+Shape: Box038_meshId0_name_M_Buzz_UpperBody
+	{
+		Mesh: Box038_meshId0_name_M_Buzz_UpperBody_0
+		Material: M_Buzz_UpperBody
+	}
+
+Shape: Box038.001_meshId1_name_M_Buzz_LowerBody
+	{
+		Mesh: Box038.001_meshId1_name_M_Buzz_LowerBody_0
+		Material: M_Buzz_LowerBody
+	}
+

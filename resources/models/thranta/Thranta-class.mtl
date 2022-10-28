@@ -1,0 +1,48 @@
+# Blender MTL File: 'Thranta-class.blend'
+# Material Count: 5
+
+newmtl veh_rep_destroyer_detail_d
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.8
+Pm 0.5
+map_Kd veh_rep_destroyer_detail_d.png
+norm veh_rep_destroyer_detail_n.png
+
+illum 2
+
+newmtl veh_rep_destroyer_engine_d
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.8
+Pm 0.5
+map_Kd veh_rep_destroyer_engine_d.png
+norm veh_rep_destroyer_engine_n.png
+illum 2
+
+newmtl veh_rep_destroyer_metal01_d
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.1
+Pm 1.0
+map_Kd veh_rep_destroyer_metal01_d.png
+norm veh_rep_destroyer_metal01_n.png
+illum 2
+
+newmtl veh_rep_destroyer_metal02_d
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.1
+Pm 1.0
+map_Kd veh_rep_destroyer_metal02_d.png
+norm veh_rep_destroyer_metal02_n.png
+illum 2
+
+newmtl veh_rep_destroyer_trim_d
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.0
+Pm 1.0
+map_Kd veh_rep_destroyer_trim_d.png
+norm veh_rep_destroyer_trim_n.png
+illum 2

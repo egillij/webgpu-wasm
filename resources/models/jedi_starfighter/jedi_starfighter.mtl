@@ -1,0 +1,24 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl jsf_auxMat
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.0
+Pm 0.5
+map_Kd auxielieryMat_diffuse.png
+map_Pr auxielieryMat_rough.png
+map_Pm auxielieryMat_metal.png
+norm auxielieryMat_nrm.png
+illum 3
+
+newmtl jsf_mainMat
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.0
+Pm 0.5
+map_Kd mainMat_diffuse.png
+map_Pr mainMat_rough.png
+map_Pm mainMat_metal.png
+norm mainMat_nrm.png
+illum 3

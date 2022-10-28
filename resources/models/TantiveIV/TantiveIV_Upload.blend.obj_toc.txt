@@ -1,0 +1,342 @@
+Shape: BackTube_BackTube_ScratchedMetal
+	{
+		Mesh: BackTube_BackTube_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: BackTube_BackTube_ScratchedMetalDark
+	{
+		Mesh: BackTube_BackTube_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: CentralSectionExtra_CentralSectionExtra_ScratchedMetal
+	{
+		Mesh: CentralSectionExtra_CentralSectionExtra_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: DualTurboLaserLowerSection_DualTuboLaserLowerSection_ScratchedMetal
+	{
+		Mesh: DualTurboLaserLowerSection_DualTuboLaserLowerSection_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetal
+	{
+		Mesh: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetalDark
+	{
+		Mesh: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: DualTurboLaserLower_DualTurboLaserLower_ScratchedMetalDark
+	{
+		Mesh: DualTurboLaserLower_DualTurboLaserLower_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: DualTurboLaserUpperSection_Cube.013_ScratchedMetal
+	{
+		Mesh: DualTurboLaserUpperSection_Cube.013_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetal
+	{
+		Mesh: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetalDark
+	{
+		Mesh: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: DualTurboLaserUpper_Cylinder.018_ScratchedMetalDark
+	{
+		Mesh: DualTurboLaserUpper_Cylinder.018_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: Greebles1_Greebles1_ScratchedMetal
+	{
+		Mesh: Greebles1_Greebles1_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Greebles1_Greebles1_ScratchedMetalDark
+	{
+		Mesh: Greebles1_Greebles1_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: Greebles2_Greebles2_ScratchedMetal
+	{
+		Mesh: Greebles2_Greebles2_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Greebles2_Greebles2_ReflectiveGlass
+	{
+		Mesh: Greebles2_Greebles2_ReflectiveGlass_0
+		Material: ReflectiveGlass
+	}
+
+Shape: Greebles2_Greebles2_ScratchedMetalDark
+	{
+		Mesh: Greebles2_Greebles2_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: Greebles3_Greebles3_ScratchedMetal
+	{
+		Mesh: Greebles3_Greebles3_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Greebles3_Greebles3_ScratchedMetalDark
+	{
+		Mesh: Greebles3_Greebles3_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: Greebles4_Greebles4_ScratchedMetal
+	{
+		Mesh: Greebles4_Greebles4_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Greebles5_Greebles5_ScratchedMetal
+	{
+		Mesh: Greebles5_Greebles5_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Hatch_Hatch_ScratchedMetal
+	{
+		Mesh: Hatch_Hatch_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Head_Head_ScratchedMetal
+	{
+		Mesh: Head_Head_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: HullPlates_HullPlates_ScratchedMetalRed
+	{
+		Mesh: HullPlates_HullPlates_ScratchedMetalRed_0
+		Material: ScratchedMetalRed
+	}
+
+Shape: HullPlates_HullPlates_ScratchedMetal
+	{
+		Mesh: HullPlates_HullPlates_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: HullPlates_HullPlates_ScratchedMetalDark
+	{
+		Mesh: HullPlates_HullPlates_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: LifeCapsules_LifeCapsules_ScratchedMetal
+	{
+		Mesh: LifeCapsules_LifeCapsules_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: LowerSensorArray_LowerSensorArray_ScratchedMetal
+	{
+		Mesh: LowerSensorArray_LowerSensorArray_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: LowerWings_LowerWings_ScratchedMetal
+	{
+		Mesh: LowerWings_LowerWings_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: LowerWingsHullPlates_LowerWIngsHullPlates_ScratchedMetal
+	{
+		Mesh: LowerWingsHullPlates_LowerWIngsHullPlates_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MainStructure_MainStructure_ScratchedMetal
+	{
+		Mesh: MainStructure_MainStructure_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidEngines_MidEngines_ScratchedMetal
+	{
+		Mesh: MidEngines_MidEngines_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidEngines_MidEngines_BlueEngineGlow
+	{
+		Mesh: MidEngines_MidEngines_BlueEngineGlow_0
+		Material: BlueEngineGlow
+	}
+
+Shape: MidEngines_MidEngines_ScratchedMetalDark
+	{
+		Mesh: MidEngines_MidEngines_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: MidEnginesHolder_MidEnginesHolder_ScratchedMetal
+	{
+		Mesh: MidEnginesHolder_MidEnginesHolder_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidEnginesHullPlates_MidEnginesHullPlates_ScratchedMetal
+	{
+		Mesh: MidEnginesHullPlates_MidEnginesHullPlates_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidEnginesInnerSides_MidEnginesInnerSides_ScratchedMetal
+	{
+		Mesh: MidEnginesInnerSides_MidEnginesInnerSides_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidSection_MidSection_ScratchedMetal
+	{
+		Mesh: MidSection_MidSection_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: MidSection_MidSection_ScratchedMetalDark
+	{
+		Mesh: MidSection_MidSection_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: SingleTurboLaserBackLeft_SingleTurboLaserBackLeft_ScratchedMetalDark
+	{
+		Mesh: SingleTurboLaserBackLeft_SingleTurboLaserBackLeft_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: SingleTurboLaserBackRight_SingleTurboLaserBackRight_ScratchedMetalDark
+	{
+		Mesh: SingleTurboLaserBackRight_SingleTurboLaserBackRight_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: SingleTurboLaserFrontLeft_SingleTurboLaserFrontLeft_ScratchedMetalDark
+	{
+		Mesh: SingleTurboLaserFrontLeft_SingleTurboLaserFrontLeft_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: SingleTurboLaserFrontRight_SingleTurboLaserFrontRight_ScratchedMetalDark
+	{
+		Mesh: SingleTurboLaserFrontRight_SingleTurboLaserFrontRight_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: SingleTurboLaserTurretBase_SingleTurboLaserTurretBase_ScratchedMetal
+	{
+		Mesh: SingleTurboLaserTurretBase_SingleTurboLaserTurretBase_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: SingleTurboLaserTurretHullPlates_SingleTurboLaserTurrentHullPlates_ScratchedMetal
+	{
+		Mesh: SingleTurboLaserTurretHullPlates_SingleTurboLaserTurrentHullPlates_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperLowerEngineHolders_UpperLowerEngineHolders_ScratchedMetal
+	{
+		Mesh: UpperLowerEngineHolders_UpperLowerEngineHolders_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperLowerEngines_UpperLowerEngines_ScratchedMetal
+	{
+		Mesh: UpperLowerEngines_UpperLowerEngines_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperLowerEngines_UpperLowerEngines_BlueEngineGlow
+	{
+		Mesh: UpperLowerEngines_UpperLowerEngines_BlueEngineGlow_0
+		Material: BlueEngineGlow
+	}
+
+Shape: UpperLowerEngines_UpperLowerEngines_ScratchedMetalDark
+	{
+		Mesh: UpperLowerEngines_UpperLowerEngines_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetal
+	{
+		Mesh: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetalRed
+	{
+		Mesh: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetalRed_0
+		Material: ScratchedMetalRed
+	}
+
+Shape: UpperLowerEnginesInnerSides_UpperLowerEnginesInnerSides_ScratchedMetal
+	{
+		Mesh: UpperLowerEnginesInnerSides_UpperLowerEnginesInnerSides_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperSensorArray_UpperSensorArray_ScratchedMetalDark
+	{
+		Mesh: UpperSensorArray_UpperSensorArray_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: UpperSensorArrayArms_UpperSensorArrayArms_ScratchedMetalDark
+	{
+		Mesh: UpperSensorArrayArms_UpperSensorArrayArms_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: UpperSensorArrayBase_UpperSensorArrayBase_ScratchedMetal
+	{
+		Mesh: UpperSensorArrayBase_UpperSensorArrayBase_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: UpperSensorArrayMid_UpperSensorArrayMid_ScratchedMetalDark
+	{
+		Mesh: UpperSensorArrayMid_UpperSensorArrayMid_ScratchedMetalDark_0
+		Material: ScratchedMetalDark
+	}
+
+Shape: Wings_Wings_ScratchedMetal
+	{
+		Mesh: Wings_Wings_ScratchedMetal_0
+		Material: ScratchedMetal
+	}
+
+Shape: Wings_Wings_ScratchedMetalRed
+	{
+		Mesh: Wings_Wings_ScratchedMetalRed_0
+		Material: ScratchedMetalRed
+	}
+

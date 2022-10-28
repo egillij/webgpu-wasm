@@ -1,0 +1,27 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl M_Buzz_LowerBody
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.000000 0.000000 0.000000
+Pr 0.0
+Pm 1.0
+map_Kd M_Buzz_LowerBody_albedo.jpg
+map_Ka M_Buzz_LowerBody_AO.jpg
+map_Pm M_Buzz_LowerBody_metallic.jpg
+map_Pr M_Buzz_LowerBody_roughness.jpg
+norm M_Buzz_LowerBody_normal.png
+illum 1
+
+newmtl M_Buzz_UpperBody
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.000000 0.000000 0.000000
+Pm 1.0
+Pr 0.0
+map_Kd M_Buzz_UpperBody_albedo.jpg
+map_Ka M_Buzz_UpperBody_AO.jpg
+map_Pm M_Buzz_UpperBody_metallic.jpg
+map_Pr M_Buzz_UpperBody_roughness.jpg
+map_Ke M_Buzz_UpperBody_emissive.jpg
+map_d M_Buzz_UpperBody_opacity.jpg
+illum 1
