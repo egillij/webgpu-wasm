@@ -1,12 +1,30 @@
-Shape: Box038_meshId0_name_M_Buzz_UpperBody
-	{
-		Mesh: Box038_meshId0_name_M_Buzz_UpperBody_0
-		Material: M_Buzz_UpperBody
-	}
+GameObjectNode node{};
+node.id = nodeId++;
+node.name = INSERT_MODEL_NAME;
+node.position = INSERT_POSITION;
+node.scale = INSERT_SCALE
+node.rotation = INSERT_ROTATION
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Box038_meshId0_name_M_Buzz_UpperBody_0";
+	object.modelId = startModelId + 0;
+	object.materialId = startMaterialId + 1;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Box038.001_meshId1_name_M_Buzz_LowerBody
-	{
-		Mesh: Box038.001_meshId1_name_M_Buzz_LowerBody_0
-		Material: M_Buzz_LowerBody
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Box038.001_meshId1_name_M_Buzz_LowerBody_0";
+	object.modelId = startModelId + 1;
+	object.materialId = startMaterialId + 0;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 

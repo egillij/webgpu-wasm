@@ -1,0 +1,41 @@
+std::vector<MaterialDescription> materials;
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 0;
+	material.name = "veh_rep_destroyer_detail_d";
+	material.filename = "veh_rep_destroyer_detail_d.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 1;
+	material.name = "veh_rep_destroyer_engine_d";
+	material.filename = "veh_rep_destroyer_engine_d.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 2;
+	material.name = "veh_rep_destroyer_metal01_d";
+	material.filename = "veh_rep_destroyer_metal01_d.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 3;
+	material.name = "veh_rep_destroyer_metal02_d";
+	material.filename = "veh_rep_destroyer_metal02_d.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 4;
+	material.name = "veh_rep_destroyer_trim_d";
+	material.filename = "veh_rep_destroyer_trim_d.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}

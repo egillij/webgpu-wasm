@@ -1,12 +1,30 @@
-Shape: main_mainShape_jsf_mainMat
-	{
-		Mesh: main_mainShape_jsf_mainMat_0
-		Material: jsf_mainMat
-	}
+GameObjectNode node{};
+node.id = nodeId++;
+node.name = INSERT_MODEL_NAME;
+node.position = INSERT_POSITION;
+node.scale = INSERT_SCALE
+node.rotation = INSERT_ROTATION
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "main_mainShape_jsf_mainMat_0";
+	object.modelId = startModelId + 0;
+	object.materialId = startMaterialId + 1;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: aux_auxShape_jsf_auxMat
-	{
-		Mesh: aux_auxShape_jsf_auxMat_0
-		Material: jsf_auxMat
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "aux_auxShape_jsf_auxMat_0";
+	object.modelId = startModelId + 1;
+	object.materialId = startMaterialId + 0;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 

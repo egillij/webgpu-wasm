@@ -1,0 +1,21 @@
+std::vector<ModelDescription> models;
+{
+	ModelDescription model{};
+	model.id = startModelId + 0;
+	model.name = "Box038_meshId0_name_M_Buzz_UpperBody_0";
+	model.filename = "Box038_meshId0_name_M_Buzz_UpperBody_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}
+{
+	ModelDescription model{};
+	model.id = startModelId + 1;
+	model.name = "Box038.001_meshId1_name_M_Buzz_LowerBody_0";
+	model.filename = "Box038.001_meshId1_name_M_Buzz_LowerBody_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}

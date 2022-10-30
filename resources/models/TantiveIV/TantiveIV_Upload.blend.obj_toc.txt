@@ -1,342 +1,690 @@
-Shape: BackTube_BackTube_ScratchedMetal
-	{
-		Mesh: BackTube_BackTube_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+GameObjectNode node{};
+node.id = nodeId++;
+node.name = INSERT_MODEL_NAME;
+node.position = INSERT_POSITION;
+node.scale = INSERT_SCALE
+node.rotation = INSERT_ROTATION
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "BackTube_BackTube_ScratchedMetal_0";
+	object.modelId = startModelId + 0;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: BackTube_BackTube_ScratchedMetalDark
-	{
-		Mesh: BackTube_BackTube_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "BackTube_BackTube_ScratchedMetalDark_0";
+	object.modelId = startModelId + 1;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: CentralSectionExtra_CentralSectionExtra_ScratchedMetal
-	{
-		Mesh: CentralSectionExtra_CentralSectionExtra_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "CentralSectionExtra_CentralSectionExtra_ScratchedMetal_0";
+	object.modelId = startModelId + 2;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserLowerSection_DualTuboLaserLowerSection_ScratchedMetal
-	{
-		Mesh: DualTurboLaserLowerSection_DualTuboLaserLowerSection_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserLowerSection_DualTuboLaserLowerSection_ScratchedMetal_0";
+	object.modelId = startModelId + 3;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetal
-	{
-		Mesh: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetal_0";
+	object.modelId = startModelId + 4;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetalDark
-	{
-		Mesh: DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserLowerBase_DualTurboLaserLowerBase_ScratchedMetalDark_0";
+	object.modelId = startModelId + 5;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserLower_DualTurboLaserLower_ScratchedMetalDark
-	{
-		Mesh: DualTurboLaserLower_DualTurboLaserLower_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserLower_DualTurboLaserLower_ScratchedMetalDark_0";
+	object.modelId = startModelId + 6;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserUpperSection_Cube.013_ScratchedMetal
-	{
-		Mesh: DualTurboLaserUpperSection_Cube.013_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserUpperSection_Cube.013_ScratchedMetal_0";
+	object.modelId = startModelId + 7;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetal
-	{
-		Mesh: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserUpperBase_Cylinder.017_ScratchedMetal_0";
+	object.modelId = startModelId + 8;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetalDark
-	{
-		Mesh: DualTurboLaserUpperBase_Cylinder.017_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserUpperBase_Cylinder.017_ScratchedMetalDark_0";
+	object.modelId = startModelId + 9;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: DualTurboLaserUpper_Cylinder.018_ScratchedMetalDark
-	{
-		Mesh: DualTurboLaserUpper_Cylinder.018_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "DualTurboLaserUpper_Cylinder.018_ScratchedMetalDark_0";
+	object.modelId = startModelId + 10;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles1_Greebles1_ScratchedMetal
-	{
-		Mesh: Greebles1_Greebles1_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles1_Greebles1_ScratchedMetal_0";
+	object.modelId = startModelId + 11;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles1_Greebles1_ScratchedMetalDark
-	{
-		Mesh: Greebles1_Greebles1_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles1_Greebles1_ScratchedMetalDark_0";
+	object.modelId = startModelId + 12;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles2_Greebles2_ScratchedMetal
-	{
-		Mesh: Greebles2_Greebles2_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles2_Greebles2_ScratchedMetal_0";
+	object.modelId = startModelId + 13;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles2_Greebles2_ReflectiveGlass
-	{
-		Mesh: Greebles2_Greebles2_ReflectiveGlass_0
-		Material: ReflectiveGlass
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles2_Greebles2_ReflectiveGlass_0";
+	object.modelId = startModelId + 14;
+	object.materialId = startMaterialId + 1;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles2_Greebles2_ScratchedMetalDark
-	{
-		Mesh: Greebles2_Greebles2_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles2_Greebles2_ScratchedMetalDark_0";
+	object.modelId = startModelId + 15;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles3_Greebles3_ScratchedMetal
-	{
-		Mesh: Greebles3_Greebles3_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles3_Greebles3_ScratchedMetal_0";
+	object.modelId = startModelId + 16;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles3_Greebles3_ScratchedMetalDark
-	{
-		Mesh: Greebles3_Greebles3_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles3_Greebles3_ScratchedMetalDark_0";
+	object.modelId = startModelId + 17;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles4_Greebles4_ScratchedMetal
-	{
-		Mesh: Greebles4_Greebles4_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles4_Greebles4_ScratchedMetal_0";
+	object.modelId = startModelId + 18;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Greebles5_Greebles5_ScratchedMetal
-	{
-		Mesh: Greebles5_Greebles5_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Greebles5_Greebles5_ScratchedMetal_0";
+	object.modelId = startModelId + 19;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Hatch_Hatch_ScratchedMetal
-	{
-		Mesh: Hatch_Hatch_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Hatch_Hatch_ScratchedMetal_0";
+	object.modelId = startModelId + 20;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Head_Head_ScratchedMetal
-	{
-		Mesh: Head_Head_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Head_Head_ScratchedMetal_0";
+	object.modelId = startModelId + 21;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: HullPlates_HullPlates_ScratchedMetalRed
-	{
-		Mesh: HullPlates_HullPlates_ScratchedMetalRed_0
-		Material: ScratchedMetalRed
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "HullPlates_HullPlates_ScratchedMetalRed_0";
+	object.modelId = startModelId + 22;
+	object.materialId = startMaterialId + 4;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: HullPlates_HullPlates_ScratchedMetal
-	{
-		Mesh: HullPlates_HullPlates_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "HullPlates_HullPlates_ScratchedMetal_0";
+	object.modelId = startModelId + 23;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: HullPlates_HullPlates_ScratchedMetalDark
-	{
-		Mesh: HullPlates_HullPlates_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "HullPlates_HullPlates_ScratchedMetalDark_0";
+	object.modelId = startModelId + 24;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: LifeCapsules_LifeCapsules_ScratchedMetal
-	{
-		Mesh: LifeCapsules_LifeCapsules_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "LifeCapsules_LifeCapsules_ScratchedMetal_0";
+	object.modelId = startModelId + 25;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: LowerSensorArray_LowerSensorArray_ScratchedMetal
-	{
-		Mesh: LowerSensorArray_LowerSensorArray_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "LowerSensorArray_LowerSensorArray_ScratchedMetal_0";
+	object.modelId = startModelId + 26;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: LowerWings_LowerWings_ScratchedMetal
-	{
-		Mesh: LowerWings_LowerWings_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "LowerWings_LowerWings_ScratchedMetal_0";
+	object.modelId = startModelId + 27;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: LowerWingsHullPlates_LowerWIngsHullPlates_ScratchedMetal
-	{
-		Mesh: LowerWingsHullPlates_LowerWIngsHullPlates_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "LowerWingsHullPlates_LowerWIngsHullPlates_ScratchedMetal_0";
+	object.modelId = startModelId + 28;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MainStructure_MainStructure_ScratchedMetal
-	{
-		Mesh: MainStructure_MainStructure_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MainStructure_MainStructure_ScratchedMetal_0";
+	object.modelId = startModelId + 29;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEngines_MidEngines_ScratchedMetal
-	{
-		Mesh: MidEngines_MidEngines_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEngines_MidEngines_ScratchedMetal_0";
+	object.modelId = startModelId + 30;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEngines_MidEngines_BlueEngineGlow
-	{
-		Mesh: MidEngines_MidEngines_BlueEngineGlow_0
-		Material: BlueEngineGlow
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEngines_MidEngines_BlueEngineGlow_0";
+	object.modelId = startModelId + 31;
+	object.materialId = startMaterialId + 0;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEngines_MidEngines_ScratchedMetalDark
-	{
-		Mesh: MidEngines_MidEngines_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEngines_MidEngines_ScratchedMetalDark_0";
+	object.modelId = startModelId + 32;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEnginesHolder_MidEnginesHolder_ScratchedMetal
-	{
-		Mesh: MidEnginesHolder_MidEnginesHolder_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEnginesHolder_MidEnginesHolder_ScratchedMetal_0";
+	object.modelId = startModelId + 33;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEnginesHullPlates_MidEnginesHullPlates_ScratchedMetal
-	{
-		Mesh: MidEnginesHullPlates_MidEnginesHullPlates_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEnginesHullPlates_MidEnginesHullPlates_ScratchedMetal_0";
+	object.modelId = startModelId + 34;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidEnginesInnerSides_MidEnginesInnerSides_ScratchedMetal
-	{
-		Mesh: MidEnginesInnerSides_MidEnginesInnerSides_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidEnginesInnerSides_MidEnginesInnerSides_ScratchedMetal_0";
+	object.modelId = startModelId + 35;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidSection_MidSection_ScratchedMetal
-	{
-		Mesh: MidSection_MidSection_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidSection_MidSection_ScratchedMetal_0";
+	object.modelId = startModelId + 36;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: MidSection_MidSection_ScratchedMetalDark
-	{
-		Mesh: MidSection_MidSection_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "MidSection_MidSection_ScratchedMetalDark_0";
+	object.modelId = startModelId + 37;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserBackLeft_SingleTurboLaserBackLeft_ScratchedMetalDark
-	{
-		Mesh: SingleTurboLaserBackLeft_SingleTurboLaserBackLeft_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserBackLeft_SingleTurboLaserBackLeft_ScratchedMetalDark_0";
+	object.modelId = startModelId + 38;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserBackRight_SingleTurboLaserBackRight_ScratchedMetalDark
-	{
-		Mesh: SingleTurboLaserBackRight_SingleTurboLaserBackRight_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserBackRight_SingleTurboLaserBackRight_ScratchedMetalDark_0";
+	object.modelId = startModelId + 39;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserFrontLeft_SingleTurboLaserFrontLeft_ScratchedMetalDark
-	{
-		Mesh: SingleTurboLaserFrontLeft_SingleTurboLaserFrontLeft_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserFrontLeft_SingleTurboLaserFrontLeft_ScratchedMetalDark_0";
+	object.modelId = startModelId + 40;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserFrontRight_SingleTurboLaserFrontRight_ScratchedMetalDark
-	{
-		Mesh: SingleTurboLaserFrontRight_SingleTurboLaserFrontRight_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserFrontRight_SingleTurboLaserFrontRight_ScratchedMetalDark_0";
+	object.modelId = startModelId + 41;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserTurretBase_SingleTurboLaserTurretBase_ScratchedMetal
-	{
-		Mesh: SingleTurboLaserTurretBase_SingleTurboLaserTurretBase_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserTurretBase_SingleTurboLaserTurretBase_ScratchedMetal_0";
+	object.modelId = startModelId + 42;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: SingleTurboLaserTurretHullPlates_SingleTurboLaserTurrentHullPlates_ScratchedMetal
-	{
-		Mesh: SingleTurboLaserTurretHullPlates_SingleTurboLaserTurrentHullPlates_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "SingleTurboLaserTurretHullPlates_SingleTurboLaserTurrentHullPlates_ScratchedMetal_0";
+	object.modelId = startModelId + 43;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEngineHolders_UpperLowerEngineHolders_ScratchedMetal
-	{
-		Mesh: UpperLowerEngineHolders_UpperLowerEngineHolders_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEngineHolders_UpperLowerEngineHolders_ScratchedMetal_0";
+	object.modelId = startModelId + 44;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEngines_UpperLowerEngines_ScratchedMetal
-	{
-		Mesh: UpperLowerEngines_UpperLowerEngines_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEngines_UpperLowerEngines_ScratchedMetal_0";
+	object.modelId = startModelId + 45;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEngines_UpperLowerEngines_BlueEngineGlow
-	{
-		Mesh: UpperLowerEngines_UpperLowerEngines_BlueEngineGlow_0
-		Material: BlueEngineGlow
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEngines_UpperLowerEngines_BlueEngineGlow_0";
+	object.modelId = startModelId + 46;
+	object.materialId = startMaterialId + 0;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEngines_UpperLowerEngines_ScratchedMetalDark
-	{
-		Mesh: UpperLowerEngines_UpperLowerEngines_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEngines_UpperLowerEngines_ScratchedMetalDark_0";
+	object.modelId = startModelId + 47;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetal
-	{
-		Mesh: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetal_0";
+	object.modelId = startModelId + 48;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetalRed
-	{
-		Mesh: UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetalRed_0
-		Material: ScratchedMetalRed
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEnginesHullPlates_UpperLowerEnginesHullPlates_ScratchedMetalRed_0";
+	object.modelId = startModelId + 49;
+	object.materialId = startMaterialId + 4;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperLowerEnginesInnerSides_UpperLowerEnginesInnerSides_ScratchedMetal
-	{
-		Mesh: UpperLowerEnginesInnerSides_UpperLowerEnginesInnerSides_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperLowerEnginesInnerSides_UpperLowerEnginesInnerSides_ScratchedMetal_0";
+	object.modelId = startModelId + 50;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperSensorArray_UpperSensorArray_ScratchedMetalDark
-	{
-		Mesh: UpperSensorArray_UpperSensorArray_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperSensorArray_UpperSensorArray_ScratchedMetalDark_0";
+	object.modelId = startModelId + 51;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperSensorArrayArms_UpperSensorArrayArms_ScratchedMetalDark
-	{
-		Mesh: UpperSensorArrayArms_UpperSensorArrayArms_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperSensorArrayArms_UpperSensorArrayArms_ScratchedMetalDark_0";
+	object.modelId = startModelId + 52;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperSensorArrayBase_UpperSensorArrayBase_ScratchedMetal
-	{
-		Mesh: UpperSensorArrayBase_UpperSensorArrayBase_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperSensorArrayBase_UpperSensorArrayBase_ScratchedMetal_0";
+	object.modelId = startModelId + 53;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: UpperSensorArrayMid_UpperSensorArrayMid_ScratchedMetalDark
-	{
-		Mesh: UpperSensorArrayMid_UpperSensorArrayMid_ScratchedMetalDark_0
-		Material: ScratchedMetalDark
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "UpperSensorArrayMid_UpperSensorArrayMid_ScratchedMetalDark_0";
+	object.modelId = startModelId + 54;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Wings_Wings_ScratchedMetal
-	{
-		Mesh: Wings_Wings_ScratchedMetal_0
-		Material: ScratchedMetal
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Wings_Wings_ScratchedMetal_0";
+	object.modelId = startModelId + 55;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 
-Shape: Wings_Wings_ScratchedMetalRed
-	{
-		Mesh: Wings_Wings_ScratchedMetalRed_0
-		Material: ScratchedMetalRed
-	}
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Wings_Wings_ScratchedMetalRed_0";
+	object.modelId = startModelId + 56;
+	object.materialId = startMaterialId + 4;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
 

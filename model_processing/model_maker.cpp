@@ -31,7 +31,7 @@ struct Face
     uint32_t indices[3];
 };
 
-static void loadModelFromFile(const std::string& filename)
+static void loadModelFromFile(const std::string& filename, const std::string& modelName)
 {
 
     // TINYOBJLOADER
@@ -60,20 +60,25 @@ static void loadModelFromFile(const std::string& filename)
     }
 
     // Append `default` material
-    materials.push_back(tinyobj::material_t());
+    //materials.push_back(tinyobj::material_t());
     printf("Number of materials: %zu\n", materials.size());
     // TODO: make all materials and register them into the material library so they can be used later
     // TODO: add material reference/id to the parts that are created here
     
+    std::string tocMaterial = "void get" + modelName + "Materials(int startMaterialId, std::vector<MaterialDescription>& materials)\n{\n";
+
     mats::MatsIO matsIo_ = mats::MatsIO();
 
     uint32_t materialId = 0u;
     //TODO: make material file format
+
+    std::unordered_map<std::string, uint32_t> materialIdMap;
+
      for(auto material : materials) {
         std::string matName = material.name.empty() ? "Default" : material.name;
         std::string materialFilename = matName  + ".mats";
-
-        ++materialId;
+        
+        materialIdMap[matName] = materialId;
          
         mats::MaterialParameters mat{};
         memset(&mat, 0, sizeof(mat));
@@ -108,39 +113,36 @@ static void loadModelFromFile(const std::string& filename)
             memcpy(&mat.aoTexture[0], material.ambient_texname.c_str(), std::fmin(512, material.ambient_texname.size()));
         }
 
-        /*phong.ambient = materialData.ambient;
-        phong.specular = materialData.specular;
-        phong.shininess = materialData.shininess;*/
-
-        //phong.ambientTextureSize = material.ambient_texname.size();
-        /*phong.albedoTextureSize = material.diffuse_texname.size();
-        phong.specularTextureSize = material.specular_texname.size();*/
-
-        /*if (!material.ambient_texname.empty() && material.ambient_texname.size() <= 512)
-        {
-            memcpy(&phong.ambientTexture[0], material.ambient_texname.c_str(), std::fmin(512, material.ambient_texname.size()));
-        }
-        if (!material.diffuse_texname.empty() && material.diffuse_texname.size() <= 512) 
-        {
-            memcpy(&phong.albedoTexture[0], material.diffuse_texname.c_str(), std::fmin(512, material.diffuse_texname.size()));
-        }
-        if (!material.specular_texname.empty() && material.specular_texname.size() <= 512) 
-        {
-            memcpy(&phong.specularTexture[0], material.specular_texname.c_str(), std::fmin(512, material.specular_texname.size()));
-        }*/
-
-
         printf("Saving material file %s\n", materialFilename.c_str());
         matsIo_.save(materialFilename.c_str(), mat);
+
+        tocMaterial += "\t{\n\t\tMaterialDescription material{};\n";
+        tocMaterial += "\t\tmaterial.id = startMaterialId + " + std::to_string(materialId) + ";\n";
+        tocMaterial += "\t\tmaterial.name = \"" + material.name + "\";\n";
+        tocMaterial += "\t\tmaterial.filename = \"" + materialFilename + "\";\n";
+        tocMaterial += "\t\tmaterial.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);\n";
+        tocMaterial += "\t\tmaterials.push_back(material);\n\t}\n";
+
+        ++materialId;
      }
      
 
      geom::GeomIO geomIo_ = geom::GeomIO();
 
      std::string toc = "";
+     std::string tocGeo = "void get" + modelName + "Parts(int startModelId, std::vector<ModelDescription>& models)\n{\n";
+
+     toc += "GameObjectNode get" + modelName + "ParentNode(uint32_t& nodeId, uint32_t startModelId, uint32_t startMaterialId, const std::string& name, const glm::vec3 & position, const glm::vec3& scale, const glm::vec3& rotation)\n{\n";
+     toc += "\tGameObjectNode node{};\n";
+     toc += "\tnode.id = nodeId++;\n";
+     toc += "\tnode.name = name;\n";
+     toc += "\tnode.position = position;\n";
+     toc += "\tnode.scale = scale;\n";
+     toc += "\tnode.rotation = rotation;\n";
 
     // Go through shapes and create an indexed face set
     // TODO store a mesh in the model for each shape
+     int shapeIndex = 0;
     for (auto shape : shapes)
     {
         auto objMesh = shape.mesh;
@@ -206,7 +208,6 @@ static void loadModelFromFile(const std::string& filename)
                         faceVertex.uv[0] = vertexTexCoord[0];
                         faceVertex.uv[1] = vertexTexCoord[1];
                     }
-
                     
 
                     modelVertices.at(materialId).push_back(faceVertex);
@@ -230,7 +231,7 @@ static void loadModelFromFile(const std::string& filename)
                 break;
         }
 
-        toc += "Shape: " + shape.name + "\n";
+        //toc += "Shape: " + shape.name + "\n";
 
         int meshIndex = 0;
         for (auto& vert : modelVertices) {
@@ -244,8 +245,27 @@ static void loadModelFromFile(const std::string& filename)
             std::string meshName = shape.name + "_" + std::to_string(meshIndex);
             std::string meshFilename = meshName + ".geom";
 
-            toc += "\t{\n\t\tMesh: " + meshName + "\n";
-            toc += "\t\tMaterial: " + materials[matId].name + "\n\t}\n";
+            tocGeo += "\t{\n\t\tModelDescription model{};\n";
+            tocGeo += "\t\tmodel.id = startModelId + " + std::to_string(shapeIndex) + ";\n";
+            tocGeo += "\t\tmodel.name = \"" + meshName + "\";\n";
+            tocGeo += "\t\tmodel.filename = \"" + meshFilename + "\";\n";
+            tocGeo += "\t\tmodel.position = glm::vec3(0.f);\n";
+            tocGeo += "\t\tmodel.scale = glm::vec3(1.f);\n";
+            tocGeo += "\t\tmodel.rotation = glm::vec3(0.f); \n";
+            tocGeo += "\t\tmodels.push_back(model);\n\t}\n";
+
+            toc += "\t{\n\t\tGameObjectNode object{};\n";
+            toc += "\t\tobject.id = nodeId++;\n";
+            toc += "\t\tobject.name = \"" + meshName + "\";\n";
+            toc += "\t\tobject.modelId = startModelId + " + std::to_string(shapeIndex) + ";\n";
+            toc += "\t\tobject.materialId = startMaterialId + " + std::to_string(matId) + ";\n";// INSERT_MATERIAL_ID; \n";
+            toc += "\t\tobject.position = glm::vec3(0.f);\n";
+            toc += "\t\tobject.scale = glm::vec3(1.f);\n";
+            toc += "\t\tobject.rotation = glm::vec3(0.f);\n";
+            toc += "\t\tnode.children.push_back(object);\n\t}\n";
+
+            /*toc += "\t{\n\t\tMesh: " + meshFilename + "\n";
+            toc += "\t\tMaterial: " + materials[matId].name + ".mats\n\t}\n";*/
 
             printf("Saving meshfile %s\n", meshFilename.c_str());
 
@@ -253,33 +273,49 @@ static void loadModelFromFile(const std::string& filename)
             geomIo_.save(meshFilename.c_str(), (float*)vertData.data(), vertData.size()*8, (uint32_t*)indData.data(), indData.size()*3);
 
             ++meshIndex;
+            ++shapeIndex;
         }
         toc += "\n";
     }
+    
+    tocMaterial += "}\n";
+    tocGeo += "}\n";
+    toc += "\treturn node;\n}\n";
 
-    std::string tocFilename = filepath + "_toc.txt";
-    printf("Saving table of contents file %s\n", tocFilename.c_str());
-    std::FILE* tocFile = std::fopen(tocFilename.c_str(), "w");
-    if (!tocFile) {
-        printf("Failed to create table of contents file %s\n", tocFilename.c_str());
+    std::string modelHeaderFile = modelName + ".h";
+    printf("Saving model .h file %s\n", modelHeaderFile.c_str());
+    std::FILE* fp = std::fopen(modelHeaderFile.c_str(), "w");
+    if (!fp) {
+        printf("Failed to create table of contents file %s\n", modelHeaderFile.c_str());
         return;
     }
 
-    std::fwrite(toc.c_str(), 1, toc.size(), tocFile);
-    std::fflush(tocFile);
-    std::fclose(tocFile);
+    std::string headerContents = "#pragma once\n\n#include \"Scene/Scene.h\"\n\n";
+
+    headerContents += tocGeo + "\n";
+    headerContents += tocMaterial + "\n";
+    headerContents += toc + "\n";
+    
+    std::fwrite(headerContents.c_str(), 1, headerContents.size(), fp);
+    std::fflush(fp);
+    std::fclose(fp);
 
 }
 
 int main(int argc, char** argv) 
 {
     if(argc <= 1) {
-        printf("Usage: model_maker.exe filename.obj");
+        printf("Usage: model_maker.exe filename.obj ModelName");
         return 0;
+    }
+    else if (argc <= 2) {
+        printf("Missing argument:\n");
+        printf("Usage: model_maker.exe filename.obj ModelName");
     }
     else {
         std::string objFile = std::string(argv[1]);
-        loadModelFromFile(objFile);
+        std::string modelName = std::string(argv[2]);
+        loadModelFromFile(objFile, modelName);
         return 0;
     }
 }

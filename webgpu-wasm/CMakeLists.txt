@@ -81,6 +81,8 @@ SET(WW_SOURCES
 	src/Scene/Scene.h
 	src/Scene/Scene.cpp
 
+	src/Scene/SceneUtils/B1BattleDroid.h
+
 	src/Utils/UniformStructs.h
 )
 

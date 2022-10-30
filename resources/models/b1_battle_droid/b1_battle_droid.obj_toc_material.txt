@@ -1,0 +1,17 @@
+std::vector<MaterialDescription> materials;
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 0;
+	material.name = "01___Def";
+	material.filename = "01___Def.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 1;
+	material.name = "07___Def";
+	material.filename = "07___Def.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}

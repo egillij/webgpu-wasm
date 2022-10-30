@@ -1,0 +1,25 @@
+std::vector<MaterialDescription> materials;
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 0;
+	material.name = "M_Buzz_LowerBody";
+	material.filename = "M_Buzz_LowerBody.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 1;
+	material.name = "M_Buzz_UpperBody";
+	material.filename = "M_Buzz_UpperBody.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 2;
+	material.name = "";
+	material.filename = "Default.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
