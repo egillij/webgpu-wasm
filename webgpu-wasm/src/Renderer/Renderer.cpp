@@ -36,6 +36,8 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_Pipeline = new PBRRenderPipeline(width, height, device);
 
     m_PresentPipeline = new PresentPipeline(m_Pipeline->getOutputTexture(), device);
+
+    m_Compute = new TestComputePipeline(m_Device);
     
 }
 
@@ -62,15 +64,18 @@ void Renderer::render(Scene* scene)
 {
     if(!scene) return; //TODO: report error?
 
-    wgpu::Queue queue = m_Device->getHandle().GetQueue();
+    // wgpu::Queue queue = m_Device->getHandle().GetQueue();
 
-    if(m_Pipeline){
-        m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
+    // if(m_Pipeline){
+    //     m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
         
-        //Wait for queue to finish
-        // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
+    //     //Wait for queue to finish
+    //     // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
 
-    } 
+    // } 
+    if(m_Compute){
+        m_Compute->run(m_Device, m_SwapChain);
+    }
 
     
     // printf("Triangles drawn: %i\n", frameTriangles);

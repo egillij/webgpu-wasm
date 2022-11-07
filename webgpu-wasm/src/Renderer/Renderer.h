@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "Renderer/Pipelines/TestComputePipeline.h"
+
 class WGpuDevice;
 class WGpuSwapChain;
 class WGpuPipeline;
@@ -16,6 +18,7 @@ class Scene;
 
 class RenderPipeline;
 class PresentPipeline;
+
 
 class Renderer {
 public:
@@ -33,4 +36,6 @@ private:
     RenderPipeline* m_Pipeline;
     
     PresentPipeline* m_PresentPipeline;
+
+    TestComputePipeline* m_Compute;
 };

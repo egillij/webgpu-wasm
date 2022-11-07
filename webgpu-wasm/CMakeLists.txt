@@ -48,6 +48,9 @@ SET(WW_SOURCES
 	src/Renderer/WebGPU/wgpuBuffer.h
 	src/Renderer/WebGPU/wgpuBuffer.cpp
 
+	src/Renderer/WebGPU/ComputePipeline.h
+	src/Renderer/WebGPU/ComputePipeline.cpp
+
 	src/Renderer/WebGPU/wgpuDevice.h
 	src/Renderer/WebGPU/wgpuDevice.cpp
 
@@ -84,6 +87,9 @@ SET(WW_SOURCES
 	src/Scene/SceneUtils/B1BattleDroid.h
 
 	src/Utils/UniformStructs.h
+
+	src/Renderer/Pipelines/TestComputePipeline.h
+	src/Renderer/Pipelines/TestComputePipeline.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
