@@ -2,13 +2,13 @@
 
 #include "Scene/Scene.h"
 
-void getB1BattleDroidParts(int startModelId, std::vector<ModelDescription>& models)
+void getB1BattleDroidParts(int startModelId, const std::string& folder, std::vector<ModelDescription>& models)
 {
 	{
 		ModelDescription model{};
 		model.id = startModelId + 0;
 		model.name = "Mesh51.001_0";
-		model.filename = "Mesh51.001_0.geom";
+		model.filename = folder + "/Mesh51.001_0.geom";
 		model.position = glm::vec3(0.f);
 		model.scale = glm::vec3(1.f);
 		model.rotation = glm::vec3(0.f); 
@@ -18,7 +18,7 @@ void getB1BattleDroidParts(int startModelId, std::vector<ModelDescription>& mode
 		ModelDescription model{};
 		model.id = startModelId + 1;
 		model.name = "Mesh51.001_1";
-		model.filename = "Mesh51.001_1.geom";
+		model.filename = folder + "/Mesh51.001_1.geom";
 		model.position = glm::vec3(0.f);
 		model.scale = glm::vec3(1.f);
 		model.rotation = glm::vec3(0.f); 
@@ -26,13 +26,13 @@ void getB1BattleDroidParts(int startModelId, std::vector<ModelDescription>& mode
 	}
 }
 
-void getB1BattleDroidMaterials(int startMaterialId, std::vector<MaterialDescription>& materials)
+void getB1BattleDroidMaterials(int startMaterialId, const std::string& folder, std::vector<MaterialDescription>& materials)
 {
 	{
 		MaterialDescription material{};
 		material.id = startMaterialId + 0;
 		material.name = "01___Def";
-		material.filename = "01___Def.mats";
+		material.filename = folder + "/01___Def.mats";
 		material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 		materials.push_back(material);
 	}
@@ -40,7 +40,7 @@ void getB1BattleDroidMaterials(int startMaterialId, std::vector<MaterialDescript
 		MaterialDescription material{};
 		material.id = startMaterialId + 1;
 		material.name = "07___Def";
-		material.filename = "07___Def.mats";
+		material.filename = folder + "/07___Def.mats";
 		material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 		materials.push_back(material);
 	}

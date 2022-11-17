@@ -34,3 +34,4 @@
 build/
 model_maker_build/
 .vscode/
+resources/

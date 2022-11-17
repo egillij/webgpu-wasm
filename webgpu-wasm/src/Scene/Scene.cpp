@@ -105,7 +105,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
     // Temporary???? Þarf kannski ekki að hafa hér
     device_ = device;
 
-    m_Camera.projectionMatrix = glm::perspective(fovY, aspect, 0.01f, 100.f);
+    m_Camera.projectionMatrix = glm::perspective(fovY, aspect, 0.1f, 500.f);
     m_Camera.viewMatrix = glm::lookAt(glm::vec3(-5.f, 2.f, 5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
 
     sceneUniformBuffer = new WGpuUniformBuffer(device, "Scene Uniform Buffer", sizeof(SceneUniforms));
@@ -188,7 +188,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
             rotation = glm::rotate(glm::mat4(1.f), childNode.rotation.z, glm::vec3(0.f, 0.f, 1.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.y, glm::vec3(0.f, 1.f, 0.f));
             rotation = rotation * glm::rotate(glm::mat4(1.f), childNode.rotation.x, glm::vec3(1.f, 0.f, 0.f));
-            transform = glm::translate(glm::mat4(1.f), childNode.position) * rotation * glm::scale(glm::mat4(1.f), node->scale);
+            transform = glm::translate(glm::mat4(1.f), childNode.position) * rotation * glm::scale(glm::mat4(1.f), childNode.scale);
             child->setTransform(transform);
 
 
@@ -224,11 +224,12 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 5.f;
+    static float radius = 30.f;
     static float phi = 0.f;
     static float theta = 0.1f;
 
     static glm::vec3 focusPoint = glm::vec3(0.f, 1.5f, 0.f);
+    static glm::vec3 cameraCenter = glm::vec3(0.f, 5.f, 0.f);
 
     float x = radius * glm::cos(phi) * glm::sin(theta);
     float y = radius * glm::sin(phi) * glm::sin(theta);
@@ -236,7 +237,7 @@ void Scene::onUpdate()
 
     //TODO: make camera spin
     static glm::vec3 cameraPosition;
-    m_Camera.position = glm::vec3(x, y, z) + focusPoint;
+    m_Camera.position = glm::vec3(x, y, z) + focusPoint + cameraCenter;
     m_Camera.viewMatrix = glm::lookAt(m_Camera.position, focusPoint, glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
     sceneUniforms.cameraPosition = m_Camera.position;
