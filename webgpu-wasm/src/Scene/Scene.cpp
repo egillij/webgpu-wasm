@@ -153,6 +153,8 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
             mat.shaderUniforms.roughness = material->roughness;
             mat.shaderUniforms.ambientOcclusions = material->ao;
 
+            mat.textures.albedo.pipeline = material->albedoPipeline;
+
             materialSystem->registerMaterial(material->id, material->name, mat);
         }
         else {

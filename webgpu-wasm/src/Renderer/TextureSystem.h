@@ -16,6 +16,8 @@ public:
     WGpuTexture* registerTexture(uint32_t id, const std::string& name, const void* data, uint32_t height, uint32_t width, TextureFormat format);
     WGpuTexture* registerTexture(uint32_t id, const std::string& name, const std::string& filename);
 
+    WGpuTexture* registerProceduralTexture(uint32_t id, const std::string& name, uint32_t height, uint32_t width, TextureFormat format);
+
     WGpuTexture* find(uint32_t id);
 
     void updateTexture(uint32_t id, void* data, int size);

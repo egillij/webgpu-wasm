@@ -7,6 +7,10 @@
 
 class WGpuDevice;
 
+namespace wgpu {
+    class Queue;
+};
+
 class MaterialSystem {
 public:
     MaterialSystem(WGpuDevice* device);
@@ -20,6 +24,8 @@ public:
     void updateMaterial(uint32_t id, void* data, int size);
 
     void updateBindgroups();
+
+    bool onUpdate(WGpuDevice* device, wgpu::Queue* queue);
 
 private:
     WGpuDevice* m_Device;

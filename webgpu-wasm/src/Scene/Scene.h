@@ -8,6 +8,7 @@
 #include "GameObject.h"
 
 #include "Utils/UniformStructs.h"
+#include "Renderer/Pipelines/ProceduralPipeline.h"
 
 class MaterialSystem;
 class GeometrySystem;
@@ -42,6 +43,7 @@ struct MaterialDescription {
     std::string name = {};
     std::string filename = {};
     glm::vec4 albedo = glm::vec4(0.6f, 0.6f, 0.6f, 1.f);
+    ProceduralPipeline* albedoPipeline = nullptr;
     float metallic = 0.f;
     float roughness = 0.f;
     float ao = 0.1f;

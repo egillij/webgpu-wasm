@@ -60,7 +60,6 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
         return m_Textures.at(nextId).get();
     }
 
-
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
     TextureCreateInfo info{};
     info.format = format;
@@ -127,6 +126,29 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
 
     return m_Textures.at(id).get();
+}
+
+WGpuTexture* TextureSystem::registerProceduralTexture(uint32_t id, const std::string& name, uint32_t height, uint32_t width, TextureFormat format)
+{
+    //TODO: use id
+    const auto it = m_Textures.find(nextId);
+    if(it != m_Textures.end())
+    {
+        return m_Textures.at(nextId).get();
+    }
+
+    wgpu::Queue queue = m_Device->getHandle().GetQueue();
+    TextureCreateInfo info{};
+    info.format = format;
+    info.height = height;
+    info.width = width;
+    info.usage = {TextureUsage::TextureBinding, TextureUsage::StorageBinding};
+
+    std::shared_ptr<WGpuTexture> texture = std::make_shared<WGpuTexture>(name, &info, m_Device);
+
+    m_Textures[nextId] = texture;
+
+    return m_Textures.at(nextId++).get();
 }
 
 WGpuTexture* TextureSystem::find(uint32_t id)

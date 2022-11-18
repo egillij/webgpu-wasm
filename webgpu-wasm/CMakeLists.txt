@@ -90,6 +90,10 @@ SET(WW_SOURCES
 
 	src/Renderer/Pipelines/TestComputePipeline.h
 	src/Renderer/Pipelines/TestComputePipeline.cpp
+
+	src/Renderer/Pipelines/ProceduralPipeline.h
+	src/Renderer/Pipelines/Procedural/NoisePipeline.h
+	src/Renderer/Pipelines/Procedural/NoisePipeline.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})

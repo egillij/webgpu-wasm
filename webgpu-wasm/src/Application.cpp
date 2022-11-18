@@ -7,6 +7,7 @@
 #include "Scene/SceneUtils/TantiveIV.h"
 #include "Scene/SceneUtils/Thranta.h"
 #include "Scene/SceneUtils/PongKrell.h"
+#include "Scene/SceneUtils/Plane.h"
 
 #include "Renderer/Renderer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
@@ -14,6 +15,7 @@
 #include "Renderer/MaterialSystem.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/Geometry/GeometrySystem.h"
+#include "Renderer/Pipelines/Procedural/NoisePipeline.h"
 
 #include <emscripten.h>
 // #include <emscripten/html5.h>
@@ -50,6 +52,14 @@ static float fovY = glm::radians(45.f);
 static Application *s_Instance = nullptr;
 
 static WGpuTexture *depthTexture = nullptr;
+
+void materialUpdateDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata)
+{
+    if(status != WGPUQueueWorkDoneStatus::WGPUQueueWorkDoneStatus_Success){
+        printf("Error while waiting for material queue to finish updates.\n");
+    }
+    s_Instance->startRendering();
+}
 
 void GetDevice()
 {
@@ -175,6 +185,23 @@ void Application::initializeAndRun()
     std::string PongKrellResourceFolder = "PongKrell";
     getPongKrellParts(pongKrellStartPartId, PongKrellResourceFolder, models);
     getPongKrellMaterials(pongKrellStartMaterialId, PongKrellResourceFolder, materials);
+
+    int planePartId = models.size() + 1;
+    int planeMaterialId = materials.size() + 1;
+    std::string PlaneResourceFolder = "Plane";
+    getPlaneParts(planePartId, PlaneResourceFolder, models);
+    // Custom material for the plane
+    {
+        MaterialDescription desc{};
+        desc.name = "Plane Material";
+        desc.id = planeMaterialId;
+        desc.albedo = glm::vec4(0.1f, 0.6f, 0.3f, 1.f);
+        desc.albedoPipeline = new NoisePipeline(m_Device);
+        desc.roughness = 0.f;
+        desc.metallic = 1.f;
+        desc.ao = 0.01f;
+        materials.push_back(desc);
+    }
     
 
     scene.modelDescriptions = models.data();
@@ -208,6 +235,8 @@ void Application::initializeAndRun()
 
     GameObjectNode pongKrell = getPongKrellParentNode(nodeId, pongKrellStartPartId, pongKrellStartMaterialId, "Pong Krell",
                                                       glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+
+    GameObjectNode plane = getPlaneParentNode(nodeId, planePartId, planeMaterialId, "Ground Plane", glm::vec3(0.f), glm::vec3(10.f), glm::vec3(0.f));
 
 
     int xFactor = 10;
@@ -421,6 +450,17 @@ void Application::initializeAndRun()
         gameObjects.push_back(node);
     }
 
+    {
+        //Ground plane
+        GameObjectNode node = plane;
+        node.id = nodeId++;
+        node.name = "Plane";
+        node.position = glm::vec3(0.f);
+        node.scale = glm::vec3(100.f);
+        node.rotation = glm::vec3(0.f);
+        gameObjects.push_back(node);
+    }
+
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
 
@@ -468,10 +508,25 @@ void Application::onUpdate()
             }, currentFPS
         );
 
-        m_Renderer->render(m_Scene);
+        wgpu::Queue materialQueue = m_Device->getHandle().GetQueue();
+
+        bool waitForUpdate = m_MaterialSystem->onUpdate(m_Device, &materialQueue);
+        if(waitForUpdate){
+            //TODO: instead of waiting here we should do it just in time before we do the lighting pass
+            materialQueue.OnSubmittedWorkDone(0, materialUpdateDoneCallback, nullptr);
+        }
+        else {
+            // No updates pending to materials. We can start rendering immediately
+            startRendering();
+        }        
     }
 
     ++frameNo;
+}
+
+void Application::startRendering()
+{
+    m_Renderer->render(m_Scene);
 }
 
 Application *Application::get()

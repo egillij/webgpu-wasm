@@ -37,6 +37,8 @@ public:
 
     void onUpdate();
 
+    void startRendering();
+
     TextureSystem* getTextureSystem() { return m_TextureSystem; }
     MaterialSystem* getMaterialSystem() { return m_MaterialSystem; }
 

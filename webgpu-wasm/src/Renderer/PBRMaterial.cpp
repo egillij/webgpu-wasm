@@ -6,6 +6,8 @@
 #include "Renderer/WebGPU/wgpuTexture.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
 
+#include "Renderer/Pipelines/ProceduralPipeline.h"
+
 #include "Renderer/TextureSystem.h"
 #include "Application.h"
 
@@ -24,6 +26,11 @@ static WGpuTexture* createTexture(const std::string& name, const glm::vec4& colo
         (unsigned char) (color[3]*255.f)
     };
     return Application::get()->getTextureSystem()->registerTexture(0, name, &texData[0], 1, 1, TextureFormat::RGBA8Unorm);
+}
+
+static WGpuTexture* createProceduralTexture(const std::string& name, const uint32_t width, const uint32_t height)
+{
+    return Application::get()->getTextureSystem()->registerProceduralTexture(0, name, width, height, TextureFormat::RGBA8Unorm);
 }
 
 PBRMaterial::PBRMaterial(const std::string& name, WGpuDevice* device)
@@ -81,13 +88,19 @@ PBRMaterial::PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuD
     queue.WriteBuffer(m_UniformBuffer->getHandle(), 0, &m_Uniforms.shaderUniforms, sizeof(PBRUniforms::ShaderUniforms));
 
     // Create all textures
-
-    if(data.textures.albedo.empty()){
+    if(data.textures.albedo.pipeline) {
+        m_AlbedoTexture = createProceduralTexture(m_Name + "_AlbedoTexture", 512, 512);
+        m_Uniforms.textures.albedo.bindgroup = new WGpuBindGroup("Albedo Proc BindGroup");
+        m_Uniforms.textures.albedo.bindgroup->addStorageTexture(m_AlbedoTexture, 0, wgpu::ShaderStage::Compute);
+        m_Uniforms.textures.albedo.bindgroup->setLayout(m_Uniforms.textures.albedo.pipeline->getBindGroupLayout());
+        m_Uniforms.textures.albedo.bindgroup->build(device);
+    }
+    else if(data.textures.albedo.filename.empty()){
         m_AlbedoTexture = createTexture(m_Name + "_AlbedoTexture", glm::vec4(data.shaderUniforms.albedo, 1.f));
     }
     else {
         // TODO: textures should be referenced in the scene description so they can be loaded/created up front?
-        std::string m_ServerResource = "/resources/textures/" + data.textures.albedo;
+        std::string m_ServerResource = "/resources/textures/" + data.textures.albedo.filename;
         m_AlbedoTexture = Application::get()->getTextureSystem()->registerTexture(0, m_Name + "_AlbedoTexture", m_ServerResource);
     }
 
@@ -153,12 +166,12 @@ void PBRMaterial::update(const PBRUniforms& data, WGpuDevice* device)
 
     // Create all textures
     // TODO: instead of overwriting textures here we should be updating the existing ones
-    if(data.textures.albedo.empty()){
+    if(data.textures.albedo.filename.empty()){
         m_AlbedoTexture = createTexture(m_Name + "_AlbedoTexture", glm::vec4(data.shaderUniforms.albedo, 1.f));
     }
     else {
         // TODO: textures should be referenced in the scene description so they can be loaded/created up front?
-        std::string m_ServerResource = "/resources/textures/" + data.textures.albedo;
+        std::string m_ServerResource = "/resources/textures/" + data.textures.albedo.filename;
         m_AlbedoTexture = Application::get()->getTextureSystem()->registerTexture(0, m_Name + "_AlbedoTexture", m_ServerResource);
     }
 
@@ -208,4 +221,15 @@ void PBRMaterial::updateBindGroup(WGpuDevice* device)
     m_MaterialBindGroup->addTexture(m_RoughnessTexture, TextureSampleType::Float, 3, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroup->addTexture(m_AoTexture, TextureSampleType::Float, 4, wgpu::ShaderStage::Fragment);
     m_MaterialBindGroup->build(device);
+}
+
+bool PBRMaterial::onUpdate(WGpuDevice* device, wgpu::Queue* queue) 
+{
+    bool hasUpdates = false;
+    if(m_Uniforms.textures.albedo.pipeline){
+        // Run pipeline to update texture
+        m_Uniforms.textures.albedo.pipeline->run(m_Uniforms.textures.albedo.bindgroup, device, queue);
+        hasUpdates = true;
+    }
+    return hasUpdates;
 }
