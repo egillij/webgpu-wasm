@@ -10,6 +10,8 @@ class WGpuBuffer;
 class WGpuSampler;
 class WGpuTexture;
 
+enum class TextureFormat : uint32_t;
+
 enum class BufferBindingType : uint32_t {
     Undefined = static_cast<uint32_t>(wgpu::BufferBindingType::Undefined),
     Uniform = static_cast<uint32_t>(wgpu::BufferBindingType::Uniform),
@@ -46,6 +48,8 @@ public:
 
     void addTexture(TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
+    void addStorageTexture(wgpu::StorageTextureAccess access, TextureFormat format, wgpu::TextureViewDimension dim, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
     void build(WGpuDevice *device);
     wgpu::BindGroupLayout* get();
 
@@ -57,7 +61,7 @@ private:
             Buffer,
             Sampler,
             Texture,
-            // StorageTexture
+            StorageTexture
         } entryType;
 
         struct Buffer {
@@ -72,6 +76,12 @@ private:
         struct Texture {
             TextureSampleType type;
         } texture;
+
+        struct StorageTexture {
+            wgpu::StorageTextureAccess access;
+            TextureFormat format;
+            wgpu::TextureViewDimension dim;
+        } storagTexture;
     };
 
     std::string m_Label;
@@ -96,6 +106,8 @@ public:
 
     void addTexture(WGpuTexture* texture, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
+    void addStorageTexture(WGpuTexture* texture, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
     void build(WGpuDevice *device);
 
     const wgpu::BindGroup& get();
@@ -109,7 +121,7 @@ private:
             Buffer,
             Sampler,
             Texture,
-            // StorageTexture
+            StorageTexture
         } entryType;
 
         struct Buffer {
@@ -127,6 +139,10 @@ private:
             WGpuTexture* texture;
             TextureSampleType type;
         } texture;
+
+        struct StorageTexture {
+            WGpuTexture* texture;
+        } storageTexture;
 
     };
 

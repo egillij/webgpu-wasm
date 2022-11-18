@@ -1,8 +1,11 @@
 #pragma once
 
+class WGpuBindGroupLayout;
+class WGpuBindGroup;
 class WGpuDevice;
 class WGpuSwapChain;
 class WGpuTexture;
+class WGpuShader;
 
 class ComputePipeline;
 
@@ -23,11 +26,11 @@ private:
 
     WGpuTexture* m_Texture;
 
-    //TODO: nota eigin klasa
     ComputePipeline* m_Pipeline;
+    WGpuShader* m_Shader;
 
-    wgpu::ShaderModule m_Module;
-    wgpu::BindGroup m_BindGroup;
+    WGpuBindGroupLayout* m_BindGroupLayout;
+    WGpuBindGroup* m_BindGroup;
 
     PresentPipeline* m_PresentPipeline;
 };

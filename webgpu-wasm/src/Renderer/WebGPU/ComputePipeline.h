@@ -20,6 +20,8 @@ public:
 
     void build(WGpuDevice* device);
 
+    const wgpu::ComputePipeline& getPipeline() const { return m_Pipeline; }
+
 private:
     std::string m_Label;
 

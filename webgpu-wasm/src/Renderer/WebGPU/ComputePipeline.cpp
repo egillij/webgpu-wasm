@@ -38,7 +38,7 @@ void ComputePipeline::build(WGpuDevice* device)
     plDescriptor.bindGroupLayoutCount = bindGroupLayouts.size();
     plDescriptor.bindGroupLayouts = bindGroupLayouts.data();
 
-    wgpu::PipelineLayout layout = device->getHandle().CreatePipelineLayout(&layoutdesc);
+    wgpu::PipelineLayout layout = device->getHandle().CreatePipelineLayout(&plDescriptor);
 
     wgpu::ProgrammableStageDescriptor psdesc{};
     psdesc.entryPoint = "main";

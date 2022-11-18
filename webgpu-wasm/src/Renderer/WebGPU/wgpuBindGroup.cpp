@@ -50,6 +50,20 @@ void WGpuBindGroupLayout::addTexture(TextureSampleType sampleType, uint32_t bind
     m_Entries.push_back(entry_);
 }
 
+void WGpuBindGroupLayout::addStorageTexture(wgpu::StorageTextureAccess access, TextureFormat format, wgpu::TextureViewDimension dim, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    LayoutEntry entry_;
+    entry_.entryType = LayoutEntry::Type::StorageTexture;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+
+    entry_.storagTexture.access = access;
+    entry_.storagTexture.format = format;
+    entry_.storagTexture.dim = dim;
+
+    m_Entries.push_back(entry_);
+}
+
 void WGpuBindGroupLayout::build(WGpuDevice *device)
 {
     if(!device) return;
@@ -98,7 +112,20 @@ void WGpuBindGroupLayout::build(WGpuDevice *device)
                 bindGroupLayoutEntries.emplace_back(bglEntry);
                 break;
             }
+            case LayoutEntry::Type::StorageTexture: {
+                wgpu::StorageTextureBindingLayout stbl{};
+                stbl.access = entry_.storagTexture.access; //TODO: nota eigin týpu
+                stbl.format = static_cast<wgpu::TextureFormat>(entry_.storagTexture.format);
+                stbl.viewDimension = entry_.storagTexture.dim; //TODO: nota eigin týpu
 
+                wgpu::BindGroupLayoutEntry bglEntry{};
+                bglEntry.binding = entry_.bindingSlot;
+                bglEntry.visibility = entry_.visibility;
+                bglEntry.storageTexture = stbl;
+
+                bindGroupLayoutEntries.emplace_back(bglEntry);
+                break;
+            }
         }
     }
 
@@ -173,6 +200,17 @@ void WGpuBindGroup::addTexture(WGpuTexture* texture, TextureSampleType sampleTyp
     m_Entries.push_back(entry_);
 }
 
+void WGpuBindGroup::addStorageTexture(WGpuTexture* texture, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    Entry entry_;
+    entry_.entryType = Entry::Type::StorageTexture;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.storageTexture.texture = texture;
+
+    m_Entries.push_back(entry_);
+}
+
 void WGpuBindGroup::build(WGpuDevice *device)
 {
     if(!device) return;
@@ -204,15 +242,16 @@ void WGpuBindGroup::build(WGpuDevice *device)
             case Entry::Type::Texture: {
                 wgpu::BindGroupEntry bge{};
                 bge.binding = entry_.bindingSlot;
+                bge.textureView = entry_.texture.texture->createView();
 
-                // wgpu::TextureViewDescriptor texViewDesc{};
-                // texViewDesc.label = "Texture View Label"; //TODO: create something from the texture label??
-                // texViewDesc.format = wgpu::TextureFormat::RGBA8Unorm; //TODO: get from the texture?
-                // texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
-                // texViewDesc.mipLevelCount = 1;
-                // texViewDesc.arrayLayerCount = 1;
+                bindGroupEntries.emplace_back(bge);
 
-                bge.textureView = entry_.texture.texture->createView();// ->getHandle().CreateView(&texViewDesc);
+                break;
+            }
+            case Entry::Type::StorageTexture: {
+                wgpu::BindGroupEntry bge{};
+                bge.binding = entry_.bindingSlot;
+                bge.textureView = entry_.storageTexture.texture->createView();
 
                 bindGroupEntries.emplace_back(bge);
 

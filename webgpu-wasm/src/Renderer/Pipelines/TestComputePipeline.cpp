@@ -1,8 +1,11 @@
 #include "TestComputePipeline.h"
 
+#include "Renderer/WebGPU/wgpuBindGroup.h"
 #include "Renderer/WebGPU/wgpuTexture.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
+#include "Renderer/WebGPU/wgpuShader.h"
 #include "Renderer/WebGPU/wgpuSwapChain.h"
+#include "Renderer/WebGPU/ComputePipeline.h"
 
 #include "Application.h"
 
@@ -68,62 +71,26 @@ TestComputePipeline::TestComputePipeline(WGpuDevice* device)
     info.usage = {TextureUsage::StorageBinding, TextureUsage::TextureBinding, TextureUsage::CopyDst};
     m_Texture = new WGpuTexture("Test Compute Texture", &info, device);
 
-    wgpu::ShaderModuleWGSLDescriptor wgslDescription{};
-    wgslDescription.source = computeCode;
+    ShaderDescription shaderDesc{};
+    shaderDesc.type = ShaderType::COMPUTE;
+    shaderDesc.shaderCode = computeCode;
+    m_Shader = new WGpuShader("Test Compute Shader", shaderDesc, device);
 
-    wgpu::ShaderModuleDescriptor shaderDesc{};
-    shaderDesc.label = "Test compute shader";
-    shaderDesc.nextInChain = &wgslDescription;
+    m_BindGroupLayout = new WGpuBindGroupLayout("Compute Test BGL");
+    m_BindGroup = new WGpuBindGroup("Compute Test BG");
 
-    m_Module = device->getHandle().CreateShaderModule(&shaderDesc);
+    m_BindGroupLayout->addStorageTexture(wgpu::StorageTextureAccess::WriteOnly, TextureFormat::RGBA8Unorm, wgpu::TextureViewDimension::e2D, 0, wgpu::ShaderStage::Compute);
+    m_BindGroupLayout->build(device);
 
-    wgpu::BindGroupLayoutEntry bglentry{};
-    bglentry.binding = 0;
-    bglentry.visibility = wgpu::ShaderStage::Compute;
+    m_BindGroup->setLayout(m_BindGroupLayout);
+    m_BindGroup->addStorageTexture(m_Texture, 0, wgpu::ShaderStage::Compute);
 
-    wgpu::StorageTextureBindingLayout storageTexLayout{};
-    storageTexLayout.access = wgpu::StorageTextureAccess::WriteOnly;
-    storageTexLayout.format = wgpu::TextureFormat::RGBA8Unorm;
-    storageTexLayout.viewDimension = wgpu::TextureViewDimension::e2D;
-
-    bglentry.storageTexture = storageTexLayout;
-
-
-    wgpu::BindGroupLayoutDescriptor bgld{};
-    bgld.entryCount = 1;
-    bgld.entries = &bglentry;
-
-    wgpu::BindGroupLayout bgl = device->getHandle().CreateBindGroupLayout(&bgld);
-
-    wgpu::BindGroupEntry entry{};
-    entry.binding = 0;
-    entry.textureView = m_Texture->createView();
+    m_BindGroup->build(device);
     
-
-    wgpu::BindGroupDescriptor bgd{};
-    bgd.entryCount = 1;
-    bgd.entries = &entry;
-    bgd.layout = bgl;
-    m_BindGroup = device->getHandle().CreateBindGroup(&bgd);
-    
-
-    wgpu::PipelineLayoutDescriptor layoutdesc{};
-    layoutdesc.bindGroupLayoutCount = 1;
-    layoutdesc.bindGroupLayouts = &bgl;
-    
-
-    wgpu::PipelineLayout layout = device->getHandle().CreatePipelineLayout(&layoutdesc);
-
-    wgpu::ProgrammableStageDescriptor psdesc{};
-    psdesc.entryPoint = "main";
-    psdesc.module = m_Module;
-
-    wgpu::ComputePipelineDescriptor desc{};
-    desc.label = "Test Compute Pipeline";
-    desc.compute = psdesc;
-    desc.layout = layout;
-
-    m_Pipeline = device->getHandle().CreateComputePipeline(&desc);
+    m_Pipeline = new ComputePipeline("Test Compute"); //device->getHandle().CreateComputePipeline(&desc);
+    m_Pipeline->setShader(m_Shader);
+    m_Pipeline->addBindGroup(m_BindGroupLayout);
+    m_Pipeline->build(device);
     
     m_PresentPipeline = new PresentPipeline(m_Texture, device);
 }
@@ -144,9 +111,9 @@ void TestComputePipeline::run(WGpuDevice* device, WGpuSwapChain* swapChain)
     wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
 
     wgpu::ComputePassEncoder computePass = encoder.BeginComputePass(&desc);
-    computePass.SetPipeline(m_Pipeline);
+    computePass.SetPipeline(m_Pipeline->getPipeline());
     computePass.SetLabel("Test Compute Pass");
-    computePass.SetBindGroup(0, m_BindGroup);
+    computePass.SetBindGroup(0, m_BindGroup->get());
 
     computePass.DispatchWorkgroups(1, 1, 1);
 

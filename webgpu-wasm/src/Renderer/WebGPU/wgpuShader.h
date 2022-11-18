@@ -9,7 +9,13 @@
 
 class WGpuDevice;
 
+enum class ShaderType : uint32_t {
+    VERTEX_FRAGMENT,
+    COMPUTE
+};
+
 struct ShaderDescription {
+    ShaderType type;
     std::string shaderCode;
     std::vector<TextureFormat> colorTargets;
 };
