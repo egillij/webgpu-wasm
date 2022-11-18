@@ -1,0 +1,25 @@
+std::vector<MaterialDescription> materials;
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 0;
+	material.name = "jsf_auxMat";
+	material.filename = "jsf_auxMat.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 1;
+	material.name = "jsf_mainMat";
+	material.filename = "jsf_mainMat.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 2;
+	material.name = "";
+	material.filename = "Default.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}

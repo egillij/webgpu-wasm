@@ -128,7 +128,7 @@ WGpuBindGroup::WGpuBindGroup(const std::string& label)
     
 WGpuBindGroup::~WGpuBindGroup()
 {
-
+    m_BindGroup.Release();
 }
 
 void WGpuBindGroup::setLayout(WGpuBindGroupLayout* layout)
@@ -205,14 +205,14 @@ void WGpuBindGroup::build(WGpuDevice *device)
                 wgpu::BindGroupEntry bge{};
                 bge.binding = entry_.bindingSlot;
 
-                wgpu::TextureViewDescriptor texViewDesc{};
-                texViewDesc.label = "Texture View Label"; //TODO: create something from the texture label??
-                texViewDesc.format = wgpu::TextureFormat::RGBA8Unorm; //TODO: get from the texture?
-                texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
-                texViewDesc.mipLevelCount = 1;
-                texViewDesc.arrayLayerCount = 1;
+                // wgpu::TextureViewDescriptor texViewDesc{};
+                // texViewDesc.label = "Texture View Label"; //TODO: create something from the texture label??
+                // texViewDesc.format = wgpu::TextureFormat::RGBA8Unorm; //TODO: get from the texture?
+                // texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
+                // texViewDesc.mipLevelCount = 1;
+                // texViewDesc.arrayLayerCount = 1;
 
-                bge.textureView = entry_.texture.texture->getHandle().CreateView(&texViewDesc);
+                bge.textureView = entry_.texture.texture->createView();// ->getHandle().CreateView(&texViewDesc);
 
                 bindGroupEntries.emplace_back(bge);
 

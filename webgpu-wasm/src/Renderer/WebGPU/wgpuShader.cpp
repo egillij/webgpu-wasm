@@ -2,11 +2,11 @@
 
 #include "wgpuDevice.h"
 
-WGpuShader::WGpuShader(const std::string& name, const std::string& shaderCode, WGpuDevice* device)
+WGpuShader::WGpuShader(const std::string& name, const ShaderDescription& shaderDescription, WGpuDevice* device)
 : m_Name(name)
 {
     wgpu::ShaderModuleWGSLDescriptor wgslDescription{};
-    wgslDescription.source = shaderCode.c_str();
+    wgslDescription.source = shaderDescription.shaderCode.c_str();
 
     wgpu::ShaderModuleDescriptor description{};
     description.label = m_Name.c_str();
@@ -14,12 +14,15 @@ WGpuShader::WGpuShader(const std::string& name, const std::string& shaderCode, W
     m_Module = device->getHandle().CreateShaderModule(&description);
 
     //TODO: make as part of input
-    m_ColorTargets.reserve(1);
+    m_ColorTargets.reserve(shaderDescription.colorTargets.size());
 
-    wgpu::ColorTargetState cts{};
-    cts.format = wgpu::TextureFormat::BGRA8Unorm;
+    for(const TextureFormat& fmt : shaderDescription.colorTargets){
+        wgpu::ColorTargetState cts{};
+        cts.format = static_cast<wgpu::TextureFormat>(fmt);
 
-    m_ColorTargets.emplace_back(cts);
+        m_ColorTargets.emplace_back(cts);
+    }
+    
 
     m_FragmentState.module = m_Module;
     m_FragmentState.entryPoint = "main_f";

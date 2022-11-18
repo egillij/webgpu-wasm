@@ -20,6 +20,11 @@ wgpu::TextureView WGpuSwapChain::getCurrentFrameTexture() const
     return m_SwapChain.GetCurrentTextureView();
 }
 
+// void WGpuSwapChain::present()
+// {
+//     m_SwapChain.Present();
+// }
+
 void WGpuSwapChain::createSwapChain(uint32_t width, uint32_t height)
 {
     wgpu::SwapChainDescriptor description{};
@@ -30,3 +35,4 @@ void WGpuSwapChain::createSwapChain(uint32_t width, uint32_t height)
     description.presentMode = wgpu::PresentMode::Fifo;
     m_SwapChain = m_Device->getHandle().CreateSwapChain(m_Surface, &description);
 }
+

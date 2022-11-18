@@ -18,11 +18,13 @@ struct geom_header {
 
 class Geom {
 public:
-    Geom() : m_Vertices(nullptr), m_NoVertices(0), m_Indices(nullptr), m_NoIndices(0)
+    Geom(bool temporaryMemory = false) 
+    : m_Vertices(nullptr), m_NoVertices(0), m_Indices(nullptr), 
+      m_NoIndices(0), m_TemporaryMemory(temporaryMemory)
     {};
 
     Geom(const float* vertices, uint64_t numberOfVertices, const uint32_t* indices, uint64_t numberOfIndices)
-    : m_Vertices(nullptr), m_NoVertices(0), m_Indices(nullptr), m_NoIndices(0)
+    : m_Vertices(nullptr), m_NoVertices(0), m_Indices(nullptr), m_NoIndices(0), m_TemporaryMemory(false)
     {
         uint64_t verticesSize = numberOfVertices * sizeof(float);
         m_Vertices = (float*)malloc(verticesSize);
@@ -37,6 +39,8 @@ public:
 
     ~Geom()
     {
+        if(m_TemporaryMemory) return;
+
         if(m_Vertices) free(m_Vertices);
         if(m_Indices) free(m_Indices);
     };
@@ -52,6 +56,8 @@ private:
 
     uint32_t* m_Indices;
     uint64_t m_NoIndices; // Should be number of uint_32t in m_Indices
+
+    bool m_TemporaryMemory;
 
     friend class GeomIO;
 };
@@ -213,6 +219,46 @@ public:
         }
 
         std::fclose(fp);
+
+        return true;
+    };
+
+    bool load(char* data, int size, Geom* geom)
+    {
+        if(!geom) {
+            printf("No geometry class to write to\n");
+            return false;
+        }
+
+
+        geom_header header{};
+        
+        if(size < sizeof(header)){
+            printf("Can't to load header from in geometry file. Buffer too small\n");
+            return false;
+        }
+
+        header = *((geom_header*)data);
+
+
+        // geom->m_Vertices = (float*)malloc(header.vertexDataSize);
+        geom->m_NoVertices = header.vertexDataSize / sizeof(float);
+        if(size < sizeof(header) + header.vertexDataSize)
+        {
+            printf("Failed to load vertex data from in-memory geometry file. Buffer too small\n");
+            return false;
+        }
+        geom->m_Vertices = (float*)(data+header.vertexDataOffset);
+
+        // geom->m_Indices = (uint32_t*)malloc(header.indexDataSize);
+        geom->m_NoIndices = header.indexDataSize / sizeof(uint32_t);
+        if(size < sizeof(header)+header.vertexDataSize + header.indexDataSize)
+        {
+            printf("Failed to load index data from in-memory geometry file. Buffer too small\n");
+            return false;
+        }
+
+        geom->m_Indices = (uint32_t*)(data+header.indexDataOffset);
 
         return true;
     };

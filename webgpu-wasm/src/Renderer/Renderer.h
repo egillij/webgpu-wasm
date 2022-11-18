@@ -15,6 +15,7 @@ class WGpuShader;
 class Scene;
 
 class RenderPipeline;
+class PresentPipeline;
 
 class Renderer {
 public:
@@ -23,9 +24,13 @@ public:
 
     void render(Scene* scene);
 
+    void present();
+
 private:
     WGpuDevice* m_Device = nullptr;
     WGpuSwapChain* m_SwapChain = nullptr;
 
     RenderPipeline* m_Pipeline;
+    
+    PresentPipeline* m_PresentPipeline;
 };

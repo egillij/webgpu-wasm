@@ -1,9 +1,46 @@
 #include "TextureSystem.h"
 
+#include "Application.h"
+
 #include "Renderer/WebGPU/wgpuDevice.h"
+
+#include "Renderer/MaterialSystem.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+
+#include <emscripten.h>
+
+struct LoadData {
+    TextureSystem* texSystem;
+    uint32_t textureId;
+};
+
+void onTextureLoadSuccess(void* userData, void* data, int size)
+{
+    if(!userData)
+    {
+        printf("Texture system lost. Can't update texture!\n");
+        return;
+    }
+
+    LoadData* loadData = (LoadData*) userData;
+    loadData->texSystem->updateTexture(loadData->textureId, data, size);
+
+    delete loadData;
+}
+
+void onTextureLoadError(void* userData) 
+{
+    if(!userData){
+        printf("Failed to load texture. Texture system lost\n");
+    }
+    else {
+        LoadData* loadData = (LoadData*)userData;
+        printf("Failed to load texture %u\n", loadData->textureId);
+        delete loadData;
+    }
+}
 
 static uint32_t nextId = 1;
 
@@ -72,20 +109,56 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
 WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name, const std::string& filename)
 {
     //TODO: use id
-    const auto it = m_Textures.find(nextId);
+    id = nextId++;
+
+    const auto it = m_Textures.find(id);
     if(it != m_Textures.end())
     {
-        return m_Textures.at(nextId).get();
+        return m_Textures.at(id).get();
     }
+
+    std::shared_ptr<WGpuTexture> texture = std::make_shared<WGpuTexture>(name, m_Device);
+    m_Textures[id] = texture;
+
+    LoadData* loadData = new LoadData;
+    loadData->texSystem = this;
+    loadData->textureId = id;
+
+    emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
+
+    return m_Textures.at(id).get();
+}
+
+WGpuTexture* TextureSystem::find(uint32_t id)
+{
+    const auto it = m_Textures.find(id);
+    if(it != m_Textures.end()) 
+    {
+        return m_Textures.at(id).get();
+    }
+
+    return nullptr;
+}
+
+void TextureSystem::updateTexture(uint32_t id, void* data, int size)
+{
+    const auto it = m_Textures.find(id);
+    if(it == m_Textures.end()) 
+    {
+        printf("Could not find texture with id %u. No update done.\n", id);
+        return;
+    }
+
+    auto texture = it->second;
 
     stbi_set_flip_vertically_on_load(true);
     int width, height, elements;
-    unsigned char *imageData = stbi_load(filename.c_str(), &width, &height, &elements, 4);
+    unsigned char *imageData = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &elements, 4);
     elements = 4;
 
     if(!imageData) {
-        printf("Failed to load texture %s\n", filename.c_str());
-        return nullptr;
+        printf("Failed to load texture from memory. No update done.\n");
+        return;
     }
 
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
@@ -95,7 +168,7 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     info.width = width;
     info.usage = {TextureUsage::TextureBinding, TextureUsage::CopyDst};
 
-    std::shared_ptr<WGpuTexture> texture = std::make_shared<WGpuTexture>(name, &info, m_Device);
+    texture->update(&info, m_Device);
 
     wgpu::ImageCopyTexture imgCpyTex{};
     imgCpyTex.texture = texture->getHandle();
@@ -111,22 +184,10 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     texExtent.width = width;
     texExtent.height = height;
 
-    size_t size = width * height * elements;
+    size_t texSize = width * height * elements;
 
-    queue.WriteTexture(&imgCpyTex, imageData, size, &texDataLayout, &texExtent);
+    queue.WriteTexture(&imgCpyTex, imageData, texSize, &texDataLayout, &texExtent);
 
-    m_Textures[nextId] = texture;
-
-    return m_Textures.at(nextId++).get();
-}
-
-WGpuTexture* TextureSystem::find(uint32_t id)
-{
-    const auto it = m_Textures.find(id);
-    if(it != m_Textures.end()) 
-    {
-        return m_Textures.at(id).get();
-    }
-
-    return nullptr;
+    // TODO: force an update any materials using this textur instead of updating everything
+    Application::get()->getMaterialSystem()->updateBindgroups();
 }

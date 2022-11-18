@@ -1,0 +1,51 @@
+std::vector<ModelDescription> models;
+{
+	ModelDescription model{};
+	model.id = startModelId + 0;
+	model.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal02_d_0";
+	model.filename = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal02_d_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}
+{
+	ModelDescription model{};
+	model.id = startModelId + 1;
+	model.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_detail_d_0";
+	model.filename = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_detail_d_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}
+{
+	ModelDescription model{};
+	model.id = startModelId + 2;
+	model.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal01_d_0";
+	model.filename = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal01_d_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}
+{
+	ModelDescription model{};
+	model.id = startModelId + 3;
+	model.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_engine_d_0";
+	model.filename = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_engine_d_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}
+{
+	ModelDescription model{};
+	model.id = startModelId + 4;
+	model.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_trim_d_0";
+	model.filename = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_trim_d_0.geom";
+	model.position = glm::vec3(0.f);
+	model.scale = glm::vec3(1.f);
+	model.rotation = glm::vec3(0.f);
+	models.push_back(model);
+}

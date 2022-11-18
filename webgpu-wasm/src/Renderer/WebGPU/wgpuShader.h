@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wgpuTexture.h"
+
 #include <webgpu/webgpu_cpp.h>
 
 #include <string>
@@ -7,10 +9,15 @@
 
 class WGpuDevice;
 
+struct ShaderDescription {
+    std::string shaderCode;
+    std::vector<TextureFormat> colorTargets;
+};
+
 class WGpuShader {
 public:
     WGpuShader() : m_Name("") {};
-    WGpuShader(const std::string& name, const std::string& shaderCode, WGpuDevice* device);
+    WGpuShader(const std::string& name, const ShaderDescription& shaderDescription, WGpuDevice* device);
     ~WGpuShader();
 
     const wgpu::ShaderModule& getModule() const { return m_Module; }

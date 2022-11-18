@@ -1,6 +1,12 @@
 #include "Application.h"
 
 #include "Scene/Scene.h"
+#include "Scene/SceneUtils/B1BattleDroid.h"
+#include "Scene/SceneUtils/BuzzDroid.h"
+#include "Scene/SceneUtils/JediStarfighter.h"
+#include "Scene/SceneUtils/TantiveIV.h"
+#include "Scene/SceneUtils/Thranta.h"
+#include "Scene/SceneUtils/PongKrell.h"
 
 #include "Renderer/Renderer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
@@ -129,50 +135,47 @@ void Application::initializeAndRun()
     m_TextureSystem = new TextureSystem(m_Device);
 
     const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
-    // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
 
     SceneDescription scene{};
     scene.name = "Test Scene";
     std::vector<ModelDescription> models;
-
-    {
-        ModelDescription model{};
-        model.id = 1;
-        model.name = "Battle Droid";
-        model.filename = "Mesh51.001_0.geom";
-        model.position = glm::vec3(0.f);
-        model.scale = glm::vec3(1.f);
-        model.rotation = glm::vec3(0.f);
-        models.push_back(model);
-    }
-    {
-        ModelDescription model{};
-        model.id = 2;
-        model.name = "Blaster";
-        model.filename = "Mesh51.001_1.geom";
-        model.position = glm::vec3(0.f);
-        model.scale = glm::vec3(1.f);
-        model.rotation = glm::vec3(0.f);
-        models.push_back(model);
-    }
-
     std::vector<MaterialDescription> materials;
-    {
-        MaterialDescription material{};
-        material.id = 1;
-        material.name = "Droid Material";
-        material.filename = "01___Def.mats";
-        material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.f);
-        materials.push_back(material);
-    }
-    {
-        MaterialDescription material{};
-        material.id = 2;
-        material.name = "Blaster Material";
-        material.filename = "07___Def.mats";
-        material.albedo = glm::vec4(0.0f, 0.0f, 1.0f, 1.f);
-        materials.push_back(material);
-    }
+    int b1StartPartId = models.size() + 1;
+    int b1StartMaterialId = materials.size() + 1;
+    std::string B1BattleDroidResourceFolder = "B1BattleDroid";
+    getB1BattleDroidParts(b1StartPartId, B1BattleDroidResourceFolder, models);
+    getB1BattleDroidMaterials(b1StartMaterialId, B1BattleDroidResourceFolder, materials);
+
+    int buzzDroidStartPartId = models.size() + 1;
+    int buzzDroidStartMaterialId = materials.size() + 1;
+    std::string BuzzDroidResourceFolder = "BuzzDroid";
+    getBuzzDroidParts(buzzDroidStartPartId, BuzzDroidResourceFolder, models);
+    getBuzzDroidMaterials(buzzDroidStartMaterialId, BuzzDroidResourceFolder, materials);
+
+    int jediStarfighterStartPartId = models.size() + 1;
+    int jediStarfighterStartMaterialId = materials.size() + 1;
+    std::string jediStarfighterResourceFolder = "JediStarfighter";
+    getJediStarfighterParts(jediStarfighterStartPartId, jediStarfighterResourceFolder, models);
+    getJediStarfighterMaterials(jediStarfighterStartMaterialId, jediStarfighterResourceFolder, materials);
+
+    int tantiveIvStartPartId = models.size() + 1;
+    int tantiveIvStartMaterialId = materials.size() + 1;
+    std::string TantiveIvResourceFolder = "TantiveIV";
+    getTantiveIVParts(tantiveIvStartPartId, TantiveIvResourceFolder, models);
+    getTantiveIVMaterials(tantiveIvStartMaterialId, TantiveIvResourceFolder, materials);
+
+    int thrantaStartPartId = models.size() + 1;
+    int thrantaStartMaterialId = materials.size() + 1;
+    std::string ThrantaResourceFolder = "Thranta";
+    getThrantaParts(thrantaStartPartId, ThrantaResourceFolder, models);
+    getThrantaMaterials(thrantaStartMaterialId, ThrantaResourceFolder, materials);
+
+    int pongKrellStartPartId = models.size() + 1;
+    int pongKrellStartMaterialId = materials.size() + 1;
+    std::string PongKrellResourceFolder = "PongKrell";
+    getPongKrellParts(pongKrellStartPartId, PongKrellResourceFolder, models);
+    getPongKrellMaterials(pongKrellStartMaterialId, PongKrellResourceFolder, materials);
+    
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();
@@ -182,51 +185,242 @@ void Application::initializeAndRun()
 
     std::vector<GameObjectNode> gameObjects;
 
-    int xFactor = 50;
-    int zFactor = 50;
-    float xOffset = float(xFactor) / 2.f;
-    float zOffset = float(zFactor) / 2.f;
+    uint32_t nodeId = 1;
+    GameObjectNode b1BattleDroid = getB1BattleDroidParentNode(nodeId, b1StartPartId, b1StartMaterialId, "B1 Battle Droid",
+                                                              glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+    // gameObjects.push_back(b1BattleDroid);
 
-    uint32_t nodeId = 0;
+    GameObjectNode jediStarfighter = getJediStarfighterParentNode(nodeId, jediStarfighterStartPartId, jediStarfighterStartMaterialId,
+                                                                  "Jedi Starfighter", glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+    // gameObjects.push_back(jediStarfighter);
 
-    for (int x = 0; x < xFactor; ++x)
+    GameObjectNode buzzDroid = getBuzzDroidParentNode(nodeId, buzzDroidStartPartId, buzzDroidStartMaterialId, "Buzz Droid",
+                                                      glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+    // gameObjects.push_back(buzzDroid);
+
+    GameObjectNode tantiveIV = getTantiveIVParentNode(nodeId, tantiveIvStartPartId, tantiveIvStartMaterialId, "TantiveIV",
+                                                      glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+    // gameObjects.push_back(tantiveIV);
+
+    GameObjectNode thranta = getThrantaParentNode(nodeId, thrantaStartPartId, thrantaStartMaterialId, "Thranta",
+                                                  glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+    // gameObjects.push_back(thranta);
+
+    GameObjectNode pongKrell = getPongKrellParentNode(nodeId, pongKrellStartPartId, pongKrellStartMaterialId, "Pong Krell",
+                                                      glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+
+
+    int xFactor = 10;
+    int zFactor = 10;
+
+    glm::vec3 center = glm::vec3(-10.f, 0.f, -5.f);
+    // A group of battle droids
+
+    int numBattleDroids = 0;
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
     {
-        for (int z = 0; z < zFactor; ++z)
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
         {
-            GameObjectNode node{};
+            GameObjectNode node = b1BattleDroid;
             node.id = nodeId++;
-            node.name = "B1 Battle Droid (" + std::to_string(x*zFactor+z) + ")";
-            node.position = glm::vec3(float(x) - xOffset, 0.f, -float(z));
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
             node.scale = glm::vec3(1.f);
             node.rotation = glm::vec3(0.f);
-            {
-                GameObjectNode object{};
-                object.id = nodeId++;
-                object.name = "Droid " + std::to_string(x*zFactor+z);
-                object.modelId = 1;
-                object.materialId = 1;
-                object.position = glm::vec3(0.f);
-                object.scale = glm::vec3(0.f);
-                object.rotation = glm::vec3(0.f);
-                node.children.push_back(object);
-            }
             
-            {
-                GameObjectNode object{};
-                object.id = nodeId++;
-                object.name = "Blaster " + std::to_string(x*zFactor+z);
-                object.modelId = 2;
-                object.materialId = 2;
-                object.position = glm::vec3(0.f);
-                object.scale = glm::vec3(0.f);
-                object.rotation = glm::vec3(0.f);
-                node.children.push_back(object);
-            }
-
             gameObjects.push_back(node);
             
         }
     }
+
+    center = glm::vec3(10.f, 0.f, -5.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(-10.f, 0.f, -20.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(10.f, 0.f, -20.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(-22.f, 0.f, -5.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(-22.f, 0.f, -20.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(22.f, 0.f, -5.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    center = glm::vec3(22.f, 0.f, -20.f);
+    // A group of battle droids
+    for (int x = -xFactor/2; x < xFactor/2; ++x)
+    {
+        for (int z = -zFactor/2; z < zFactor/2; ++z)
+        {
+            GameObjectNode node = b1BattleDroid;
+            node.id = nodeId++;
+            node.name = "B1 Battle Droid (" + std::to_string(numBattleDroids++) + ")";
+            node.position = glm::vec3(float(x), 0.f, -float(z)) + center;
+            node.scale = glm::vec3(1.f);
+            node.rotation = glm::vec3(0.f);
+            
+            gameObjects.push_back(node);
+            
+        }
+    }
+
+    {
+        // Jedi Starfighter
+        GameObjectNode node = jediStarfighter;
+        node.id = nodeId++;
+        node.name = "Jedi Starfighter";
+        node.position = glm::vec3(0.0f, 4.f, -5.f);
+        node.scale = glm::vec3(1.f);
+        node.rotation = glm::vec3(glm::radians(33.f), 0.f, 0.f);
+        gameObjects.push_back(node);
+    }
+
+    {
+        // Thranta class destroyer
+        GameObjectNode node = thranta;
+        node.id = nodeId++;
+        node.name = "Thranta Class Destroyer (1)";
+        node.position = glm::vec3(-40.0f, 20.f, -15.f);
+        node.scale = glm::vec3(1.f);
+        node.rotation = glm::vec3(0.f);//, glm::radians(90.f), 0.f);
+        gameObjects.push_back(node);
+
+        node.id = nodeId++;
+        node.name = "Thranta Class Destroyer (2)";
+        node.position = glm::vec3(40.0f, 20.f, -15.f);
+        node.scale = glm::vec3(1.f);
+        node.rotation = glm::vec3(0.f);//, glm::radians(90.f), 0.f);
+        gameObjects.push_back(node);
+    }
+
+    {
+        // Buzz Droid
+        GameObjectNode node = buzzDroid;
+        node.id = nodeId++;
+        node.name = "Buzz Droid";
+        node.position = glm::vec3(0.0f, 0.0f, 2.f);
+        node.scale = glm::vec3(1.0f);
+        node.rotation = glm::vec3(0, 0.f, 0.f);
+        gameObjects.push_back(node);
+    }
+
+    {
+        // TantiveIV
+        GameObjectNode node = tantiveIV;
+        node.id = nodeId++;
+        node.name = "TantiveIV";
+        node.position = glm::vec3(0.0f, 20.0f, -75.f);
+        node.scale = glm::vec3(5.0f);
+        node.rotation = glm::vec3(0, glm::radians(90.f), 0.f);
+        gameObjects.push_back(node);
+    }
+
+    {
+        // Pong Krell
+        GameObjectNode node = pongKrell;
+        node.id = nodeId++;
+        node.name = "Pong Krell";
+        node.position = glm::vec3(0.0f, 0.0f, 10.f);
+        node.scale = glm::vec3(1.0f);
+        node.rotation = glm::vec3(0, glm::radians(180.f), 0.f);
+        gameObjects.push_back(node);
+    }
+
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
 
@@ -236,6 +430,8 @@ void Application::initializeAndRun()
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
+
+    onUpdate();
 }
 
 void Application::onUpdate()

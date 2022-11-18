@@ -1,0 +1,66 @@
+GameObjectNode node{};
+node.id = nodeId++;
+node.name = INSERT_MODEL_NAME;
+node.position = INSERT_POSITION;
+node.scale = INSERT_SCALE
+node.rotation = INSERT_ROTATION
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal02_d_0";
+	object.modelId = startModelId + 0;
+	object.materialId = startMaterialId + 3;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
+
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_detail_d_0";
+	object.modelId = startModelId + 1;
+	object.materialId = startMaterialId + 0;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
+
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_metal01_d_0";
+	object.modelId = startModelId + 2;
+	object.materialId = startMaterialId + 2;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
+
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_engine_d_0";
+	object.modelId = startModelId + 3;
+	object.materialId = startMaterialId + 1;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
+
+{
+	GameObjectNode object{};
+	object.id = nodeId++;
+	object.name = "Thranta-class_0002_veh_rep_destroyer_veh_rep_destroyer_trim_d_0";
+	object.modelId = startModelId + 4;
+	object.materialId = startMaterialId + 4;
+	object.position = glm::vec3(0.f);
+	object.scale = glm::vec3(1.f);
+	object.rotation = glm::vec3(0.f);
+	node.children.push_back(object);
+}
+

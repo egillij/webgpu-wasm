@@ -8,9 +8,11 @@
 class WGpuDevice;
 
 enum class TextureFormat : uint32_t {
+    Undefined = static_cast<uint32_t>(wgpu::TextureFormat::Undefined),
     BGRA8Unorm = static_cast<uint32_t>(wgpu::TextureFormat::BGRA8Unorm),
     RGBA8Unorm = static_cast<uint32_t>(wgpu::TextureFormat::RGBA8Unorm),
     Depth32Float = static_cast<uint32_t>(wgpu::TextureFormat::Depth32Float),
+    RGBA32Float = static_cast<uint32_t>(wgpu::TextureFormat::RGBA32Float)
 };
 
 enum class TextureUsage : uint32_t {
@@ -31,11 +33,26 @@ struct TextureCreateInfo {
 
 class WGpuTexture {
 public:
+    WGpuTexture(const std::string& label, WGpuDevice* device);
     WGpuTexture(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device);
     ~WGpuTexture();
 
     inline wgpu::Texture& getHandle() { return m_Texture; }
 
+    TextureFormat getFormat() const { return m_Format; }
+
+    uint32_t getWidth() const { return m_Width; }
+    uint32_t getHeight() const { return m_Height; }
+
+    wgpu::TextureView createView();
+
+    void update(const TextureCreateInfo* createInfo, WGpuDevice* device);
+
 private:
+    std::string m_Label;
     wgpu::Texture m_Texture;
+
+    TextureFormat m_Format;
+
+    uint32_t m_Width, m_Height;
 };

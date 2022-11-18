@@ -3,7 +3,6 @@
 static void StarWarsScene()
 {
     const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
-    // emscripten_wget("/webgpu-wasm/b1_battle_droid.obj", battleDroidFile);
 
     SceneDescription scene{};
     scene.name = "Test Scene";

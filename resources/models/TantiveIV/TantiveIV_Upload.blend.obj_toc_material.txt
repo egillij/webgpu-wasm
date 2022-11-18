@@ -1,0 +1,49 @@
+std::vector<MaterialDescription> materials;
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 0;
+	material.name = "BlueEngineGlow";
+	material.filename = "BlueEngineGlow.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 1;
+	material.name = "ReflectiveGlass";
+	material.filename = "ReflectiveGlass.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 2;
+	material.name = "ScratchedMetal";
+	material.filename = "ScratchedMetal.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 3;
+	material.name = "ScratchedMetalDark";
+	material.filename = "ScratchedMetalDark.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 4;
+	material.name = "ScratchedMetalRed";
+	material.filename = "ScratchedMetalRed.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}
+{
+	MaterialDescription material{};
+	material.id = startMaterialId + 5;
+	material.name = "";
+	material.filename = "Default.mats";
+	material.albedo = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+	materials.push_back(material);
+}

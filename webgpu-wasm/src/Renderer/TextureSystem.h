@@ -18,6 +18,8 @@ public:
 
     WGpuTexture* find(uint32_t id);
 
+    void updateTexture(uint32_t id, void* data, int size);
+
 private:
     WGpuDevice* m_Device;
     std::unordered_map<uint32_t, std::shared_ptr<WGpuTexture>> m_Textures;

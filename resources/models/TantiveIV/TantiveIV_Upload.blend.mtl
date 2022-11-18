@@ -1,0 +1,45 @@
+# Blender MTL File: 'TantiveIV_Upload.blend.blend'
+# Material Count: 5
+
+newmtl BlueEngineGlow
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.012742 0.647775 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl ReflectiveGlass
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.005605 0.005605 0.005605
+Pr 0.0
+Pm 1.0
+illum 2
+
+newmtl ScratchedMetal
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.800000 0.800000
+Pr 0.5
+Pm 1.0
+map_Kd ScratchedMetal2.jpeg
+map_Pr ScratchedMetal2.jpeg
+illum 1
+
+newmtl ScratchedMetalDark
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.141263 0.147027 0.155926
+Pr 0.5
+Pm 1.0
+map_Kd ScratchedMetal2.jpeg
+map_Pr ScratchedMetal2.jpeg
+illum 1
+
+newmtl ScratchedMetalRed
+Ka 0.0100000 0.0100000 0.0100000
+Kd 0.800000 0.013294 0.023367
+Pr 0.5
+Pm 1.0
+map_Kd ScratchedMetal2Red.jpg
+map_Pr ScratchedMetal2Red.jpg
+illum 1

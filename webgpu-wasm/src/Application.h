@@ -38,6 +38,7 @@ public:
     void onUpdate();
 
     TextureSystem* getTextureSystem() { return m_TextureSystem; }
+    MaterialSystem* getMaterialSystem() { return m_MaterialSystem; }
 
     static Application* get();
 
