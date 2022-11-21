@@ -224,12 +224,19 @@ void PBRMaterial::updateBindGroup(WGpuDevice* device)
 }
 
 bool PBRMaterial::onUpdate(WGpuDevice* device, wgpu::Queue* queue) 
-{
+{   
     bool hasUpdates = false;
     if(m_Uniforms.textures.albedo.pipeline){
-        // Run pipeline to update texture
-        m_Uniforms.textures.albedo.pipeline->run(m_Uniforms.textures.albedo.bindgroup, device, queue);
-        hasUpdates = true;
+        //TODO: gera það stillanlegt hvort það keyri einu sinni eða í hvert skipti
+        static bool hasRun = false;
+
+        if(!hasRun) {
+            // Run pipeline to update texture
+            m_Uniforms.textures.albedo.pipeline->run(m_Uniforms.textures.albedo.bindgroup, device, queue);
+            hasUpdates = true;
+            hasRun = true;
+        }
     }
+    
     return hasUpdates;
 }
