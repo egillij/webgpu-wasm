@@ -18,6 +18,7 @@ class WGpuPipeline;
 class WGpuTexture;
 class WGpuSampler;
 class Renderer;
+class PathTracer;
 
 class MaterialSystem;
 class GeometrySystem;
@@ -49,6 +50,7 @@ private:
 
     Scene* m_Scene = nullptr;
     Renderer* m_Renderer = nullptr;
+    PathTracer* m_PathTracer = nullptr;
 
     MaterialSystem* m_MaterialSystem = nullptr;
     GeometrySystem* m_GeometrySystem = nullptr;

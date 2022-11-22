@@ -10,6 +10,7 @@
 #include "Scene/SceneUtils/Plane.h"
 
 #include "Renderer/Renderer.h"
+#include "Renderer/PathTracer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
 
 #include "Renderer/MaterialSystem.h"
@@ -18,7 +19,7 @@
 #include "Renderer/Pipelines/Procedural/NoisePipeline.h"
 
 #include <emscripten.h>
-// #include <emscripten/html5.h>
+#include <emscripten/html5.h>
 #include <emscripten/html5_webgpu.h>
 #include <webgpu/webgpu_cpp.h>
 
@@ -33,6 +34,8 @@
 #ifndef __EMSCRIPTEN__
 #define EM_ASM(x, y)
 #endif
+
+#define PATH_TRACE
 
 static double elapsed = 0.f;
 static double lastTime = 0.f;
@@ -112,6 +115,11 @@ void GetDevice()
         nullptr);
 }
 
+int newAnimFrame(double t, void* userData) {
+    Application::get()->onUpdate();
+    return 1;
+}
+
 Application::Application(const std::string &applicationName)
 {
     assert(!s_Instance);
@@ -144,12 +152,14 @@ void Application::initializeAndRun()
     m_GeometrySystem = new GeometrySystem(m_Device);
     m_TextureSystem = new TextureSystem(m_Device);
 
-    const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
-
+    
+    
     SceneDescription scene{};
     scene.name = "Test Scene";
     std::vector<ModelDescription> models;
     std::vector<MaterialDescription> materials;
+
+    #ifndef PATH_TRACE
     int b1StartPartId = models.size() + 1;
     int b1StartMaterialId = materials.size() + 1;
     std::string B1BattleDroidResourceFolder = "B1BattleDroid";
@@ -202,6 +212,7 @@ void Application::initializeAndRun()
         desc.ao = 0.01f;
         materials.push_back(desc);
     }
+    #endif
     
 
     scene.modelDescriptions = models.data();
@@ -211,6 +222,8 @@ void Application::initializeAndRun()
     scene.numberOfMaterials = materials.size();
 
     std::vector<GameObjectNode> gameObjects;
+
+    #ifndef PATH_TRACE
 
     uint32_t nodeId = 1;
     GameObjectNode b1BattleDroid = getB1BattleDroidParentNode(nodeId, b1StartPartId, b1StartMaterialId, "B1 Battle Droid",
@@ -461,13 +474,20 @@ void Application::initializeAndRun()
         gameObjects.push_back(node);
     }
 
+    #endif
+
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
 
 
 
     m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+
+#ifdef PATH_TRACE
+    m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+#else
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+#endif
 
     m_IsInitialized = true;
 
@@ -482,32 +502,39 @@ void Application::onUpdate()
     if (m_Scene)
         m_Scene->onUpdate();
 
+
+    double now = emscripten_get_now();
+    double deltaTime = now-lastTime;
+
+    lastTime = now;
+    uint64_t index = frameNo % deltaTimes.size();
+    deltaTimes[index] = deltaTime;
+
+    double avgDelta = 0.f;
+    for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
+    {
+        avgDelta += deltaTimes[i];
+    }
+
+    avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
+    avgDelta /= 1000.0;
+
+    currentFPS = int(1.0/avgDelta);
+    
+    EM_ASM({
+        let elem = document.getElementById("FPSdiv");
+        elem.innerHTML = $0;
+        }, currentFPS
+    );
+
+#ifdef PATH_TRACE
+    if(m_PathTracer){
+        startRendering();
+        emscripten_request_animation_frame(newAnimFrame, nullptr);
+    }
+#else
     if (m_Renderer)
     {
-        double now = emscripten_get_now();
-        double deltaTime = now-lastTime;
-
-        lastTime = now;
-        uint64_t index = frameNo % deltaTimes.size();
-        deltaTimes[index] = deltaTime;
-
-        double avgDelta = 0.f;
-        for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
-        {
-            avgDelta += deltaTimes[i];
-        }
-
-        avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
-        avgDelta /= 1000.0;
-
-        currentFPS = int(1.0/avgDelta);
-        
-        EM_ASM({
-            let elem = document.getElementById("FPSdiv");
-            elem.innerHTML = $0;
-            }, currentFPS
-        );
-
         wgpu::Queue materialQueue = m_Device->getHandle().GetQueue();
 
         bool waitForUpdate = m_MaterialSystem->onUpdate(m_Device, &materialQueue);
@@ -520,13 +547,18 @@ void Application::onUpdate()
             startRendering();
         }        
     }
+#endif
 
     ++frameNo;
 }
 
 void Application::startRendering()
 {
+#ifdef PATH_TRACE
+    m_PathTracer->run();
+#else
     m_Renderer->render(m_Scene);
+#endif
 }
 
 Application *Application::get()

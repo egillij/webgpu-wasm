@@ -94,6 +94,12 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/ProceduralPipeline.h
 	src/Renderer/Pipelines/Procedural/NoisePipeline.h
 	src/Renderer/Pipelines/Procedural/NoisePipeline.cpp
+
+	src/Renderer/PathTracer.h
+	src/Renderer/PathTracer.cpp
+
+	src/Renderer/Pipelines/PathTracingPipeline.h
+	src/Renderer/Pipelines/PathTracingPipeline.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
