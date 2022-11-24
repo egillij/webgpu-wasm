@@ -178,6 +178,9 @@ fn main() {
         if(pl.hit) {
             color = shadeDiffuse(pl, pointLight);
         }
+        else {
+            color = vec4<f32>(noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y), 1.0);
+        }
 
         let uv : vec2<u32> = vec2<u32>(x,y);
         textureStore(targetTexture, uv, color);
