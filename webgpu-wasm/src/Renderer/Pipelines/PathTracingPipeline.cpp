@@ -13,7 +13,9 @@ const imageWidth : f32 = 500.0;
 const imageHeight : f32 = 500.0;
 const M_PI : f32 = 3.141592653589793;
 const M_1_PI : f32 = 0.318309886183790;
-const DEG_TO_RAD = M_PI / 180.0;
+const DEG_TO_RAD : f32 = M_PI / 180.0;
+
+const MAX_RAY_DEPTH : u32 = 2;
 
 fn noise(x : u32, y : u32) -> f32 {
     var n : u32 = x + y * 57;
@@ -61,10 +63,29 @@ struct Ray {
 };
 
 struct Payload {
+    // position, normal, hit, distance, materialIndex of current trace
     position : vec3<f32>,
     normal : vec3<f32>,
     hit : bool,
     distance: f32,
+    materialIndex : u32,
+
+    // Should the ray bounce again
+    bounce : bool,
+    // Current ray depth (number of bounces)
+    raydepth: u32,
+
+    // Cumulative attenuation of the color
+    attenuation: vec3<f32>,
+
+    // ray direction for next bounce
+    nextDirection: vec3<f32>,
+};
+
+struct Material {
+    albedo : vec3<f32>,
+    roughness : f32,
+    metalness : f32,
 };
 
 struct Sphere {
@@ -137,55 +158,148 @@ struct PointLight {
     radiance : vec3<f32>,
 };
 
-fn shadeDiffuse(payload : Payload, pointLight : PointLight) -> vec4<f32> {
+struct Object {
+    //TODO: hafa position, rotation og scale
+    primitiveIndex: u32,
+    materialIndex : u32,
+};
+
+fn shadeDiffuse(payload : Payload, pointLight : PointLight, material : Material) -> vec4<f32> {
     let L : vec3<f32> = normalize(pointLight.position - payload.position);
     let cos_wi = max(0.0, dot(payload.normal, L));
 
     var color : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
-    let albedo : vec3<f32> = vec3<f32>(0.7, 0.7, 0.7);
-    color = vec4<f32>(albedo * M_1_PI * pointLight.radiance * cos_wi + 0.01, 1.0);
+    color = vec4<f32>(payload.attenuation * material.albedo * M_1_PI * pointLight.radiance * cos_wi + 0.01, 1.0);
     return color;
 }
-
 
 @group(0) @binding(0) var targetTexture : texture_storage_2d<rgba8unorm, write>;
 
 @compute @workgroup_size(1, 1, 1)
-fn main() {
+fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
+    ////////////////////////////////////////////////////////
+    //Scene. Gera þetta öðruvísis svo þetta sé ekki búið til í hvert skipti
+    var materialList : array<Material, 2>;
+    var sphereList : array<Sphere, 3>;
+    var objectList : array<Object, 3>;
 
-  var camera : Camera;
-  camera.position = vec3<f32>(0.0, 0.0, 2.0);
-  camera.direction = vec3<f32>(0.0, 0.0, -1.0);
-  camera.focalLength = 2.0; // Hvað er góð stilling hér?
-  camera.fovY = 45.0;
+    var camera : Camera;
+    camera.position = vec3<f32>(0.0, 0.0, 2.0);
+    camera.direction = vec3<f32>(0.0, 0.0, -1.0);
+    camera.focalLength = 2.0; // Hvað er góð stilling hér?
+    camera.fovY = 45.0;
 
-  var sphere : Sphere;
-  sphere.center = vec3<f32>(0.0, 0.0, -5.0);
-  sphere.radius = 1.0;
+    var pointLight : PointLight;
+    pointLight.position = vec3<f32>(-3.f, 1.f, -3.f);
+    pointLight.radiance = vec3<f32>(0.2, 0.4, 0.6);
 
-  var pointLight : PointLight;
-  pointLight.position = vec3<f32>(-3.f, 1.f, -3.f);
-  pointLight.radiance = vec3<f32>(0.2, 0.4, 0.6);
+    var mat1 : Material;
+    mat1.albedo = vec3<f32>(0.5, 0.5, 0.5);
+    mat1.roughness = 0.0;
+    mat1.metalness = 0.0;
+    materialList[0] = mat1;
 
-  for(var x : u32 = 0; x < 500; x++) {
-    for(var y : u32 = 0; y < 500; y++) {
+    var mat2 : Material;
+    mat2.albedo = vec3<f32>(0.63, 0.8, 0.2);
+    mat2.roughness = 0.0;
+    mat2.metalness = 0.0;
+    materialList[1] = mat2;
 
-        let ray : Ray = generateRay(camera, f32(x), f32(y));
-        
-        var pl : Payload = raySphereIntersection(ray, sphere);
+    var sphere : Sphere;
+    sphere.center = vec3<f32>(0.0, 0.0, -5.0);
+    sphere.radius = 1.0;
+    sphereList[0] = sphere;
 
-        var color : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
-        if(pl.hit) {
-            color = shadeDiffuse(pl, pointLight);
+    var sphere2 : Sphere;
+    sphere2.center = vec3<f32>(-1.0, 1.0, -2.0);
+    sphere2.radius = 1.0;
+    sphereList[1] = sphere2;
+
+    var sphere3 : Sphere;
+    sphere3.center = vec3<f32>(1.0, -1.0, -2.0);
+    sphere3.radius = 1.0;
+    sphereList[2] = sphere3;
+
+
+    var object1 : Object;
+    object1.primitiveIndex = 0;
+    object1.materialIndex = 0;
+    objectList[0] = object1;
+
+    var object2 : Object;
+    object2.primitiveIndex = 1;
+    object2.materialIndex = 1;
+    objectList[1] = object2;
+
+    var object3 : Object;
+    object3.primitiveIndex = 2;
+    object3.materialIndex = 1;
+    objectList[2] = object3;
+
+    //////////////////////////////////////////////////////
+
+    for(var x : u32 = 0; x < 500; x++) {
+        for(var y : u32 = 0; y < 500; y++) {
+            var closestPayload : Payload;
+            closestPayload.hit = false;
+            closestPayload.distance = -1.0;
+            closestPayload.raydepth = 0;
+            closestPayload.attenuation = vec3<f32>(1.0, 1.0, 1.0);
+
+            var color : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+
+            for(var r : u32 = 0; r < MAX_RAY_DEPTH; r++){
+                closestPayload.hit = false;
+                var ray : Ray;
+                if(r == 0) {
+                    // The first ray is always a camera ray
+                    ray = generateRay(camera, f32(x), f32(y));
+                }
+                else {
+                    // Subsequent rays are either reflections or refractions
+                    // TODO: payload ætti að halda utan um direction fyrir nýjan ray
+                    ray.origin = closestPayload.position + closestPayload.normal * 0.001;
+                    ray.direction = closestPayload.nextDirection;
+                }    
+                
+                for(var i : u32 = 0; i < 3; i++) {
+                    var pl : Payload = raySphereIntersection(ray, sphereList[objectList[i].primitiveIndex]);
+                    if(pl.hit && (!closestPayload.hit || pl.distance < closestPayload.distance)){
+                        pl.attenuation = closestPayload.attenuation;
+                        closestPayload = pl;
+                        closestPayload.materialIndex = objectList[i].materialIndex;
+                    }
+                }
+
+                if(closestPayload.hit) {
+                    //TODO: fara yfir öll ljós og taka meðaltal. Gera shadow ray trace til að komast að því hvort að ljósið sé sjáanlegt
+                    color += shadeDiffuse(closestPayload, pointLight, materialList[closestPayload.materialIndex]);
+                    closestPayload.raydepth = closestPayload.raydepth + 1;
+
+                    //TODO: ákvarða út frá hvaða material var hitt. T.d. þarf diffuse ekki bounce
+                    closestPayload.bounce = true;
+                    closestPayload.nextDirection = reflect(ray.direction, closestPayload.normal);
+
+                    closestPayload.attenuation *= materialList[closestPayload.materialIndex].albedo;
+                }
+                else {
+                    if(closestPayload.raydepth == 0) {
+                        let background : vec3<f32> = vec3<f32>(noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        color = vec4<f32>(background, 1.0);
+                    }
+                    else {
+                        color += vec4<f32>(closestPayload.attenuation * vec3<f32>(0.01, 0.01, 0.01), 1.0);
+                    }
+                    
+                    closestPayload.bounce = false;
+                    break;
+                }
+            }
+            color[3] = 1.0;
+            let uv : vec2<u32> = vec2<u32>(x,y);
+            textureStore(targetTexture, uv, color);
         }
-        else {
-            color = vec4<f32>(noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y), 1.0);
-        }
-
-        let uv : vec2<u32> = vec2<u32>(x,y);
-        textureStore(targetTexture, uv, color);
     }
-  }
 }
 )";
 
