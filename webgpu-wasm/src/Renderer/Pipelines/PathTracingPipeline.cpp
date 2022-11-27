@@ -15,17 +15,7 @@ const M_PI : f32 = 3.141592653589793;
 const M_1_PI : f32 = 0.318309886183790;
 const DEG_TO_RAD : f32 = M_PI / 180.0;
 
-const MAX_RAY_DEPTH : u32 = 2;
-
-fn noise(x : u32, y : u32) -> f32 {
-    var n : u32 = x + y * 57;
-    
-    n = (n << 13) ^ n;
-
-    let temp : u32 = (n * ((n * n * 15731) + 789221) +  1376312589) & 0x7fffffff; 
-    let n_f : f32 = f32(temp); 
-    return (1.0 - n_f / 1073741824.0);
-}
+const MAX_RAY_DEPTH : u32 = 5;
 
 struct Camera {
     position : vec3<f32>,
@@ -35,27 +25,6 @@ struct Camera {
     fovY : f32,
     projectionMatrix : mat4x4<f32>,
 };
-
-fn generateRay(camera : Camera, x : f32, y : f32) -> Ray {
-    let imageAspectRatio : f32 = imageWidth / imageHeight;  //assuming width > height 
-    let Px : f32 = (2.0 * ((x + 0.5) / imageWidth) - 1.0) * tan(camera.fovY / 2.0 * DEG_TO_RAD) * imageAspectRatio; 
-    let Py : f32 = (1.0 - 2.0 * ((y + 0.5) / imageHeight)) * tan(camera.fovY / 2.0 * DEG_TO_RAD); 
-
-    var ray : Ray;
-    ray.origin = vec3<f32>(0.0, 0.0, 0.0);
-
-    // var cameraToWorld : mat4<f32>; 
-    // cameraToWorld.set(...);  //set matrix 
-    // Vec3f rayOriginWorld, rayPWorld; 
-    // cameraToWorld.multVectMatrix(rayOrigin, rayOriginWorld); 
-    // cameraToWorld.multVectMatrix(Vec3f(Px, Py, -1), rayPWorld); 
-    // Vec3f rayDirection = rayPWorld - rayOriginWorld; 
-    // rayDirection.normalize();  //it's a direction so don't forget to normalize
-
-    ray.direction = vec3<f32>(Px, Py, -1) - ray.origin;
-    ray.direction = normalize(ray.direction);
-    return ray;
-}
 
 struct Ray {
     origin : vec3<f32>,
@@ -78,20 +47,70 @@ struct Payload {
     // Cumulative attenuation of the color
     attenuation: vec3<f32>,
 
+    ior: f32,
+
     // ray direction for next bounce
     nextDirection: vec3<f32>,
+    nextPosition: vec3<f32>,
 };
+
+struct PointLight {
+    position : vec3<f32>,
+    radiance : vec3<f32>,
+};
+
+const DIFFUSE_MATERIAL : u32 = 0;
+const METAL_MATERIAL : u32 = 0;
 
 struct Material {
     albedo : vec3<f32>,
     roughness : f32,
     metalness : f32,
+    transparent : bool,
+    ior : f32,
 };
 
 struct Sphere {
     center : vec3<f32>,
     radius : f32,
 };
+
+struct Object {
+    //TODO: hafa position, rotation og scale
+    primitiveIndex: u32,
+    materialIndex : u32,
+};
+
+fn noise(x : u32, y : u32) -> f32 {
+    var n : u32 = x + y * 57;
+    
+    n = (n << 13) ^ n;
+
+    let temp : u32 = (n * ((n * n * 15731) + 789221) +  1376312589) & 0x7fffffff; 
+    let n_f : f32 = f32(temp); 
+    return (1.0 - n_f / 1073741824.0);
+}
+
+fn generateRay(camera : Camera, x : f32, y : f32) -> Ray {
+    let imageAspectRatio : f32 = imageWidth / imageHeight;  //assuming width > height 
+    let Px : f32 = (2.0 * ((x + 0.5) / imageWidth) - 1.0) * tan(camera.fovY / 2.0 * DEG_TO_RAD) * imageAspectRatio; 
+    let Py : f32 = (1.0 - 2.0 * ((y + 0.5) / imageHeight)) * tan(camera.fovY / 2.0 * DEG_TO_RAD); 
+
+    var ray : Ray;
+    ray.origin = vec3<f32>(0.0, 0.0, 0.0);
+
+    // var cameraToWorld : mat4<f32>; 
+    // cameraToWorld.set(...);  //set matrix 
+    // Vec3f rayOriginWorld, rayPWorld; 
+    // cameraToWorld.multVectMatrix(rayOrigin, rayOriginWorld); 
+    // cameraToWorld.multVectMatrix(Vec3f(Px, Py, -1), rayPWorld); 
+    // Vec3f rayDirection = rayPWorld - rayOriginWorld; 
+    // rayDirection.normalize();  //it's a direction so don't forget to normalize
+
+    ray.direction = vec3<f32>(Px, Py, -1) - ray.origin;
+    ray.direction = normalize(ray.direction);
+    return ray;
+}
 
 fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
     var t0 : f32 = -1.0;
@@ -153,24 +172,17 @@ fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
     return pl; 
 }
 
-struct PointLight {
-    position : vec3<f32>,
-    radiance : vec3<f32>,
-};
-
-struct Object {
-    //TODO: hafa position, rotation og scale
-    primitiveIndex: u32,
-    materialIndex : u32,
-};
-
-fn shadeDiffuse(payload : Payload, pointLight : PointLight, material : Material) -> vec4<f32> {
-    let L : vec3<f32> = normalize(pointLight.position - payload.position);
-    let cos_wi = max(0.0, dot(payload.normal, L));
-
-    var color : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
-    color = vec4<f32>(payload.attenuation * material.albedo * M_1_PI * pointLight.radiance * cos_wi + 0.01, 1.0);
-    return color;
+fn shadeRay(payload : ptr<function, Payload>, pointLight : PointLight, material : ptr<function, Material>) -> vec4<f32> {
+    var shadedColor : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    var L : vec3<f32> = normalize(pointLight.position - (*payload).position);
+    var cos_wi = max(0.0, dot((*payload).normal, L));
+    if((*material).metalness < 0.5){
+        shadedColor = vec4<f32>((*payload).attenuation * (*material).albedo * M_1_PI * pointLight.radiance * cos_wi, 1.0);
+    }
+    else {
+        shadedColor = vec4<f32>((*material).albedo, 1.0);
+    }
+    return shadedColor;
 }
 
 @group(0) @binding(0) var targetTexture : texture_storage_2d<rgba8unorm, write>;
@@ -179,9 +191,12 @@ fn shadeDiffuse(payload : Payload, pointLight : PointLight, material : Material)
 fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     ////////////////////////////////////////////////////////
     //Scene. Gera þetta öðruvísis svo þetta sé ekki búið til í hvert skipti
-    var materialList : array<Material, 2>;
-    var sphereList : array<Sphere, 3>;
-    var objectList : array<Object, 3>;
+    const NUM_MATERIALS = 5;
+    const NUM_SPHERES = 5;
+    const NUM_OBJECTS = 5;
+    var materialList : array<Material, NUM_MATERIALS>;
+    var sphereList : array<Sphere, NUM_SPHERES>;
+    var objectList : array<Object, NUM_OBJECTS>;
 
     var camera : Camera;
     camera.position = vec3<f32>(0.0, 0.0, 2.0);
@@ -189,21 +204,49 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     camera.focalLength = 2.0; // Hvað er góð stilling hér?
     camera.fovY = 45.0;
 
-    var pointLight : PointLight;
-    pointLight.position = vec3<f32>(-3.f, 1.f, -3.f);
-    pointLight.radiance = vec3<f32>(0.2, 0.4, 0.6);
+    var sceneLight : PointLight;
+    sceneLight.position = vec3<f32>(-3.f, 1.f, -3.f);
+    sceneLight.radiance = vec3<f32>(1.0, 1.0, 1.0);
 
-    var mat1 : Material;
-    mat1.albedo = vec3<f32>(0.5, 0.5, 0.5);
-    mat1.roughness = 0.0;
-    mat1.metalness = 0.0;
-    materialList[0] = mat1;
+    var material1 : Material;
+    material1.albedo = vec3<f32>(1.0, 1.0, 1.0);
+    material1.roughness = 0.0;
+    material1.metalness = 0.0;
+    material1.transparent = false;
+    material1.ior = 1.414;
+    materialList[0] = material1;
 
-    var mat2 : Material;
-    mat2.albedo = vec3<f32>(0.63, 0.8, 0.2);
-    mat2.roughness = 0.0;
-    mat2.metalness = 0.0;
-    materialList[1] = mat2;
+    var material2 : Material;
+    material2.albedo = vec3<f32>(0.63, 0.1, 0.2);
+    material2.roughness = 0.0;
+    material2.metalness = 0.0;
+    material2.transparent = false;
+    material2.ior = 1.414;
+    materialList[1] = material2;
+
+    var material3 : Material;
+    material3.albedo = vec3<f32>(0.23, 0.92, 0.14);
+    material3.roughness = 0.8;
+    material3.metalness = 0.0;
+    material3.transparent = false;
+    material3.ior = 1.414;
+    materialList[2] = material3;
+
+    var material4 : Material;
+    material4.albedo = vec3<f32>(0.23, 0.42, 0.94);
+    material4.roughness = 0.4;
+    material4.metalness = 0.0;
+    material4.transparent = false;
+    material4.ior = 1.414;
+    materialList[3] = material4;
+
+    var material5 : Material;
+    material5.albedo = vec3<f32>(1.0, 1.0, 1.0);
+    material5.roughness = 0.4;
+    material5.metalness = 0.0;
+    material5.transparent = true;
+    material5.ior = 1.414;
+    materialList[4] = material5;
 
     var sphere : Sphere;
     sphere.center = vec3<f32>(0.0, 0.0, -5.0);
@@ -220,6 +263,16 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     sphere3.radius = 1.0;
     sphereList[2] = sphere3;
 
+    var sphere4 : Sphere;
+    sphere4.center = vec3<f32>(0.0, -1001.0, -2.0);
+    sphere4.radius = 1000.0;
+    sphereList[3] = sphere4;
+
+    var sphere5 : Sphere;
+    sphere5.center = vec3<f32>(0.0, 0.0, -2.0);
+    sphere5.radius = 0.5;
+    sphereList[4] = sphere5;
+
 
     var object1 : Object;
     object1.primitiveIndex = 0;
@@ -233,8 +286,18 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
 
     var object3 : Object;
     object3.primitiveIndex = 2;
-    object3.materialIndex = 1;
+    object3.materialIndex = 3;
     objectList[2] = object3;
+
+    var object4 : Object;
+    object4.primitiveIndex = 3;
+    object4.materialIndex = 2;
+    objectList[3] = object4;
+
+    var object5 : Object;
+    object5.primitiveIndex = 4;
+    object5.materialIndex = 4;
+    objectList[4] = object5;
 
     //////////////////////////////////////////////////////
 
@@ -245,8 +308,9 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
             closestPayload.distance = -1.0;
             closestPayload.raydepth = 0;
             closestPayload.attenuation = vec3<f32>(1.0, 1.0, 1.0);
+            closestPayload.ior = 1.0;
 
-            var color : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+            var pixelColor : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
 
             for(var r : u32 = 0; r < MAX_RAY_DEPTH; r++){
                 closestPayload.hit = false;
@@ -258,14 +322,15 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                 else {
                     // Subsequent rays are either reflections or refractions
                     // TODO: payload ætti að halda utan um direction fyrir nýjan ray
-                    ray.origin = closestPayload.position + closestPayload.normal * 0.001;
+                    ray.origin = closestPayload.nextPosition;
                     ray.direction = closestPayload.nextDirection;
                 }    
                 
-                for(var i : u32 = 0; i < 3; i++) {
+                for(var i : u32 = 0; i < NUM_OBJECTS; i++) {
                     var pl : Payload = raySphereIntersection(ray, sphereList[objectList[i].primitiveIndex]);
                     if(pl.hit && (!closestPayload.hit || pl.distance < closestPayload.distance)){
                         pl.attenuation = closestPayload.attenuation;
+                        pl.ior = closestPayload.ior;
                         closestPayload = pl;
                         closestPayload.materialIndex = objectList[i].materialIndex;
                     }
@@ -273,31 +338,47 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
 
                 if(closestPayload.hit) {
                     //TODO: fara yfir öll ljós og taka meðaltal. Gera shadow ray trace til að komast að því hvort að ljósið sé sjáanlegt
-                    color += shadeDiffuse(closestPayload, pointLight, materialList[closestPayload.materialIndex]);
-                    closestPayload.raydepth = closestPayload.raydepth + 1;
+                    var currentMaterial = materialList[closestPayload.materialIndex];
 
                     //TODO: ákvarða út frá hvaða material var hitt. T.d. þarf diffuse ekki bounce
-                    closestPayload.bounce = true;
-                    closestPayload.nextDirection = reflect(ray.direction, closestPayload.normal);
-
-                    closestPayload.attenuation *= materialList[closestPayload.materialIndex].albedo;
-                }
-                else {
-                    if(closestPayload.raydepth == 0) {
-                        let background : vec3<f32> = vec3<f32>(noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
-                        color = vec4<f32>(background, 1.0);
+                    if(currentMaterial.transparent){
+                        closestPayload.bounce = true;
+                        closestPayload.nextDirection = refract(ray.direction, closestPayload.normal, closestPayload.ior / currentMaterial.ior );
+                        closestPayload.nextPosition = closestPayload.position - closestPayload.normal * 0.001;
+                        closestPayload.attenuation *= currentMaterial.albedo;
+                        closestPayload.ior = currentMaterial.ior;
+                        // pixelColor = vec4<f32>(1.0, 0.0, 0.0, 1.0);
+                    }
+                    else if(currentMaterial.metalness > 0.9) {
+                        closestPayload.bounce = true;
+                        closestPayload.nextDirection = reflect(ray.direction, closestPayload.normal);
+                        closestPayload.nextPosition = closestPayload.position + closestPayload.normal * 0.001;
+                        closestPayload.attenuation *= currentMaterial.albedo;
+                        closestPayload.ior = currentMaterial.ior;
                     }
                     else {
-                        color += vec4<f32>(closestPayload.attenuation * vec3<f32>(0.01, 0.01, 0.01), 1.0);
+                        pixelColor += shadeRay(&closestPayload, sceneLight, &currentMaterial);
+                        closestPayload.raydepth = closestPayload.raydepth + 1;
+                        closestPayload.bounce = false;
+                        break;
                     }
+                }
+                else {
+                    // if(closestPayload.raydepth == 0) {
+                        let background : vec3<f32> = vec3<f32>(0.0, 0.0, 0.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        pixelColor += vec4<f32>(background, 1.0);
+                    // }
+                    // else {
+                    //     pixelColor += vec4<f32>(closestPayload.attenuation * vec3<f32>(0.01, 0.01, 0.01), 1.0);
+                    // }
                     
                     closestPayload.bounce = false;
                     break;
                 }
             }
-            color[3] = 1.0;
+            pixelColor[3] = 1.0;
             let uv : vec2<u32> = vec2<u32>(x,y);
-            textureStore(targetTexture, uv, color);
+            textureStore(targetTexture, uv, pixelColor);
         }
     }
 }
@@ -347,11 +428,11 @@ PathTracingPipeline::~PathTracingPipeline()
 {
 }
 
-void PathTracingPipeline::run(WGpuDevice* device)
+void PathTracingPipeline::run(WGpuDevice* device, wgpu::Queue* queue)
 {
     if(!m_IsValid) return;
 
-    wgpu::Queue queue = device->getHandle().GetQueue();
+    // wgpu::Queue queue = device->getHandle().GetQueue();
 
     wgpu::ComputePassDescriptor desc{};
     desc.label = "Path Tracer pass descriptor";
@@ -369,7 +450,7 @@ void PathTracingPipeline::run(WGpuDevice* device)
 
     wgpu::CommandBuffer commands = encoder.Finish();
 
-    queue.Submit(1, &commands);
+    queue->Submit(1, &commands);
 }
 
 WGpuTexture* PathTracingPipeline::getTargetBuffer()

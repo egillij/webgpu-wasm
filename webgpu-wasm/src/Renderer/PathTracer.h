@@ -13,7 +13,7 @@ public:
 
     void run();
 
-     void render();
+    void render();
 
     void present();
 

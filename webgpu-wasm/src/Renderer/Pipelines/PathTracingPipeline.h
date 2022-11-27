@@ -8,13 +8,17 @@ class ComputePipeline;
 class WGpuBindGroupLayout;
 class WGpuBindGroup;
 
+namespace wgpu {
+    class Queue;
+};
+
 class PathTracingPipeline {
 public:
     PathTracingPipeline();
     PathTracingPipeline(WGpuDevice* device);
     ~PathTracingPipeline();
 
-    void run(WGpuDevice* device);
+    void run(WGpuDevice* device, wgpu::Queue* queue);
 
     WGpuTexture* getTargetBuffer();
 

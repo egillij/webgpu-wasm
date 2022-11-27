@@ -3,6 +3,22 @@
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuSwapChain.h"
 
+#include "Application.h"
+#include <emscripten/html5.h>
+
+void frameReady(WGPUQueueWorkDoneStatus status, void* userData){
+    if(status == WGPUQueueWorkDoneStatus_Success){
+        if(!userData) printf("PathTracer  not attached to queue callback\n");
+        PathTracer* pt = (PathTracer*)userData;
+        pt->present();
+    }
+}
+
+int ptAnimFrameRender(double t, void* userData) {
+    Application::get()->onUpdate();
+    return 1;
+}
+
 PathTracer::PathTracer(uint32_t width, uint32_t height, WGpuDevice* device)
 : m_Device(device)
 {
@@ -20,15 +36,20 @@ PathTracer::~PathTracer()
 void PathTracer::run()
 {
     render();
-    present();
+    // present();
 }
 
 void PathTracer::render()
 {
-    m_RenderPipeline->run(m_Device);
+    wgpu::Queue queue = m_Device->getHandle().GetQueue();
+    m_RenderPipeline->run(m_Device, &queue);
+
+    queue.OnSubmittedWorkDone(0, frameReady, this);
 }
 
 void PathTracer::present()
 {
     m_PresentPipeline->run(m_Device, m_SwapChain);
+
+    emscripten_request_animation_frame(ptAnimFrameRender, this);
 }

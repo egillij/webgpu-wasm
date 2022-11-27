@@ -530,7 +530,7 @@ void Application::onUpdate()
 #ifdef PATH_TRACE
     if(m_PathTracer){
         startRendering();
-        emscripten_request_animation_frame(newAnimFrame, nullptr);
+        // emscripten_request_animation_frame(newAnimFrame, nullptr);
     }
 #else
     if (m_Renderer)
