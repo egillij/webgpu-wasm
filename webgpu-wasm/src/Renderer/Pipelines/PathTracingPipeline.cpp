@@ -15,7 +15,7 @@ const M_PI : f32 = 3.141592653589793;
 const M_1_PI : f32 = 0.318309886183790;
 const DEG_TO_RAD : f32 = M_PI / 180.0;
 
-const MAX_RAY_DEPTH : u32 = 5;
+const MAX_RAY_DEPTH : u32 = 7;
 
 struct Camera {
     position : vec3<f32>,
@@ -167,6 +167,13 @@ fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
     pl.hit = true;
     pl.position = ray.origin + t0 * ray.direction;
     pl.normal = normalize(pl.position - sphere.center);
+    
+    // TODO: keep a geometric and shading normals
+
+    if(dot(ray.direction, pl.normal) > 0) {
+        pl.normal = -pl.normal;
+    }
+
     pl.distance = t0;
 
     return pl; 
@@ -211,7 +218,7 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     var material1 : Material;
     material1.albedo = vec3<f32>(1.0, 1.0, 1.0);
     material1.roughness = 0.0;
-    material1.metalness = 0.0;
+    material1.metalness = 1.0;
     material1.transparent = false;
     material1.ior = 1.414;
     materialList[0] = material1;
@@ -264,13 +271,13 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     sphereList[2] = sphere3;
 
     var sphere4 : Sphere;
-    sphere4.center = vec3<f32>(0.0, -1001.0, -2.0);
-    sphere4.radius = 1000.0;
+    sphere4.center = vec3<f32>(0.0, -100001.0, -2.0);
+    sphere4.radius = 100000.0;
     sphereList[3] = sphere4;
 
     var sphere5 : Sphere;
-    sphere5.center = vec3<f32>(0.0, 0.0, -2.0);
-    sphere5.radius = 0.5;
+    sphere5.center = vec3<f32>(-1.0, 0.0, -3.0);
+    sphere5.radius = 0.25;
     sphereList[4] = sphere5;
 
 
@@ -346,7 +353,13 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                         closestPayload.nextDirection = refract(ray.direction, closestPayload.normal, closestPayload.ior / currentMaterial.ior );
                         closestPayload.nextPosition = closestPayload.position - closestPayload.normal * 0.001;
                         closestPayload.attenuation *= currentMaterial.albedo;
-                        closestPayload.ior = currentMaterial.ior;
+                        if(closestPayload.ior == currentMaterial.ior) { //TODO: virkar ekki vel, hvað ef það hittir annað material með sama ior?
+                            closestPayload.ior = 1.0;
+                        }
+                        else {
+                            closestPayload.ior = currentMaterial.ior;
+                        }
+                        
                         // pixelColor = vec4<f32>(1.0, 0.0, 0.0, 1.0);
                     }
                     else if(currentMaterial.metalness > 0.9) {
