@@ -34,7 +34,8 @@ struct Ray {
 struct Payload {
     // position, normal, hit, distance, materialIndex of current trace
     position : vec3<f32>,
-    normal : vec3<f32>,
+    geometricNormal : vec3<f32>,
+    shadingNormal : vec3<f32>,
     hit : bool,
     distance: f32,
     materialIndex : u32,
@@ -48,6 +49,7 @@ struct Payload {
     attenuation: vec3<f32>,
 
     ior: f32,
+    inside : bool,
 
     // ray direction for next bounce
     nextDirection: vec3<f32>,
@@ -120,8 +122,10 @@ fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
 
     var pl : Payload;
     pl.position = vec3<f32>(0.0, 0.0, 0.0);
-    pl.normal = vec3<f32>(0.0, 11.0, 0.0);
+    pl.geometricNormal = vec3<f32>(0.0, 1.0, 0.0);
+    pl.shadingNormal = pl.geometricNormal;
     pl.hit = false;
+    pl.inside = false;
 
     let L : vec3<f32> = ray.origin - sphere.center; 
     let a : f32 = dot(ray.direction, ray.direction);
@@ -166,12 +170,13 @@ fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
 
     pl.hit = true;
     pl.position = ray.origin + t0 * ray.direction;
-    pl.normal = normalize(pl.position - sphere.center);
-    
-    // TODO: keep a geometric and shading normals
+    pl.geometricNormal = normalize(pl.position - sphere.center);
+    pl.shadingNormal = pl.geometricNormal;
+    pl.inside = false;
 
-    if(dot(ray.direction, pl.normal) > 0) {
-        pl.normal = -pl.normal;
+    if(dot(ray.direction, pl.shadingNormal) > 0) {
+        pl.shadingNormal = -pl.shadingNormal;
+        pl.inside = true;
     }
 
     pl.distance = t0;
@@ -182,7 +187,7 @@ fn raySphereIntersection(ray : Ray, sphere : Sphere) -> Payload {
 fn shadeRay(payload : ptr<function, Payload>, pointLight : PointLight, material : ptr<function, Material>) -> vec4<f32> {
     var shadedColor : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
     var L : vec3<f32> = normalize(pointLight.position - (*payload).position);
-    var cos_wi = max(0.0, dot((*payload).normal, L));
+    var cos_wi = max(0.0, dot((*payload).shadingNormal, L));
     if((*material).metalness < 0.5){
         shadedColor = vec4<f32>((*payload).attenuation * (*material).albedo * M_1_PI * pointLight.radiance * cos_wi, 1.0);
     }
@@ -199,8 +204,8 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     ////////////////////////////////////////////////////////
     //Scene. Gera þetta öðruvísis svo þetta sé ekki búið til í hvert skipti
     const NUM_MATERIALS = 5;
-    const NUM_SPHERES = 5;
-    const NUM_OBJECTS = 5;
+    const NUM_SPHERES = 6;
+    const NUM_OBJECTS = 6;
     var materialList : array<Material, NUM_MATERIALS>;
     var sphereList : array<Sphere, NUM_SPHERES>;
     var objectList : array<Object, NUM_OBJECTS>;
@@ -216,7 +221,7 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     sceneLight.radiance = vec3<f32>(1.0, 1.0, 1.0);
 
     var material1 : Material;
-    material1.albedo = vec3<f32>(1.0, 1.0, 1.0);
+    material1.albedo = vec3<f32>(0.5, 0.5, 0.9);
     material1.roughness = 0.0;
     material1.metalness = 1.0;
     material1.transparent = false;
@@ -262,7 +267,7 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
 
     var sphere2 : Sphere;
     sphere2.center = vec3<f32>(-1.0, 1.0, -2.0);
-    sphere2.radius = 1.0;
+    sphere2.radius = 0.5;
     sphereList[1] = sphere2;
 
     var sphere3 : Sphere;
@@ -271,14 +276,20 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     sphereList[2] = sphere3;
 
     var sphere4 : Sphere;
-    sphere4.center = vec3<f32>(0.0, -100001.0, -2.0);
-    sphere4.radius = 100000.0;
+    sphere4.center = vec3<f32>(0.0, -11.0, -2.0);
+    sphere4.radius = 10.0;
     sphereList[3] = sphere4;
 
     var sphere5 : Sphere;
-    sphere5.center = vec3<f32>(-1.0, 0.0, -3.0);
-    sphere5.radius = 0.25;
+    sphere5.center = vec3<f32>(-1.0, -0.5, -3.0);
+    sphere5.radius = 0.5;
     sphereList[4] = sphere5;
+
+
+    var sphere6 : Sphere;
+    sphere6.center = vec3<f32>(0.0, 0.0, 1000.0);
+    sphere6.radius = 990.0;
+    sphereList[5] = sphere6;
 
 
     var object1 : Object;
@@ -306,6 +317,11 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     object5.materialIndex = 4;
     objectList[4] = object5;
 
+    var object6 : Object;
+    object6.primitiveIndex = 5;
+    object6.materialIndex = 3;
+    objectList[5] = object6;
+
     //////////////////////////////////////////////////////
 
     for(var x : u32 = 0; x < 500; x++) {
@@ -316,6 +332,7 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
             closestPayload.raydepth = 0;
             closestPayload.attenuation = vec3<f32>(1.0, 1.0, 1.0);
             closestPayload.ior = 1.0;
+            closestPayload.inside = false;
 
             var pixelColor : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 1.0);
 
@@ -334,10 +351,12 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                 }    
                 
                 for(var i : u32 = 0; i < NUM_OBJECTS; i++) {
+                    //TODO: nota pointer á payload og skila bool hvort það var hit
                     var pl : Payload = raySphereIntersection(ray, sphereList[objectList[i].primitiveIndex]);
                     if(pl.hit && (!closestPayload.hit || pl.distance < closestPayload.distance)){
                         pl.attenuation = closestPayload.attenuation;
                         pl.ior = closestPayload.ior;
+                        // pl.inside = closestPayload.inside;
                         closestPayload = pl;
                         closestPayload.materialIndex = objectList[i].materialIndex;
                     }
@@ -350,22 +369,24 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                     //TODO: ákvarða út frá hvaða material var hitt. T.d. þarf diffuse ekki bounce
                     if(currentMaterial.transparent){
                         closestPayload.bounce = true;
-                        closestPayload.nextDirection = refract(ray.direction, closestPayload.normal, closestPayload.ior / currentMaterial.ior );
-                        closestPayload.nextPosition = closestPayload.position - closestPayload.normal * 0.001;
+
+                        closestPayload.nextDirection = refract(ray.direction, closestPayload.shadingNormal, closestPayload.ior / currentMaterial.ior );
+                        closestPayload.nextPosition = closestPayload.position - closestPayload.shadingNormal * 0.001;
                         closestPayload.attenuation *= currentMaterial.albedo;
-                        if(closestPayload.ior == currentMaterial.ior) { //TODO: virkar ekki vel, hvað ef það hittir annað material með sama ior?
+                        if(closestPayload.inside) {
                             closestPayload.ior = 1.0;
                         }
                         else {
                             closestPayload.ior = currentMaterial.ior;
                         }
-                        
+                        // closestPayload.bounce = false;
+                        // pixelColor += vec4<f32>(1.0, 0.0, 1.0, 1.0);
                         // pixelColor = vec4<f32>(1.0, 0.0, 0.0, 1.0);
                     }
                     else if(currentMaterial.metalness > 0.9) {
                         closestPayload.bounce = true;
-                        closestPayload.nextDirection = reflect(ray.direction, closestPayload.normal);
-                        closestPayload.nextPosition = closestPayload.position + closestPayload.normal * 0.001;
+                        closestPayload.nextDirection = reflect(ray.direction, closestPayload.shadingNormal);
+                        closestPayload.nextPosition = closestPayload.position + closestPayload.shadingNormal * 0.001;
                         closestPayload.attenuation *= currentMaterial.albedo;
                         closestPayload.ior = currentMaterial.ior;
                     }
@@ -378,7 +399,12 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                 }
                 else {
                     // if(closestPayload.raydepth == 0) {
-                        let background : vec3<f32> = vec3<f32>(0.0, 0.0, 0.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        var background : vec3<f32> = vec3<f32>(0.0, 0.0, 0.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        // var background : vec3<f32> = vec3<f32>(0.0, 0.0, 1.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        // if(ray.direction.y < 0.0){
+                        //     background = vec3<f32>(1.0, 0.0, 0.0);
+                        // }
+
                         pixelColor += vec4<f32>(background, 1.0);
                     // }
                     // else {
