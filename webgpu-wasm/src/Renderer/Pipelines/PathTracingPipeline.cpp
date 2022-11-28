@@ -189,7 +189,7 @@ fn shadeRay(payload : ptr<function, Payload>, pointLight : PointLight, material 
     var L : vec3<f32> = normalize(pointLight.position - (*payload).position);
     var cos_wi = max(0.0, dot((*payload).shadingNormal, L));
     if((*material).metalness < 0.5){
-        shadedColor = vec4<f32>((*payload).attenuation * (*material).albedo * M_1_PI * pointLight.radiance * cos_wi, 1.0);
+        shadedColor = vec4<f32>((*payload).attenuation * (*material).albedo * M_1_PI * (pointLight.radiance * cos_wi + 0.05), 1.0);
     }
     else {
         shadedColor = vec4<f32>((*material).albedo, 1.0);
@@ -253,7 +253,7 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     materialList[3] = material4;
 
     var material5 : Material;
-    material5.albedo = vec3<f32>(1.0, 1.0, 1.0);
+    material5.albedo = vec3<f32>(0.9, 0.5, 0.5);// vec3<f32>(0.87, 0.35, 0.17);
     material5.roughness = 0.4;
     material5.metalness = 0.0;
     material5.transparent = true;
@@ -276,8 +276,8 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
     sphereList[2] = sphere3;
 
     var sphere4 : Sphere;
-    sphere4.center = vec3<f32>(0.0, -11.0, -2.0);
-    sphere4.radius = 10.0;
+    sphere4.center = vec3<f32>(0.0, -101.0, -2.0);
+    sphere4.radius = 100.0;
     sphereList[3] = sphere4;
 
     var sphere5 : Sphere;
@@ -388,7 +388,6 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                         closestPayload.nextDirection = reflect(ray.direction, closestPayload.shadingNormal);
                         closestPayload.nextPosition = closestPayload.position + closestPayload.shadingNormal * 0.001;
                         closestPayload.attenuation *= currentMaterial.albedo;
-                        closestPayload.ior = currentMaterial.ior;
                     }
                     else {
                         pixelColor += shadeRay(&closestPayload, sceneLight, &currentMaterial);
@@ -399,13 +398,13 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
                 }
                 else {
                     // if(closestPayload.raydepth == 0) {
-                        var background : vec3<f32> = vec3<f32>(0.0, 0.0, 0.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
+                        var background : vec3<f32> = vec3<f32>(0.1, 0.1, 0.1); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
                         // var background : vec3<f32> = vec3<f32>(0.0, 0.0, 1.0); //noise(x, y), noise(2*x, 2*y), noise(4*x, 4*y));
                         // if(ray.direction.y < 0.0){
                         //     background = vec3<f32>(1.0, 0.0, 0.0);
                         // }
 
-                        pixelColor += vec4<f32>(background, 1.0);
+                        pixelColor += vec4<f32>(closestPayload.attenuation * background, 1.0);
                     // }
                     // else {
                     //     pixelColor += vec4<f32>(closestPayload.attenuation * vec3<f32>(0.01, 0.01, 0.01), 1.0);
