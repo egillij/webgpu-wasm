@@ -213,3 +213,8 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size)
     // TODO: force an update any materials using this textur instead of updating everything
     Application::get()->getMaterialSystem()->updateBindgroups();
 }
+
+void TextureSystem::clear()
+{
+    m_Textures.clear();
+}

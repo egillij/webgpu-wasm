@@ -85,6 +85,8 @@ public:
     void onUpdate();
 
 private:
+    void cleanup();
+    
     WGpuBindGroup* getUniformsBindGroup();
     std::vector<GameObject*>& getGameObjects();
 

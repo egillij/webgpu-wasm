@@ -11,7 +11,11 @@ ComputePipeline::ComputePipeline(const std::string& label)
 
 ComputePipeline::~ComputePipeline()
 {
-
+    //TODO: cleanup all resource owned by pipeline
+    if(m_Pipeline)
+    {
+        m_Pipeline.Release();
+    }
 }
 
 void ComputePipeline::addBindGroup(WGpuBindGroupLayout* bindgroup)

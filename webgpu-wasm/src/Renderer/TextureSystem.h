@@ -22,6 +22,8 @@ public:
 
     void updateTexture(uint32_t id, void* data, int size);
 
+    void clear();
+
 private:
     WGpuDevice* m_Device;
     std::unordered_map<uint32_t, std::shared_ptr<WGpuTexture>> m_Textures;

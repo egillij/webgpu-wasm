@@ -30,7 +30,12 @@ PathTracer::PathTracer(uint32_t width, uint32_t height, WGpuDevice* device)
 
 PathTracer::~PathTracer()
 {
-
+    if(m_SwapChain) delete m_SwapChain;
+    m_SwapChain = nullptr;
+    if(m_RenderPipeline) delete m_RenderPipeline;
+    m_RenderPipeline = nullptr;
+    if(m_PresentPipeline) delete m_PresentPipeline;
+    m_PresentPipeline = nullptr;
 }
 
 void PathTracer::run()

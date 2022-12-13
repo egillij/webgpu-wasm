@@ -212,10 +212,29 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
 
 Scene::~Scene()
 {
+    cleanup();
+}
+
+void Scene::cleanup()
+{
     for(int i = 0; i < m_GameObjects.size(); ++i){
         delete m_GameObjects[i];
     }
     m_GameObjects.clear();
+
+    if(sceneUniformBuffer) delete sceneUniformBuffer;
+    sceneUniformBuffer = nullptr;
+    if(sceneUniformBindGroupLayout) delete sceneUniformBindGroupLayout;
+    sceneUniformBindGroupLayout = nullptr;
+    if(sceneUniformBindGroup) delete sceneUniformBindGroup;
+    sceneUniformBindGroup= nullptr;
+
+    if(m_NearestSampler) delete m_NearestSampler;
+    m_NearestSampler = nullptr;
+    if(m_SamplerBindGroupLayout) delete m_SamplerBindGroupLayout;
+    m_SamplerBindGroupLayout = nullptr;
+    if(m_SamplerBindGroup) delete m_SamplerBindGroup;
+    m_SamplerBindGroup = nullptr;
 }
 
 void Scene::onUpdate()

@@ -10,3 +10,10 @@ WGpuDevice::WGpuDevice(wgpu::Device device)
         printf("Error: %d -> %s", errorType, message);
     }, nullptr);
 }
+
+WGpuDevice::~WGpuDevice()
+{
+    if(m_Device){
+        m_Device.Destroy();
+    }
+}

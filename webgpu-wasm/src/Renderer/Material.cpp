@@ -9,4 +9,10 @@ Material::Material(const std::string& name, MaterialType type)
 
 Material::~Material()
 {
+    if(m_MaterialBindGroupLayout) delete m_MaterialBindGroupLayout;
+    m_MaterialBindGroupLayout = nullptr;
+    if(m_MaterialBindGroup) delete m_MaterialBindGroup;
+    m_MaterialBindGroup = nullptr;
+    if(m_UniformBuffer) delete m_UniformBuffer;
+    m_UniformBuffer = nullptr;
 }

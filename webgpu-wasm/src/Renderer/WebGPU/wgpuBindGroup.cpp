@@ -13,7 +13,8 @@ WGpuBindGroupLayout::WGpuBindGroupLayout(const std::string& label)
     
 WGpuBindGroupLayout::~WGpuBindGroupLayout()
 {
-
+    m_Entries.clear();
+    m_Layout.Release();
 }
 
 void WGpuBindGroupLayout::addBuffer(BufferBindingType bindingType, uint64_t minBindingSize, uint32_t bindingSlot, wgpu::ShaderStage visiblity)
@@ -156,6 +157,7 @@ WGpuBindGroup::WGpuBindGroup(const std::string& label)
 WGpuBindGroup::~WGpuBindGroup()
 {
     m_BindGroup.Release();
+    m_Entries.clear();
 }
 
 void WGpuBindGroup::setLayout(WGpuBindGroupLayout* layout)

@@ -9,5 +9,5 @@ class WGpuVertexBuffer : public WGpuBuffer {
 public:
     WGpuVertexBuffer() {};
     WGpuVertexBuffer(WGpuDevice* device, const std::string& label, void* data, size_t size);
-    ~WGpuVertexBuffer() {};
+    ~WGpuVertexBuffer();
 };

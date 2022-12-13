@@ -23,9 +23,9 @@ GameObject::GameObject(const uint32_t id, const std::string& name)
 
 GameObject::~GameObject()
 {
-    // for(int i = 0; i < m_Parts.size(); ++i) delete m_Parts[i].first;
-    // m_Parts.clear();
     if(m_BindGroup) delete m_BindGroup;
+    if(m_UniformBuffer) delete m_UniformBuffer;
+    if(m_BindGroupLayout) delete m_BindGroupLayout;
 }
 
 void GameObject::setTransform(const glm::mat4& transform)

@@ -73,7 +73,7 @@ WGpuTexture::WGpuTexture(const std::string& label, const TextureCreateInfo* crea
 
 WGpuTexture::~WGpuTexture()
 {
-
+    m_Texture.Destroy();
 }
 
 wgpu::TextureView WGpuTexture::createView()

@@ -155,6 +155,17 @@ PBRMaterial::PBRMaterial(const std::string& name, const PBRUniforms& data, WGpuD
 
 PBRMaterial::~PBRMaterial()
 {
+    if(m_UniformBuffer) delete m_UniformBuffer;
+    m_UniformBuffer = nullptr;
+    
+    if(m_AlbedoTexture) delete m_AlbedoTexture;
+    m_AlbedoTexture = nullptr;
+    if(m_MetallicTexture) delete m_MetallicTexture;
+    m_MetallicTexture = nullptr;
+    if(m_RoughnessTexture) delete m_RoughnessTexture;
+    m_RoughnessTexture = nullptr;
+    if(m_AoTexture) delete m_AoTexture;
+    m_AoTexture = nullptr;
 }
 
 void PBRMaterial::update(const PBRUniforms& data, WGpuDevice* device)

@@ -43,7 +43,14 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
 
 Renderer::~Renderer()
 {
-    
+    if(m_SwapChain) delete m_SwapChain;
+    m_SwapChain = nullptr;
+    if(m_Pipeline) delete m_Pipeline;
+    m_Pipeline = nullptr;
+    if(m_PresentPipeline) delete m_PresentPipeline;
+    m_PresentPipeline = nullptr;
+    if(m_Compute) delete m_Compute;
+    m_Compute = nullptr;
 }
 
 void pbrDoneCallback(WGPUQueueWorkDoneStatus status, void* userData){

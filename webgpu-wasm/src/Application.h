@@ -30,20 +30,32 @@ namespace wgpu {
 
 class Application {
 public:
+    enum class State {
+        PathTracer,
+        Rasterizer,
+        Other
+    };
+    
+public:
     Application(const std::string& applicationName);
     ~Application();
 
     void setDevice(wgpu::Device device_);
     void initializeAndRun();
+    void transition(State state);
 
     void onUpdate();
 
-    void startRendering();
+    void renderFrame();
 
     TextureSystem* getTextureSystem() { return m_TextureSystem; }
     MaterialSystem* getMaterialSystem() { return m_MaterialSystem; }
 
     static Application* get();
+
+private:
+    void startPathTracer();
+    void startRasterizer();
 
 private:
     std::string m_Name;
@@ -59,5 +71,7 @@ private:
     WGpuDevice* m_Device = nullptr;
 
     bool m_IsInitialized;
+
+    State m_State;
     
 };

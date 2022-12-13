@@ -142,3 +142,8 @@ bool MaterialSystem::onUpdate(WGpuDevice* device, wgpu::Queue* queue)
     }
     return hasUpdates;
 }
+
+void MaterialSystem::cleanup()
+{
+    m_Materials.clear();
+}

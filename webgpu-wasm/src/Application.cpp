@@ -61,7 +61,7 @@ void materialUpdateDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata)
     if(status != WGPUQueueWorkDoneStatus::WGPUQueueWorkDoneStatus_Success){
         printf("Error while waiting for material queue to finish updates.\n");
     }
-    s_Instance->startRendering();
+    s_Instance->renderFrame();
 }
 
 void GetDevice()
@@ -131,6 +131,7 @@ Application::Application(const std::string &applicationName)
 
     m_IsInitialized = false;
     m_Scene = nullptr;
+    m_State = State::Other;
     // Get the device and then continue with initialization
     GetDevice();
 }
@@ -152,14 +153,139 @@ void Application::initializeAndRun()
     m_GeometrySystem = new GeometrySystem(m_Device);
     m_TextureSystem = new TextureSystem(m_Device);
 
+    m_IsInitialized = true;
+
+#ifdef PATH_TRACE
+    startPathTracer();
+#else
+    startRasterizer();
+#endif
+
+    onUpdate();
+}
+
+void Application::transition(State state)
+{
+    if(m_State == state) return;
+
+    if(state == State::Other) return;
+
+    if(state == State::PathTracer){
+        //TODO: cleanup the rasterizer state and scene
+        startPathTracer();
+        onUpdate();
+    }
+
+    if(state == State::Rasterizer) {
+        //TODO: cleanup the path tracer state and scene
+        startRasterizer();
+        onUpdate();
+    }
+}
+
+void Application::onUpdate()
+{
+    if (!m_IsInitialized)
+        return;
+
+    if (m_Scene)
+        m_Scene->onUpdate();
+
+
+    double now = emscripten_get_now();
+    double deltaTime = now-lastTime;
+
+    lastTime = now;
+    uint64_t index = frameNo % deltaTimes.size();
+    deltaTimes[index] = deltaTime;
+
+    double avgDelta = 0.f;
+    for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
+    {
+        avgDelta += deltaTimes[i];
+    }
+
+    avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
+    avgDelta /= 1000.0;
+
+    currentFPS = int(1.0/avgDelta);
     
-    
+    EM_ASM({
+        let elem = document.getElementById("FPSdiv");
+        elem.innerHTML = $0;
+        }, currentFPS
+    );
+
+    if(m_State == State::PathTracer)
+    {
+        if(m_PathTracer){
+            renderFrame();
+        }
+    }
+    else{
+        if (m_Renderer)
+        {
+            wgpu::Queue materialQueue = m_Device->getHandle().GetQueue();
+
+            bool waitForUpdate = m_MaterialSystem->onUpdate(m_Device, &materialQueue);
+            if(waitForUpdate){
+                //TODO: instead of waiting here we should do it just in time before we do the lighting pass
+                materialQueue.OnSubmittedWorkDone(0, materialUpdateDoneCallback, nullptr);
+            }
+            else {
+                // No updates pending to materials. We can start rendering immediately
+                renderFrame();
+            }        
+        }
+    }
+
+    ++frameNo;
+}
+
+void Application::renderFrame()
+{
+    if(m_State == State::PathTracer)
+    {
+        m_PathTracer->run();
+    }
+    else if(m_State == State::Rasterizer)
+    {
+        m_Renderer->render(m_Scene);
+    }
+}
+
+void Application::startPathTracer()
+{
     SceneDescription scene{};
-    scene.name = "Test Scene";
+    scene.name = "Path Tracer Test Scene";
     std::vector<ModelDescription> models;
     std::vector<MaterialDescription> materials;
 
-    #ifndef PATH_TRACE
+    m_State = State::PathTracer;
+
+    scene.modelDescriptions = models.data();
+    scene.numberOfModels = models.size();
+
+    scene.materialDescriptons = materials.data();
+    scene.numberOfMaterials = materials.size();
+
+    std::vector<GameObjectNode> gameObjects;
+
+    scene.gameObjects = gameObjects.data();
+    scene.numberOfGameObjects = gameObjects.size();
+    m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+
+    m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+}
+
+void Application::startRasterizer()
+{
+    SceneDescription scene{};
+    scene.name = "Resterizer Test Scene";
+    std::vector<ModelDescription> models;
+    std::vector<MaterialDescription> materials;
+
+        m_State = State::Rasterizer;
     int b1StartPartId = models.size() + 1;
     int b1StartMaterialId = materials.size() + 1;
     std::string B1BattleDroidResourceFolder = "B1BattleDroid";
@@ -212,8 +338,6 @@ void Application::initializeAndRun()
         desc.ao = 0.01f;
         materials.push_back(desc);
     }
-    #endif
-    
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();
@@ -222,8 +346,6 @@ void Application::initializeAndRun()
     scene.numberOfMaterials = materials.size();
 
     std::vector<GameObjectNode> gameObjects;
-
-    #ifndef PATH_TRACE
 
     uint32_t nodeId = 1;
     GameObjectNode b1BattleDroid = getB1BattleDroidParentNode(nodeId, b1StartPartId, b1StartMaterialId, "B1 Battle Droid",
@@ -474,91 +596,11 @@ void Application::initializeAndRun()
         gameObjects.push_back(node);
     }
 
-    #endif
-
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
-
-
-
     m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
 
-#ifdef PATH_TRACE
-    m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
-#else
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
-#endif
-
-    m_IsInitialized = true;
-
-    onUpdate();
-}
-
-void Application::onUpdate()
-{
-    if (!m_IsInitialized)
-        return;
-
-    if (m_Scene)
-        m_Scene->onUpdate();
-
-
-    double now = emscripten_get_now();
-    double deltaTime = now-lastTime;
-
-    lastTime = now;
-    uint64_t index = frameNo % deltaTimes.size();
-    deltaTimes[index] = deltaTime;
-
-    double avgDelta = 0.f;
-    for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
-    {
-        avgDelta += deltaTimes[i];
-    }
-
-    avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
-    avgDelta /= 1000.0;
-
-    currentFPS = int(1.0/avgDelta);
-    
-    EM_ASM({
-        let elem = document.getElementById("FPSdiv");
-        elem.innerHTML = $0;
-        }, currentFPS
-    );
-
-#ifdef PATH_TRACE
-    if(m_PathTracer){
-        startRendering();
-        // emscripten_request_animation_frame(newAnimFrame, nullptr);
-    }
-#else
-    if (m_Renderer)
-    {
-        wgpu::Queue materialQueue = m_Device->getHandle().GetQueue();
-
-        bool waitForUpdate = m_MaterialSystem->onUpdate(m_Device, &materialQueue);
-        if(waitForUpdate){
-            //TODO: instead of waiting here we should do it just in time before we do the lighting pass
-            materialQueue.OnSubmittedWorkDone(0, materialUpdateDoneCallback, nullptr);
-        }
-        else {
-            // No updates pending to materials. We can start rendering immediately
-            startRendering();
-        }        
-    }
-#endif
-
-    ++frameNo;
-}
-
-void Application::startRendering()
-{
-#ifdef PATH_TRACE
-    m_PathTracer->run();
-#else
-    m_Renderer->render(m_Scene);
-#endif
 }
 
 Application *Application::get()

@@ -27,6 +27,8 @@ public:
 
     bool onUpdate(WGpuDevice* device, wgpu::Queue* queue);
 
+    void cleanup();
+
 private:
     WGpuDevice* m_Device;
     std::unordered_map<uint32_t, std::shared_ptr<Material>> m_Materials;

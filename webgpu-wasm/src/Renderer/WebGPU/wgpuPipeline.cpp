@@ -11,6 +11,10 @@ WGpuPipeline::WGpuPipeline(const std::string& name)
 
 WGpuPipeline::~WGpuPipeline()
 {
+    if(m_Pipeline)
+    {
+        m_Pipeline.Release();
+    }
 }
 
 void WGpuPipeline::addBindGroup(WGpuBindGroupLayout* bindgroup)

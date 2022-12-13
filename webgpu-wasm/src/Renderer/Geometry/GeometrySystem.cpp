@@ -95,3 +95,8 @@ void GeometrySystem::updateTriangleMesh(uint32_t id, void* data, int size)
     }
     
 }
+
+void GeometrySystem::clear()
+{
+    m_TriangleMeshes.clear();
+}

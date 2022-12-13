@@ -33,5 +33,5 @@ WGpuShader::WGpuShader(const std::string& name, const ShaderDescription& shaderD
 
 WGpuShader::~WGpuShader()
 {
-
+    m_Module.Release();
 }
