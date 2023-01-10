@@ -73,5 +73,8 @@ private:
     bool m_IsInitialized;
 
     State m_State;
+
+    State m_TargetState;
+    bool m_TransitionOnNextFrame;
     
 };

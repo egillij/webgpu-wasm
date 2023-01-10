@@ -143,7 +143,6 @@ WGpuTexture* TextureSystem::registerProceduralTexture(uint32_t id, const std::st
     info.height = height;
     info.width = width;
     info.usage = {TextureUsage::TextureBinding, TextureUsage::StorageBinding};
-
     std::shared_ptr<WGpuTexture> texture = std::make_shared<WGpuTexture>(name, &info, m_Device);
 
     m_Textures[nextId] = texture;
@@ -216,5 +215,9 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size)
 
 void TextureSystem::clear()
 {
+    printf("Num textures to clear: %zu\n", m_Textures.size());
+    for(const auto& tex: m_Textures){
+        printf("%s\n", tex.second->getLabel().c_str());
+    }
     m_Textures.clear();
 }

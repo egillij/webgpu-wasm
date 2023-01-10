@@ -48,6 +48,8 @@ public:
 
     void update(const TextureCreateInfo* createInfo, WGpuDevice* device);
 
+    const std::string& getLabel() const {return m_Label;}
+
 private:
     std::string m_Label;
     wgpu::Texture m_Texture;

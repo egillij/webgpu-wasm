@@ -217,9 +217,10 @@ Scene::~Scene()
 
 void Scene::cleanup()
 {
-    for(int i = 0; i < m_GameObjects.size(); ++i){
-        delete m_GameObjects[i];
-    }
+    //TODO: properly cleanup all gameobjects
+    // for(int i = 0; i < m_GameObjects.size(); ++i){
+    //     delete m_GameObjects[i];
+    // }
     m_GameObjects.clear();
 
     if(sceneUniformBuffer) delete sceneUniformBuffer;
@@ -261,7 +262,7 @@ void Scene::onUpdate()
     m_Camera.position = glm::vec3(x, y, z) + focusPoint + cameraCenter;
     m_Camera.viewMatrix = glm::lookAt(m_Camera.position, focusPoint, glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
-    sceneUniforms.cameraPosition = m_Camera.position;
+    sceneUniforms.cameraPosition = glm::vec4(m_Camera.position, 1.f);
 
 
     // printf("Frame %f\n", weight);

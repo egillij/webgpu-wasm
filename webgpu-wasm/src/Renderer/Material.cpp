@@ -1,5 +1,8 @@
 #include "Material.h"
 
+#include "Renderer/WebGPU/wgpuBindGroup.h"
+#include "Renderer/WebGPU/wgpuUniformBuffer.h"
+
 Material::Material(const std::string& name, MaterialType type)
 : m_Name(name), m_Type(type),
   m_MaterialBindGroupLayout(nullptr), m_MaterialBindGroup(nullptr),

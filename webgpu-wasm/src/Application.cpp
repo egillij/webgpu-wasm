@@ -153,8 +153,6 @@ void Application::initializeAndRun()
     m_GeometrySystem = new GeometrySystem(m_Device);
     m_TextureSystem = new TextureSystem(m_Device);
 
-    m_IsInitialized = true;
-
 #ifdef PATH_TRACE
     startPathTracer();
 #else
@@ -170,23 +168,49 @@ void Application::transition(State state)
 
     if(state == State::Other) return;
 
-    if(state == State::PathTracer){
-        //TODO: cleanup the rasterizer state and scene
-        startPathTracer();
-        onUpdate();
-    }
-
-    if(state == State::Rasterizer) {
-        //TODO: cleanup the path tracer state and scene
-        startRasterizer();
-        onUpdate();
-    }
+    m_TransitionOnNextFrame = true;
+    m_TargetState = state;
 }
 
 void Application::onUpdate()
 {
     if (!m_IsInitialized)
         return;
+
+    if(m_TransitionOnNextFrame){
+        if(m_TargetState == State::PathTracer){
+            //TODO: cleanup the rasterizer state and scene
+            m_IsInitialized = false;
+            delete m_Renderer;
+            m_Renderer = nullptr;
+            delete m_Scene;
+            m_Scene = nullptr;
+            
+
+            m_MaterialSystem->cleanup();
+            m_GeometrySystem->clear();
+            m_TextureSystem->clear();
+
+            startPathTracer();
+            m_TransitionOnNextFrame = false;
+        }
+
+        if(m_TargetState == State::Rasterizer) {
+            //TODO: cleanup the path tracer state and scene
+            m_IsInitialized = false;
+            delete m_PathTracer;
+            m_PathTracer = nullptr;
+            delete m_Scene;
+            m_Scene = nullptr;
+
+            m_MaterialSystem->cleanup();
+            m_GeometrySystem->clear();
+            m_TextureSystem->clear();
+
+            startRasterizer();
+            m_TransitionOnNextFrame = false;
+        }
+    }
 
     if (m_Scene)
         m_Scene->onUpdate();
@@ -276,6 +300,8 @@ void Application::startPathTracer()
     m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
 
     m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+
+    m_IsInitialized = true;
 }
 
 void Application::startRasterizer()
@@ -285,7 +311,7 @@ void Application::startRasterizer()
     std::vector<ModelDescription> models;
     std::vector<MaterialDescription> materials;
 
-        m_State = State::Rasterizer;
+    m_State = State::Rasterizer;
     int b1StartPartId = models.size() + 1;
     int b1StartMaterialId = materials.size() + 1;
     std::string B1BattleDroidResourceFolder = "B1BattleDroid";
@@ -601,6 +627,8 @@ void Application::startRasterizer()
     m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
 
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+
+    m_IsInitialized = true;
 }
 
 Application *Application::get()

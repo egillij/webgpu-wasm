@@ -22,6 +22,7 @@ static long s_AnimationFrameId;
 extern "C" void EMSCRIPTEN_KEEPALIVE changeModes(int newMode) {
     printf("New mode: %i\n", newMode);
     if(s_Application){
+        // emscripten_cancel_animation_frame(s_AnimationFrameId);
         Application::State newState = Application::State::Other;
         if(newMode == 0) newState = Application::State::Rasterizer;
         else if(newMode == 1) newState = Application::State::PathTracer;
