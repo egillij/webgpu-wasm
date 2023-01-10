@@ -69,7 +69,7 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
 : RenderPipeline("PBR Render Pipeline"), m_ModelUniformBindGroupLayout(nullptr), m_MaterialBindGroupLayout(nullptr),
   m_SceneUniformBindGroupLayout(nullptr), m_SamplerBindGroupLayout(nullptr), m_RenderShader(nullptr),
   m_LightingShader(nullptr), m_RenderPipeline(nullptr), m_LightingPipeline(nullptr),
-  m_GBufferBindGroupLayout(nullptr), m_GBufferBindGroup(nullptr), m_DepthTexture(nullptr)
+  m_GBufferBindGroupLayout(nullptr), m_GBufferBindGroup(nullptr), m_DepthTexture(nullptr), m_CacheTransforms(true)
 {
     m_SceneUniformBindGroupLayout = new WGpuBindGroupLayout("Scene Uniform Bind Group Layout");
     m_SceneUniformBindGroupLayout->addBuffer(BufferBindingType::Uniform, sizeof(SceneUniforms), 0, wgpu::ShaderStage::Vertex | wgpu::ShaderStage::Fragment);
@@ -253,7 +253,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
     totalTriangles = 0;
 
-    static bool cacheTransforms = true;
+    // static bool cacheTransforms = true;
     static std::set<uint32_t> uniqueIds;
     // wgpu::CommandEncoder encoder = device->getHandle().CreateCommandEncoder();
     {   
@@ -276,8 +276,8 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 
             if(mesh != nullptr && material != nullptr && mesh->isReady()){
                 WGpuBindGroup* modelBindGroup = object->getModelBindGroup();
-                // if(cacheTransforms)
-                object->cacheTransform(transform, device);
+                if(m_CacheTransforms)
+                    object->cacheTransform(transform, device);
 
                 renderPass.SetBindGroup(1, modelBindGroup->get());
                     
@@ -306,7 +306,7 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
                 const Material* material = child->getMaterial();
 
                 if(mesh != nullptr && material != nullptr){ // && mesh->isReady()){
-                    if(cacheTransforms) //TODO: need to move caching transform from renderer. In case mesh is not loaded first frame the transform will never be cached right now
+                    if(m_CacheTransforms) //TODO: need to move caching transform from renderer. In case mesh is not loaded first frame the transform will never be cached right now
                         child->cacheTransform(transform, device);
 
                     if(mesh->isReady()){ //Temporarily moved down since we don't have proper updating of transform buffer
@@ -340,18 +340,19 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     }
     frameNr++;
 
-    cacheTransforms = false;
+    // cacheTransforms = false;
+    m_CacheTransforms = false;
 
     // Tímabundið
     EM_ASM({
         var elm = document.getElementById("TotalTriangleCount");
-        elm.innerHTML = $0;
+        elm.innerHTML = "# Total Triangles: " + $0;
         elm = document.getElementById("UniqueObjectCount");
-        elm.innerHTML = $1;
+        elm.innerHTML = "# Objects: " + $1;
         elm = document.getElementById("UniquePartCount");
-        elm.innerHTML = $2;
+        elm.innerHTML = "# Unique Parts: " + $2;
         elm = document.getElementById("UniqueTriangleCount");
-        elm.innerHTML = $3;
+        elm.innerHTML = "# Unique Triangles: " + $3;
     }, totalTriangles, uniqueObjects, uniqueParts, uniqueTriangles);
 
     // wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();

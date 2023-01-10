@@ -35,7 +35,7 @@
 #define EM_ASM(x, y)
 #endif
 
-#define PATH_TRACE
+// #define PATH_TRACE
 
 static double elapsed = 0.f;
 static double lastTime = 0.f;
@@ -153,11 +153,11 @@ void Application::initializeAndRun()
     m_GeometrySystem = new GeometrySystem(m_Device);
     m_TextureSystem = new TextureSystem(m_Device);
 
-#ifdef PATH_TRACE
-    startPathTracer();
-#else
+// #ifdef PATH_TRACE
+//     startPathTracer();
+// #else
     startRasterizer();
-#endif
+// #endif
 
     onUpdate();
 }
@@ -236,7 +236,7 @@ void Application::onUpdate()
     
     EM_ASM({
         let elem = document.getElementById("FPSdiv");
-        elem.innerHTML = $0;
+        elem.innerHTML = "FPS: " + $0;
         }, currentFPS
     );
 

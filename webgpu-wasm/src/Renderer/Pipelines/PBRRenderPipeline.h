@@ -59,4 +59,6 @@ private:
 
     WGpuTexture* m_DepthTexture;
     WGpuTexture* m_OutputTexture;
+
+    bool m_CacheTransforms;
 };

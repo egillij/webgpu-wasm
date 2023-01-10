@@ -215,9 +215,5 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size)
 
 void TextureSystem::clear()
 {
-    printf("Num textures to clear: %zu\n", m_Textures.size());
-    for(const auto& tex: m_Textures){
-        printf("%s\n", tex.second->getLabel().c_str());
-    }
     m_Textures.clear();
 }

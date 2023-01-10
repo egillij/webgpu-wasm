@@ -7,6 +7,11 @@
 #include "Renderer/WebGPU/ComputePipeline.h"
 #include "Renderer/WebGPU/wgpuBindGroup.h"
 
+#include <emscripten/html5.h>
+#ifndef __EMSCRIPTEN__
+#define EM_ASM(x, y)
+#endif
+
 static const char pathTracerCode[] = R"(
 
 const imageWidth : f32 = 500.0;
@@ -489,6 +494,18 @@ void PathTracingPipeline::run(WGpuDevice* device, wgpu::Queue* queue)
     wgpu::CommandBuffer commands = encoder.Finish();
 
     queue->Submit(1, &commands);
+
+    // Tímabundið
+    EM_ASM({
+        var elm = document.getElementById("TotalTriangleCount");
+        elm.innerHTML = "# Total Triangles: N/A";
+        elm = document.getElementById("UniqueObjectCount");
+        elm.innerHTML = "# Objects:  N/A";
+        elm = document.getElementById("UniquePartCount");
+        elm.innerHTML = "# Unique Parts:  N/A";
+        elm = document.getElementById("UniqueTriangleCount");
+        elm.innerHTML = "# Unique Triangles:  N/A";
+    });
 }
 
 WGpuTexture* PathTracingPipeline::getTargetBuffer()
