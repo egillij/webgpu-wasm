@@ -9,6 +9,7 @@ class WGpuDevice;
 class WGpuBuffer;
 class WGpuSampler;
 class WGpuTexture;
+class WGpuCubemap;
 
 enum class TextureFormat : uint32_t;
 
@@ -105,6 +106,7 @@ public:
     void addSampler(WGpuSampler* sampler, SamplerBindingType bindingType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
     void addTexture(WGpuTexture* texture, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+    void addCubemap(WGpuCubemap* cubemap, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
     void addStorageTexture(WGpuTexture* texture, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
@@ -121,7 +123,8 @@ private:
             Buffer,
             Sampler,
             Texture,
-            StorageTexture
+            StorageTexture,
+            Cubemap
         } entryType;
 
         struct Buffer {
@@ -143,6 +146,11 @@ private:
         struct StorageTexture {
             WGpuTexture* texture;
         } storageTexture;
+
+        struct Cubemap {
+            WGpuCubemap* cubemap;
+            TextureSampleType type;
+        } cubemap;
 
     };
 

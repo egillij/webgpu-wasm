@@ -1,8 +1,10 @@
-#include "wgpuTexture.h"
+#include "wgpuCubemap.h"
 
 #include "wgpuDevice.h"
 
-WGpuTexture::WGpuTexture(const std::string& label, WGpuDevice* device)
+constexpr int CUBE_MAP_FACES = 6;
+
+WGpuCubemap::WGpuCubemap(const std::string& label, WGpuDevice* device)
  : m_Label(label), m_Format(TextureFormat::Undefined), m_Width(0u), m_Height(0u)
 {
     // Create default 1 by 1 texture here
@@ -15,40 +17,59 @@ WGpuTexture::WGpuTexture(const std::string& label, WGpuDevice* device)
         wgpu::Extent3D texExtent{};
         texExtent.width = 1;
         texExtent.height = 1;
+        texExtent.depthOrArrayLayers = CUBE_MAP_FACES;
         texDesc.size = texExtent;
         texDesc.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst;
     }
 
     m_Texture = device->getHandle().CreateTexture(&texDesc);
 
-    uint32_t data = 0xFF0000FF;
+    for(int i = 0; i < CUBE_MAP_FACES; ++i){
+        uint32_t data = 0xFFFFFFFF;
+        if(i == 1){
+            data = 0xFFFF00FF;
+        }
+        else if(i == 2){
+            data = 0xFF0000FF;
+        }
+        else if(i == 3){
+            data = 0x000000FF;
+        }
+        else if(i == 3){
+            data = 0x00FF00FF;
+        }
+        else if(i == 4){
+            data = 0x00FFFFFF;
+        }
 
-    wgpu::ImageCopyTexture imgCpyTex{};
-    imgCpyTex.texture = m_Texture;
-    wgpu::Origin3D texOrig{};
-    imgCpyTex.origin = texOrig;
+        wgpu::ImageCopyTexture imgCpyTex{};
+        imgCpyTex.texture = m_Texture;
+        wgpu::Origin3D texOrig{};
+        texOrig.z = i;
+        imgCpyTex.origin = texOrig;
 
-    wgpu::TextureDataLayout texDataLayout{};
-    texDataLayout.bytesPerRow = 4;
-    texDataLayout.rowsPerImage = 1;
-    texDataLayout.offset = 0;
+        wgpu::TextureDataLayout texDataLayout{};
+        texDataLayout.bytesPerRow = 4;
+        texDataLayout.rowsPerImage = 1;
+        texDataLayout.offset = 0;
 
-    wgpu::Extent3D texExtent{};
-    texExtent.width = 1;
-    texExtent.height = 1;
+        wgpu::Extent3D texExtent{};
+        texExtent.width = 1;
+        texExtent.height = 1;
 
-    size_t size = 1;
+        size_t size = 1;
 
-    uint32_t elements = 4u;
-    uint32_t elementSize = 1u;
+        uint32_t elements = 4u;
+        uint32_t elementSize = 1u;
 
-    size *= elements * elementSize;
+        size *= elements * elementSize;
 
-    wgpu::Queue queue = device->getHandle().GetQueue();
-    queue.WriteTexture(&imgCpyTex, &data, size, &texDataLayout, &texExtent);
+        wgpu::Queue queue = device->getHandle().GetQueue();
+        queue.WriteTexture(&imgCpyTex, &data, size, &texDataLayout, &texExtent);
+    }
 }
 
-WGpuTexture::WGpuTexture(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device)
+WGpuCubemap::WGpuCubemap(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device)
  : m_Label(""), m_Format(TextureFormat::Undefined), m_Width(0u), m_Height(0u)
 {
     if(!createInfo) return;
@@ -62,7 +83,7 @@ WGpuTexture::WGpuTexture(const std::string& label, const TextureCreateInfo* crea
     wgpu::Extent3D texExtent{};
     texExtent.width = createInfo->width;
     texExtent.height = createInfo->height;
-    texExtent.depthOrArrayLayers = 1u;
+    texExtent.depthOrArrayLayers = CUBE_MAP_FACES;
     texDesc.size = texExtent;
     texDesc.usage = static_cast<wgpu::TextureUsage>(createInfo->usage[0]);
     for(int i = 1; i < createInfo->usage.size(); ++i){
@@ -74,19 +95,19 @@ WGpuTexture::WGpuTexture(const std::string& label, const TextureCreateInfo* crea
     m_Texture = device->getHandle().CreateTexture(&texDesc);
 }
 
-WGpuTexture::~WGpuTexture()
+WGpuCubemap::~WGpuCubemap()
 {
     m_Texture.Release();
 }
 
-wgpu::TextureView WGpuTexture::createView()
+wgpu::TextureView WGpuCubemap::createView()
 {
     static uint64_t texViewNr = 0;
     wgpu::TextureViewDescriptor texViewDesc{};
     std::string viewLabel = m_Label + "_TexView_" + std::to_string(texViewNr);
     texViewDesc.label = viewLabel.c_str();
     texViewDesc.format = static_cast<wgpu::TextureFormat>(m_Format);
-    texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
+    texViewDesc.dimension = wgpu::TextureViewDimension::Cube;
     texViewDesc.mipLevelCount = 1;
     texViewDesc.arrayLayerCount = 1;
 
@@ -95,7 +116,7 @@ wgpu::TextureView WGpuTexture::createView()
     return m_Texture.CreateView(&texViewDesc);
 }
 
-void WGpuTexture::update(const TextureCreateInfo* createInfo, WGpuDevice* device)
+void WGpuCubemap::update(const TextureCreateInfo* createInfo, WGpuDevice* device)
 {
     if(!createInfo || !device) return;
     
@@ -110,7 +131,7 @@ void WGpuTexture::update(const TextureCreateInfo* createInfo, WGpuDevice* device
     wgpu::Extent3D texExtent{};
     texExtent.width = createInfo->width;
     texExtent.height = createInfo->height;
-    texExtent.depthOrArrayLayers = 1u;
+    texExtent.depthOrArrayLayers = CUBE_MAP_FACES;
     texDesc.size = texExtent;
     texDesc.usage = static_cast<wgpu::TextureUsage>(createInfo->usage[0]);
     for(int i = 1; i < createInfo->usage.size(); ++i){

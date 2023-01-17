@@ -11,6 +11,7 @@ static const char pbrRenderCode[] = R"(
 
     struct SceneUniforms {
         viewProjection : mat4x4<f32>,
+        view : mat4x4<f32>,
         cameraPosition : vec3<f32>
     };
 

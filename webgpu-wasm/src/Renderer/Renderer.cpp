@@ -15,6 +15,7 @@
 
 #include "Renderer/Pipelines/PBRRenderPipeline.h"
 #include "Renderer/Pipelines/PresentPipeline.h"
+#include "Renderer/Pipelines/CubemapVizualizationPipeline.h"
 
 #include "Scene/GameObject.h"
 #include "Scene/Scene.h"
@@ -38,6 +39,8 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_PresentPipeline = new PresentPipeline(m_Pipeline->getOutputTexture(), device);
 
     m_Compute = new TestComputePipeline(m_Device);
+
+    m_CubemapVizPipeline = new CubemapVizualizationPipeline(width, height, m_Device);
     
 }
 
@@ -72,7 +75,7 @@ void Renderer::render(Scene* scene)
     if(!scene) return; //TODO: report error?
 
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
-
+    
     if(m_Pipeline){
         m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
         
@@ -80,12 +83,13 @@ void Renderer::render(Scene* scene)
         // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
 
     } 
+
     // if(m_Compute){
     //     m_Compute->run(m_Device, m_SwapChain);
     // }
 
     
-    // printf("Triangles drawn: %i\n", frameTriangles);
+    //TODO: make and render a cubemap test
 }
 
 void Renderer::present()

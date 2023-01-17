@@ -18,6 +18,7 @@ class Scene;
 
 class RenderPipeline;
 class PresentPipeline;
+class CubemapVizualizationPipeline;
 
 
 class Renderer {
@@ -38,4 +39,6 @@ private:
     PresentPipeline* m_PresentPipeline;
 
     TestComputePipeline* m_Compute;
+
+    CubemapVizualizationPipeline* m_CubemapVizPipeline;
 };

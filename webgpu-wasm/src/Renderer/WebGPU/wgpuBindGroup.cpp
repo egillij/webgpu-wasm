@@ -4,6 +4,7 @@
 #include "wgpuBuffer.h"
 #include "wgpuSampler.h"
 #include "wgpuTexture.h"
+#include "wgpuCubemap.h"
 
 WGpuBindGroupLayout::WGpuBindGroupLayout(const std::string& label)
 : m_Label(label)
@@ -202,6 +203,18 @@ void WGpuBindGroup::addTexture(WGpuTexture* texture, TextureSampleType sampleTyp
     m_Entries.push_back(entry_);
 }
 
+void WGpuBindGroup::addCubemap(WGpuCubemap* cubemap, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    Entry entry_;
+    entry_.entryType = Entry::Type::Cubemap;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.cubemap.cubemap = cubemap;
+    entry_.cubemap.type = sampleType;
+
+    m_Entries.push_back(entry_);
+}
+
 void WGpuBindGroup::addStorageTexture(WGpuTexture* texture, uint32_t bindingSlot, wgpu::ShaderStage visibility)
 {
     Entry entry_;
@@ -259,6 +272,19 @@ void WGpuBindGroup::build(WGpuDevice *device)
 
                 break;
             }
+            case Entry::Type::Cubemap: {
+                wgpu::BindGroupEntry bge{};
+                bge.binding = entry_.bindingSlot;
+                bge.textureView = entry_.cubemap.cubemap->createView();
+
+                bindGroupEntries.emplace_back(bge);
+
+                break;
+            }
+            default: {
+                printf("Entry type not implemented (%i)\n", static_cast<int>(entry_.entryType));
+            }
+
 
         }
     }

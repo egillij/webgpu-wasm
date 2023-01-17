@@ -42,6 +42,32 @@ void onTextureLoadError(void* userData)
     }
 }
 
+void onCubemapLoadSuccess(void* userData, void* data, int size)
+{
+    if(!userData)
+    {
+        printf("Texture system lost. Can't update cubemap texture!\n");
+        return;
+    }
+
+    LoadData* loadData = (LoadData*) userData;
+    loadData->texSystem->updateCubemap(loadData->textureId, data, size);
+
+    delete loadData;
+}
+
+void onCubemapLoadError(void* userData) 
+{
+    if(!userData){
+        printf("Failed to load cubemap texture. Texture system lost\n");
+    }
+    else {
+        LoadData* loadData = (LoadData*)userData;
+        printf("Failed to load texture %u\n", loadData->textureId);
+        delete loadData;
+    }
+}
+
 static uint32_t nextId = 1;
 
 TextureSystem::TextureSystem(WGpuDevice* device)
@@ -150,6 +176,29 @@ WGpuTexture* TextureSystem::registerProceduralTexture(uint32_t id, const std::st
     return m_Textures.at(nextId++).get();
 }
 
+WGpuCubemap* TextureSystem::registerCubemap(uint32_t id, const std::string& name, const std::string& filename)
+{
+    //TODO: use id
+    id = nextId++;
+
+    const auto it = m_Cubemaps.find(id);
+    if(it != m_Cubemaps.end())
+    {
+        return m_Cubemaps.at(id).get();
+    }
+
+    std::shared_ptr<WGpuTexture> texture = std::make_shared<WGpuTexture>(name, m_Device);
+    m_Textures[id] = texture;
+
+    LoadData* loadData = new LoadData;
+    loadData->texSystem = this;
+    loadData->textureId = id;
+
+    emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
+
+    return m_Cubemaps.at(id).get();
+}
+
 WGpuTexture* TextureSystem::find(uint32_t id)
 {
     const auto it = m_Textures.find(id);
@@ -209,7 +258,62 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size)
 
     queue.WriteTexture(&imgCpyTex, imageData, texSize, &texDataLayout, &texExtent);
 
-    // TODO: force an update any materials using this textur instead of updating everything
+    // TODO: force an update any materials using this textur instead of updating everything. Do this with events?
+    Application::get()->getMaterialSystem()->updateBindgroups();
+}
+
+void TextureSystem::updateCubemap(uint32_t id, void* data, int size)
+{
+    const auto it = m_Cubemaps.find(id);
+    if(it == m_Cubemaps.end()) 
+    {
+        printf("Could not find cubemap with id %u. No update done.\n", id);
+        return;
+    }
+
+    auto cubemap = it->second;
+
+    stbi_set_flip_vertically_on_load(true);
+    int width, height, elements;
+    unsigned char *imageData = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &elements, 4);
+    elements = 4;
+
+    if(!imageData) {
+        printf("Failed to load texture from memory. No update done.\n");
+        return;
+    }
+
+    wgpu::Queue queue = m_Device->getHandle().GetQueue();
+    TextureCreateInfo info{};
+    info.format = TextureFormat::RGBA8Unorm;
+    info.height = height;
+    info.width = width;
+    info.usage = {TextureUsage::TextureBinding, TextureUsage::CopyDst};
+
+    WGpuTexture texture = WGpuTexture(cubemap->getLabel() + "_RawTexture", &info, m_Device);
+    texture.update(&info, m_Device);
+
+    wgpu::ImageCopyTexture imgCpyTex{};
+    imgCpyTex.texture = texture.getHandle();
+    wgpu::Origin3D texOrig{};
+    imgCpyTex.origin = texOrig;
+
+    wgpu::TextureDataLayout texDataLayout{};
+    texDataLayout.bytesPerRow = width*elements;
+    texDataLayout.rowsPerImage = height;
+    texDataLayout.offset = 0;
+
+    wgpu::Extent3D texExtent{};
+    texExtent.width = width;
+    texExtent.height = height;
+
+    size_t texSize = width * height * elements;
+
+    queue.WriteTexture(&imgCpyTex, imageData, texSize, &texDataLayout, &texExtent);
+
+    //TODO: run a pipeline to render a cubemap from the texture
+
+    // TODO: force an update any materials using this texture instead of updating everything. Do this with events?
     Application::get()->getMaterialSystem()->updateBindgroups();
 }
 

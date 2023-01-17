@@ -4,6 +4,7 @@
 
 struct SceneUniforms {
     glm::mat4 viewProjection;
+    glm::mat4 view;
     glm::vec4 cameraPosition;
 };
 

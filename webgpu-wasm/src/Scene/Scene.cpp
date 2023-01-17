@@ -262,6 +262,7 @@ void Scene::onUpdate()
     m_Camera.position = glm::vec3(x, y, z) + focusPoint + cameraCenter;
     m_Camera.viewMatrix = glm::lookAt(m_Camera.position, focusPoint, glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
+    sceneUniforms.view = m_Camera.viewMatrix;
     sceneUniforms.cameraPosition = glm::vec4(m_Camera.position, 1.f);
 
 

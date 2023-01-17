@@ -9,11 +9,12 @@
 
 class WGpuDevice;
 
-class WGpuTexture {
+
+class WGpuCubemap {
 public:
-    WGpuTexture(const std::string& label, WGpuDevice* device);
-    WGpuTexture(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device);
-    ~WGpuTexture();
+    WGpuCubemap(const std::string& label, WGpuDevice* device);
+    WGpuCubemap(const std::string& label, const TextureCreateInfo* createInfo, WGpuDevice* device);
+    ~WGpuCubemap();
 
     inline wgpu::Texture& getHandle() { return m_Texture; }
 
