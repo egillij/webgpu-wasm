@@ -5,6 +5,8 @@
 
 #include <emscripten.h>
 
+constexpr uint32_t UNIT_CUBE_ID = 1u;
+
 struct LoadData {
     GeometrySystem* geoSystem;
     uint32_t meshId;
@@ -39,6 +41,76 @@ void onMeshLoadError(void* userData)
 GeometrySystem::GeometrySystem(WGpuDevice* device)
 : m_Device(device)
 {
+    m_UnitCube = std::make_unique<TriangleMesh>(UNIT_CUBE_ID, "Unit Cube");
+
+    // Float3 position, Float3 normal, Float2 uv
+static float cubeVertices[6*6*8] = {
+    //Back face
+    1.f, -1.f, 1.f,   1.f, 0.f, 1.f,    1.f, 1.f,
+    -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    0.f, 1.f,
+    -1.f, -1.f, -1.f,   0.f, 0.f, 0.f,    0.f, 0.f,
+    1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    1.f, 0.f,
+    1.f, -1.f, 1.f,     1.f, 0.f, 1.f,    1.f, 1.f,
+    -1.f, -1.f, -1.f,   0.f, 0.f, 0.f,    0.f, 0.f,
+
+    1.f, 1.f, 1.f,      1.f, 1.f, 1.f,    1.f, 1.f,
+    1.f, -1.f, 1.f,     1.f, 0.f, 1.f,    0.f, 1.f,
+    1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    0.f, 0.f,
+    1.f, 1.f, -1.f,     1.f, 1.f, 0.f,    1.f, 0.f,
+    1.f, 1.f, 1.f,      1.f, 1.f, 1.f,    1.f, 1.f,
+    1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    0.f, 0.f,
+
+    -1.f, 1.f, 1.f,     0.f, 1.f, 1.f,    1.f, 1.f,
+    1.f, 1.f, 1.f,      1.f, 1.f, 1.f,    0.f, 1.f,
+    1.f, 1.f, -1.f,     1.f, 1.f, 0.f,    0.f, 0.f,
+    -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    1.f, 0.f,
+    -1.f, 1.f, 1.f,     0.f, 1.f, 1.f,    1.f, 1.f,
+    1.f, 1.f, -1.f,     1.f, 1.f, 0.f,    0.f, 0.f,
+
+    -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    1.f, 1.f,
+    -1.f, 1.f, 1.f,     0.f, 1.f, 1.f,    0.f, 1.f,
+    -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    0.f, 0.f,
+    -1.f, -1.f, -1.f,   0.f, 0.f, 0.f,    1.f, 0.f,
+    -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    1.f, 1.f,
+    -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    0.f, 0.f,
+
+    1.f, 1.f, 1.f,      1.f, 1.f, 1.f,    1.f, 1.f,
+    -1.f, 1.f, 1.f,     0.f, 1.f, 1.f,    0.f, 1.f,
+    -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    0.f, 0.f,
+    -1.f, -1.f, 1.f,    0.f, 0.f, 1.f,    0.f, 0.f,
+    1.f, -1.f, 1.f,     1.f, 0.f, 1.f,    1.f, 0.f,
+    1.f, 1.f, 1.f,      1.f, 1.f, 1.f,    1.f, 1.f,
+
+    1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    1.f, 1.f,
+    -1.f, -1.f, -1.f,   0.f, 0.f, 0.f,    0.f, 1.f,
+    -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    0.f, 0.f,
+    1.f, 1.f, -1.f,     1.f, 1.f, 0.f,    1.f, 0.f,
+    1.f, -1.f, -1.f,    1.f, 0.f, 0.f,    1.f, 1.f,
+    -1.f, 1.f, -1.f,    0.f, 1.f, 0.f,    0.f, 0.f,
+    };
+
+    static uint64_t numCubeIndices = 6*6;
+    static uint32_t cubeIndices[6*6] = {
+        0, 1, 2,
+        3, 4, 5,
+
+        6, 7, 8,
+        9, 10, 11,
+
+        12, 13, 14,
+        15, 16, 17,
+
+        18, 19, 20,
+        21, 22, 23,
+
+        24, 25, 26,
+        27, 28, 29,
+
+        30, 31, 32,
+        33, 34, 35
+    };
+
+    m_UnitCube->update(cubeVertices, numCubeIndices*8*sizeof(float), cubeIndices, numCubeIndices, m_Device);
 }
 
 GeometrySystem::~GeometrySystem()
@@ -94,6 +166,11 @@ void GeometrySystem::updateTriangleMesh(uint32_t id, void* data, int size)
         mesh->update(geom.vertices(), geom.noVertices()*sizeof(float), geom.indices(), geom.noIndices(), m_Device);
     }
     
+}
+
+const TriangleMesh* GeometrySystem::getCube() const
+{
+    return m_UnitCube.get();
 }
 
 void GeometrySystem::clear()

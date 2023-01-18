@@ -2,6 +2,8 @@
 
 #include "Renderer/Pipelines/RenderPipeline.h"
 
+#include <glm/mat4x4.hpp>
+
 class Scene;
 
 class WGpuBindGroupLayout;
@@ -32,6 +34,7 @@ private:
     };
     
     WGpuCubemap* m_Cubemap;
+    WGpuTexture* m_DepthTexture;
     WGpuBindGroupLayout* m_CameraUniformBindGroupLayout;
     WGpuBindGroup* m_CameraUniformBindGroup;
     WGpuBindGroupLayout* m_TextureBindGroupLayout;

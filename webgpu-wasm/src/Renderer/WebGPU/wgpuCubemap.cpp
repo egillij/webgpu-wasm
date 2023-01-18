@@ -27,19 +27,19 @@ WGpuCubemap::WGpuCubemap(const std::string& label, WGpuDevice* device)
     for(int i = 0; i < CUBE_MAP_FACES; ++i){
         uint32_t data = 0xFFFFFFFF;
         if(i == 1){
-            data = 0xFFFF00FF;
+            data = 0xFFFFFF00;
         }
         else if(i == 2){
-            data = 0xFF0000FF;
+            data = 0xFFFF0000;
         }
         else if(i == 3){
-            data = 0x000000FF;
-        }
-        else if(i == 3){
-            data = 0x00FF00FF;
+            data = 0xFF000000;
         }
         else if(i == 4){
-            data = 0x00FFFFFF;
+            data = 0xFFFF00FF;
+        }
+        else if(i == 5){
+            data = 0xFF00FFFF;
         }
 
         wgpu::ImageCopyTexture imgCpyTex{};
@@ -109,7 +109,7 @@ wgpu::TextureView WGpuCubemap::createView()
     texViewDesc.format = static_cast<wgpu::TextureFormat>(m_Format);
     texViewDesc.dimension = wgpu::TextureViewDimension::Cube;
     texViewDesc.mipLevelCount = 1;
-    texViewDesc.arrayLayerCount = 1;
+    texViewDesc.arrayLayerCount = CUBE_MAP_FACES;
 
     ++texViewNr;
 

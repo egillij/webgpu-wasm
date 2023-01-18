@@ -5,6 +5,7 @@ static const char cubemapVizualizationCode[] = R"(
     struct VertexOutput {
         @builtin(position) position : vec4<f32>,
         @location(0) lookupDirection : vec3<f32>,
+        @location(1) uv : vec2<f32>,
     };
 
     struct SceneUniforms {
@@ -17,12 +18,15 @@ static const char cubemapVizualizationCode[] = R"(
     @vertex
     fn main_v(
         @location(0) positionIn : vec3<f32>,
+        @location(1) normalIn : vec3<f32>,
+        @location(2) uvIn : vec2<f32>
     ) -> VertexOutput {
 
         var output : VertexOutput;
         output.lookupDirection = positionIn;
         var pos : vec4<f32> = sceneUniforms.projection * sceneUniforms.viewRotation * vec4<f32>(positionIn, 1.0);
         output.position = pos.xyww;
+        output.uv = uvIn;
 
         return output;
     };
@@ -33,9 +37,10 @@ static const char cubemapVizualizationCode[] = R"(
     @fragment
     fn main_f(
         @location(0) lookupDirection : vec3<f32>,
+        @location(1) uv : vec2<f32>
     ) -> @location(0) vec4<f32> {
         
-        var color : vec3<f32> = textureSample(texture, nearestSampler, lookupDirection).rgb;
+        var color : vec3<f32> = textureSample(texture, nearestSampler, normalize(lookupDirection)).rgb;
 
         return vec4<f32>(color, 1.0);
     }

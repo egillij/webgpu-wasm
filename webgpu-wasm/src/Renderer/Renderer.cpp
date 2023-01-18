@@ -12,6 +12,7 @@
 #include "Renderer/WebGPU/wgpuShader.h"
 #include "Renderer/WebGPU/wgpuIndexBuffer.h"
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"
+#include "Renderer/WebGPU/wgpuCubemap.h"
 
 #include "Renderer/Pipelines/PBRRenderPipeline.h"
 #include "Renderer/Pipelines/PresentPipeline.h"
@@ -76,20 +77,32 @@ void Renderer::render(Scene* scene)
 
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
     
-    if(m_Pipeline){
-        m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
+    // if(m_Pipeline){
+    //     m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
         
-        //Wait for queue to finish
-        // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
+    //     //Wait for queue to finish
+    //     // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
 
-    } 
+    // } 
 
     // if(m_Compute){
     //     m_Compute->run(m_Device, m_SwapChain);
-    // }
+    // } 
 
     
     //TODO: make and render a cubemap test
+    static WGpuCubemap* cubemapTest = new WGpuCubemap("Test Cube Map", m_Device);
+    static bool updateMap = true;
+    if(m_CubemapVizPipeline){
+        if(updateMap){
+            m_CubemapVizPipeline->setCubemap(cubemapTest, m_Device);
+            updateMap = false;
+        }
+        m_CubemapVizPipeline->run(m_Device, m_SwapChain);
+        emscripten_request_animation_frame(animFrameRender, nullptr);
+    }
+    
+
 }
 
 void Renderer::present()

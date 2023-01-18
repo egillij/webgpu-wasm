@@ -115,7 +115,6 @@ SET(LINKER_FLAGS
 -s USE_WEBGPU=1
 -o index.html
 -s ASSERTIONS=2
--s ASYNCIFY
 )
 
 add_compile_definitions("WAIT_FOR_QUEUE")

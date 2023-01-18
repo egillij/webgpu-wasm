@@ -66,6 +66,17 @@ void WGpuBindGroupLayout::addStorageTexture(wgpu::StorageTextureAccess access, T
     m_Entries.push_back(entry_);
 }
 
+void WGpuBindGroupLayout::addCubemap(TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    LayoutEntry entry_;
+    entry_.entryType = LayoutEntry::Type::Cubemap;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.cubemap.type = sampleType;
+
+    m_Entries.push_back(entry_);
+}
+
 void WGpuBindGroupLayout::build(WGpuDevice *device)
 {
     if(!device) return;
@@ -127,6 +138,23 @@ void WGpuBindGroupLayout::build(WGpuDevice *device)
 
                 bindGroupLayoutEntries.emplace_back(bglEntry);
                 break;
+            }
+            case LayoutEntry::Type::Cubemap: {
+                wgpu::TextureBindingLayout tbl{};
+                tbl.multisampled = false;
+                tbl.sampleType = static_cast<wgpu::TextureSampleType>(entry_.cubemap.type);
+                tbl.viewDimension = wgpu::TextureViewDimension::Cube;
+
+                wgpu::BindGroupLayoutEntry bglEntry{};
+                bglEntry.binding = entry_.bindingSlot;
+                bglEntry.visibility = entry_.visibility;
+                bglEntry.texture = tbl;
+
+                bindGroupLayoutEntries.emplace_back(bglEntry);
+                break;
+            }
+            default: {
+                printf("BindGroupLayoutEntry type not implemented (%i)\n", static_cast<int>(entry_.entryType));
             }
         }
     }

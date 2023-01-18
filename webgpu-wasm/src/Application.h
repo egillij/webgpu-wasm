@@ -50,6 +50,7 @@ public:
 
     TextureSystem* getTextureSystem() { return m_TextureSystem; }
     MaterialSystem* getMaterialSystem() { return m_MaterialSystem; }
+    GeometrySystem* getGeometrySystem() { return m_GeometrySystem; }
 
     static Application* get();
 

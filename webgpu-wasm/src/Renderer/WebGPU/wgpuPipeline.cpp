@@ -5,7 +5,7 @@
 #include "wgpuShader.h"
 
 WGpuPipeline::WGpuPipeline(const std::string& name)
-: m_Name(name)
+: m_Name(name), m_CullMode(CullMode::None)
 {
 }
 
@@ -25,6 +25,11 @@ void WGpuPipeline::addBindGroup(WGpuBindGroupLayout* bindgroup)
 void WGpuPipeline::setShader(WGpuShader* shader)
 {
     m_Shader = shader;
+}
+
+void WGpuPipeline::setCullMode(CullMode cullmode)
+{
+    m_CullMode = cullmode;
 }
 
 void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
@@ -82,7 +87,7 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
     rpDescription.fragment = m_Shader->getFragmentState();
     rpDescription.primitive.topology = wgpu::PrimitiveTopology::TriangleList;
     rpDescription.primitive.frontFace = wgpu::FrontFace::CCW;
-    rpDescription.primitive.cullMode = wgpu::CullMode::Back;
+    rpDescription.primitive.cullMode = static_cast<wgpu::CullMode>(m_CullMode);
 
     wgpu::DepthStencilState depthStencil{};
     if(forRendering){

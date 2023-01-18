@@ -51,6 +51,8 @@ public:
 
     void addStorageTexture(wgpu::StorageTextureAccess access, TextureFormat format, wgpu::TextureViewDimension dim, uint32_t bindingSlot, wgpu::ShaderStage visibility);
 
+    void addCubemap(TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility);
+
     void build(WGpuDevice *device);
     wgpu::BindGroupLayout* get();
 
@@ -62,7 +64,8 @@ private:
             Buffer,
             Sampler,
             Texture,
-            StorageTexture
+            StorageTexture,
+            Cubemap
         } entryType;
 
         struct Buffer {
@@ -83,6 +86,10 @@ private:
             TextureFormat format;
             wgpu::TextureViewDimension dim;
         } storagTexture;
+
+        struct Cubemap {
+            TextureSampleType type;
+        } cubemap;
     };
 
     std::string m_Label;
