@@ -102,6 +102,7 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
     m_RenderPipeline->addBindGroup(m_SamplerBindGroupLayout);
     m_RenderPipeline->setShader(m_RenderShader);
     m_RenderPipeline->setCullMode(CullMode::Back);
+    m_RenderPipeline->setDepth(DepthFormat::Depth32Float, DepthCompare::LessEqual);
     m_RenderPipeline->build(device, true);
 
     // Lighting pipeline

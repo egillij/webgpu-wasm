@@ -38,7 +38,7 @@ CubemapVizualizationPipeline::CubemapVizualizationPipeline(uint32_t width, uint3
     SamplerCreateInfo samplerInfo{};
     m_NearestSampler = new WGpuSampler("Sampler", &samplerInfo, device);
  
-    m_TextureBindGroup = new WGpuBindGroup("Cubemap Vizualization Texture Bind Group");
+    // m_TextureBindGroup = new WGpuBindGroup("Cubemap Vizualization Texture Bind Group");
     // m_TextureBindGroup->setLayout(m_TextureBindGroupLayout);
     // m_TextureBindGroup->addCubemap(m_Cubemap, TextureSampleType::UnfilterableFloat, 0, wgpu::ShaderStage::Fragment);
     // m_TextureBindGroup->addSampler(m_NearestSampler, SamplerBindingType::NonFiltering, 1, wgpu::ShaderStage::Fragment);
@@ -58,6 +58,7 @@ CubemapVizualizationPipeline::CubemapVizualizationPipeline(uint32_t width, uint3
     m_Pipeline->addBindGroup(m_CameraUniformBindGroupLayout);
     m_Pipeline->addBindGroup(m_TextureBindGroupLayout);
     m_Pipeline->setShader(m_Shader);
+    m_Pipeline->setDepth(DepthFormat::Depth32Float, DepthCompare::LessEqual);
     m_Pipeline->build(device, true);
 
     float aspect = static_cast<float>(height) / static_cast<float>(height);

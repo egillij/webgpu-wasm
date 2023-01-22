@@ -32,6 +32,13 @@ void WGpuPipeline::setCullMode(CullMode cullmode)
     m_CullMode = cullmode;
 }
 
+void WGpuPipeline::setDepth(DepthFormat format, DepthCompare comparFunction)
+{
+    m_DepthInfo.active = true;
+    m_DepthInfo.format = format;
+    m_DepthInfo.compareFunction = comparFunction;
+}
+
 void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
 {
     std::vector<wgpu::BindGroupLayout> bindGroupLayouts;
@@ -75,7 +82,7 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
         vertexBufferLayout.attributes = vAttribute;
         vertexBufferLayout.arrayStride = 8 * sizeof(float);
         vertexBufferLayout.stepMode = wgpu::VertexStepMode::Vertex;
-        ////////////////////////
+        
         rpDescription.vertex.buffers = &vertexBufferLayout;
         rpDescription.vertex.bufferCount = 1;
     }
@@ -90,14 +97,13 @@ void WGpuPipeline::build(WGpuDevice* device, bool forRendering)
     rpDescription.primitive.cullMode = static_cast<wgpu::CullMode>(m_CullMode);
 
     wgpu::DepthStencilState depthStencil{};
-    if(forRendering){
-        depthStencil.format = wgpu::TextureFormat::Depth32Float;
+    if(m_DepthInfo.active){
+        depthStencil.format = static_cast<wgpu::TextureFormat>(m_DepthInfo.format);
         depthStencil.depthWriteEnabled = true;
-        depthStencil.depthCompare = wgpu::CompareFunction::LessEqual;
+        depthStencil.depthCompare = static_cast<wgpu::CompareFunction>(m_DepthInfo.compareFunction);
 
         rpDescription.depthStencil = &depthStencil;
     }
-    
     
     m_Pipeline = device->getHandle().CreateRenderPipeline(&rpDescription);
 

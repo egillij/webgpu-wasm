@@ -9,6 +9,9 @@
 
 class WGpuDevice;
 
+enum class CubemapFace : uint32_t {
+    RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT, ALL
+};
 
 class WGpuCubemap {
 public:
@@ -23,7 +26,7 @@ public:
     uint32_t getWidth() const { return m_Width; }
     uint32_t getHeight() const { return m_Height; }
 
-    wgpu::TextureView createView();
+    wgpu::TextureView createView(CubemapFace face = CubemapFace::ALL);
 
     void update(const TextureCreateInfo* createInfo, WGpuDevice* device);
 

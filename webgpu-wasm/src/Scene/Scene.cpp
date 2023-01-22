@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include <glm/gtc/matrix_transform.hpp>
+#include "Environment.h"
 
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
@@ -18,8 +18,9 @@
 #include "Renderer/MaterialSystem.h"
 #include "Renderer/Geometry/GeometrySystem.h"
 
-#include <emscripten.h>
+#include <glm/gtc/matrix_transform.hpp>
 
+#include <emscripten.h>
 
 
 ///////////////////////////////////////////////////////////////////
@@ -99,11 +100,14 @@ static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WIND
 static float fovY = glm::radians(45.f);
 
 Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem, GeometrySystem* geometrySystem, WGpuDevice* device)
+//TODO: initalize everything that is needed with : 
 {
     m_Name = description->name;
 
     // Temporary???? Þarf kannski ekki að hafa hér
     device_ = device;
+
+    m_Environment = new Environment("Environment Test", "sandsloot_2k.hdr", device_);
 
     m_Camera.projectionMatrix = glm::perspective(fovY, aspect, 0.1f, 500.f);
     m_Camera.viewMatrix = glm::lookAt(glm::vec3(-5.f, 2.f, 5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));

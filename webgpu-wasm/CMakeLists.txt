@@ -46,6 +46,10 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.h
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.cpp
 
+	src/Renderer/PreProcessors/ConvolutionShaders.h
+	src/Renderer/PreProcessors/DiffuseConvolutionPipeline.h
+	src/Renderer/PreProcessors/DiffuseConvolutionPipeline.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 
@@ -84,6 +88,9 @@ SET(WW_SOURCES
 
 	src/Renderer/WebGPU/wgpuVertexBuffer.h
 	src/Renderer/WebGPU/wgpuVertexBuffer.cpp	
+
+	src/Scene/Environment.h
+	src/Scene/Environment.cpp
 
 	src/Scene/GameObject.h
 	src/Scene/GameObject.cpp

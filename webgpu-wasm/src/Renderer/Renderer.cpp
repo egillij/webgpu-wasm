@@ -18,6 +18,10 @@
 #include "Renderer/Pipelines/PresentPipeline.h"
 #include "Renderer/Pipelines/CubemapVizualizationPipeline.h"
 
+// Temporary
+#include "Renderer/PreProcessors/CubemapGenerationPipeline.h"
+
+#include "Scene/Environment.h"
 #include "Scene/GameObject.h"
 #include "Scene/Scene.h"
 
@@ -42,6 +46,8 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_Compute = new TestComputePipeline(m_Device);
 
     m_CubemapVizPipeline = new CubemapVizualizationPipeline(width, height, m_Device);
+
+    m_DiffuseConvolutionPipeline = new CubemapGenerationPipeline(m_Device);
     
 }
 
@@ -83,7 +89,7 @@ void Renderer::render(Scene* scene)
     //     //Wait for queue to finish
     //     // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
 
-    // } 
+    // }
 
     // if(m_Compute){
     //     m_Compute->run(m_Device, m_SwapChain);
@@ -92,10 +98,22 @@ void Renderer::render(Scene* scene)
     
     //TODO: make and render a cubemap test
     static WGpuCubemap* cubemapTest = new WGpuCubemap("Test Cube Map", m_Device);
+    // static TextureCreateInfo texInf{};
+    // texInf.format = TextureFormat::RGBA32Float;
+    // texInf.height = 1;
+    // texInf.width = 1;
+    // texInf.usage = {TextureUsage::TextureBinding, TextureUsage::CopyDst};
+    // static WGpuTexture* temp = new WGpuTexture("Temp tex", &texInf);
+    // static bool diffuseIrradiance = true;
+    // if(diffuseIrradiance){
+    //     m_DiffuseConvolutionPipeline->process(nullptr, cubemapTest);
+    //     diffuseIrradiance = false;
+    // }
+
     static bool updateMap = true;
     if(m_CubemapVizPipeline){
         if(updateMap){
-            m_CubemapVizPipeline->setCubemap(cubemapTest, m_Device);
+            m_CubemapVizPipeline->setCubemap(scene->m_Environment->getBackground(), m_Device);
             updateMap = false;
         }
         m_CubemapVizPipeline->run(m_Device, m_SwapChain);

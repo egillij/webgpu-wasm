@@ -19,6 +19,7 @@ class Scene;
 class RenderPipeline;
 class PresentPipeline;
 class CubemapVizualizationPipeline;
+class CubemapGenerationPipeline;
 
 
 class Renderer {
@@ -41,4 +42,6 @@ private:
     TestComputePipeline* m_Compute;
 
     CubemapVizualizationPipeline* m_CubemapVizPipeline;
+
+    CubemapGenerationPipeline* m_DiffuseConvolutionPipeline;
 };

@@ -1,5 +1,7 @@
 #include "TextureSystem.h"
 
+#include "Tasks/ITask.h"
+
 #include "Application.h"
 
 #include "Renderer/WebGPU/wgpuDevice.h"
@@ -11,9 +13,11 @@
 
 #include <emscripten.h>
 
+
 struct LoadData {
     TextureSystem* texSystem;
     uint32_t textureId;
+    TextureLoadTask* task = nullptr;
 };
 
 void onTextureLoadSuccess(void* userData, void* data, int size)
@@ -25,7 +29,10 @@ void onTextureLoadSuccess(void* userData, void* data, int size)
     }
 
     LoadData* loadData = (LoadData*) userData;
-    loadData->texSystem->updateTexture(loadData->textureId, data, size);
+    loadData->texSystem->updateTexture(loadData->textureId, data, size, loadData->task);
+
+    if(loadData->task)
+        delete loadData->task;
 
     delete loadData;
 }
@@ -38,6 +45,7 @@ void onTextureLoadError(void* userData)
     else {
         LoadData* loadData = (LoadData*)userData;
         printf("Failed to load texture %u\n", loadData->textureId);
+        if(loadData->task) delete loadData->task;
         delete loadData;
     }
 }
@@ -131,7 +139,7 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     return m_Textures.at(nextId++).get();
 }
 
-WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name, const std::string& filename)
+WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name, const std::string& filename, TextureLoadTask* loadTask)
 {
     //TODO: use id
     id = nextId++;
@@ -148,6 +156,7 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     LoadData* loadData = new LoadData;
     loadData->texSystem = this;
     loadData->textureId = id;
+    loadData->task = loadTask;
 
     emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
 
@@ -194,7 +203,7 @@ WGpuCubemap* TextureSystem::registerCubemap(uint32_t id, const std::string& name
     loadData->texSystem = this;
     loadData->textureId = id;
 
-    emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
+    emscripten_async_wget_data(filename.c_str(), (void*)loadData, onCubemapLoadSuccess, onCubemapLoadError);
 
     return m_Cubemaps.at(id).get();
 }
@@ -210,7 +219,7 @@ WGpuTexture* TextureSystem::find(uint32_t id)
     return nullptr;
 }
 
-void TextureSystem::updateTexture(uint32_t id, void* data, int size)
+void TextureSystem::updateTexture(uint32_t id, void* data, int size, TextureLoadTask* loadTask)
 {
     const auto it = m_Textures.find(id);
     if(it == m_Textures.end()) 
@@ -260,6 +269,10 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size)
 
     // TODO: force an update any materials using this textur instead of updating everything. Do this with events?
     Application::get()->getMaterialSystem()->updateBindgroups();
+
+    if(loadTask) {
+        loadTask->execute(texture.get());
+    }
 }
 
 void TextureSystem::updateCubemap(uint32_t id, void* data, int size)

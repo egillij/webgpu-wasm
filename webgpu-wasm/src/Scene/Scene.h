@@ -24,6 +24,8 @@ class WGpuShader;
 class WGpuTexture;
 class WGpuSampler;
 
+class Environment;
+
 #define MATERIAL_NO_ID 0
 #define MODEL_NO_ID 0
 #define NODE_NO_ID 0
@@ -100,6 +102,8 @@ private:
 private:
     std::string m_Name;
     std::vector<GameObject*> m_GameObjects;
+
+    Environment* m_Environment;
 
     struct Camera {
         glm::vec3 position;

@@ -19,7 +19,7 @@ WGpuCubemap::WGpuCubemap(const std::string& label, WGpuDevice* device)
         texExtent.height = 1;
         texExtent.depthOrArrayLayers = CUBE_MAP_FACES;
         texDesc.size = texExtent;
-        texDesc.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst;
+        texDesc.usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst | wgpu::TextureUsage::RenderAttachment;
     }
 
     m_Texture = device->getHandle().CreateTexture(&texDesc);
@@ -76,6 +76,8 @@ WGpuCubemap::WGpuCubemap(const std::string& label, const TextureCreateInfo* crea
 
     m_Label = label;
     m_Format = createInfo->format;
+    m_Width = createInfo->width;
+    m_Height = createInfo->height;
 
     wgpu::TextureDescriptor texDesc{};
     texDesc.label = label.c_str();
@@ -100,16 +102,26 @@ WGpuCubemap::~WGpuCubemap()
     m_Texture.Release();
 }
 
-wgpu::TextureView WGpuCubemap::createView()
+wgpu::TextureView WGpuCubemap::createView(CubemapFace face)
 {
     static uint64_t texViewNr = 0;
     wgpu::TextureViewDescriptor texViewDesc{};
     std::string viewLabel = m_Label + "_TexView_" + std::to_string(texViewNr);
-    texViewDesc.label = viewLabel.c_str();
-    texViewDesc.format = static_cast<wgpu::TextureFormat>(m_Format);
-    texViewDesc.dimension = wgpu::TextureViewDimension::Cube;
-    texViewDesc.mipLevelCount = 1;
-    texViewDesc.arrayLayerCount = CUBE_MAP_FACES;
+    if(face == CubemapFace::ALL) {
+        texViewDesc.label = viewLabel.c_str();
+        texViewDesc.format = static_cast<wgpu::TextureFormat>(m_Format);
+        texViewDesc.dimension = wgpu::TextureViewDimension::Cube;
+        texViewDesc.mipLevelCount = 1;
+        texViewDesc.arrayLayerCount = CUBE_MAP_FACES;
+    }
+    else {
+        texViewDesc.label = viewLabel.c_str();
+        texViewDesc.format = static_cast<wgpu::TextureFormat>(m_Format);
+        texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
+        texViewDesc.mipLevelCount = 1;
+        texViewDesc.baseArrayLayer = static_cast<uint32_t>(face);
+        texViewDesc.arrayLayerCount = 1;
+    }
 
     ++texViewNr;
 
