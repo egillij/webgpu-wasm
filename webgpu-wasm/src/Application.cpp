@@ -130,7 +130,9 @@ Application::Application(const std::string &applicationName)
     s_Instance = this;
 
     m_IsInitialized = false;
-    m_Scene = nullptr;
+    m_ActiveScene = nullptr;
+    m_Scene_PathTrac = nullptr;
+    m_Scene_Raster = nullptr;
     m_State = State::Other;
     // Get the device and then continue with initialization
     GetDevice();
@@ -157,6 +159,7 @@ void Application::initializeAndRun()
 //     startPathTracer();
 // #else
     startRasterizer();
+    startPathTracer();
 // #endif
 
     onUpdate();
@@ -180,40 +183,44 @@ void Application::onUpdate()
     if(m_TransitionOnNextFrame){
         if(m_TargetState == State::PathTracer){
             //TODO: cleanup the rasterizer state and scene
-            m_IsInitialized = false;
-            delete m_Renderer;
-            m_Renderer = nullptr;
-            delete m_Scene;
-            m_Scene = nullptr;
+            // m_IsInitialized = false;
+            // delete m_Renderer;
+            // m_Renderer = nullptr;
+            // delete m_Scene;
+            // m_Scene = nullptr;
             
 
-            m_MaterialSystem->cleanup();
-            m_GeometrySystem->clear();
-            m_TextureSystem->clear();
+            // m_MaterialSystem->cleanup();
+            // m_GeometrySystem->clear();
+            // m_TextureSystem->clear();
 
-            startPathTracer();
+            // startPathTracer();
+            m_ActiveScene = m_Scene_PathTrac;
+            m_State = State::PathTracer;
             m_TransitionOnNextFrame = false;
         }
 
         if(m_TargetState == State::Rasterizer) {
             //TODO: cleanup the path tracer state and scene
-            m_IsInitialized = false;
-            delete m_PathTracer;
-            m_PathTracer = nullptr;
-            delete m_Scene;
-            m_Scene = nullptr;
+            // m_IsInitialized = false;
+            // delete m_PathTracer;
+            // m_PathTracer = nullptr;
+            // delete m_Scene;
+            // m_Scene = nullptr;
 
-            m_MaterialSystem->cleanup();
-            m_GeometrySystem->clear();
-            m_TextureSystem->clear();
+            // m_MaterialSystem->cleanup();
+            // m_GeometrySystem->clear();
+            // m_TextureSystem->clear();
 
-            startRasterizer();
+            // startRasterizer();
+            m_ActiveScene = m_Scene_Raster;
+            m_State = State::Rasterizer;
             m_TransitionOnNextFrame = false;
         }
     }
 
-    if (m_Scene)
-        m_Scene->onUpdate();
+    if (m_ActiveScene)
+        m_ActiveScene->onUpdate();
 
 
     double now = emscripten_get_now();
@@ -268,13 +275,15 @@ void Application::onUpdate()
 
 void Application::renderFrame()
 {
+    printf("Render\n");
     if(m_State == State::PathTracer)
     {
+        printf("Path trace\n");
         m_PathTracer->run();
     }
     else if(m_State == State::Rasterizer)
     {
-        m_Renderer->render(m_Scene);
+        m_Renderer->render(m_ActiveScene);
     }
 }
 
@@ -285,7 +294,7 @@ void Application::startPathTracer()
     std::vector<ModelDescription> models;
     std::vector<MaterialDescription> materials;
 
-    m_State = State::PathTracer;
+    // m_State = State::PathTracer;
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();
@@ -297,11 +306,11 @@ void Application::startPathTracer()
 
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
-    m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+    m_Scene_PathTrac = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
 
     m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
-    m_IsInitialized = true;
+    // m_IsInitialized = true;
 }
 
 void Application::startRasterizer()
@@ -624,8 +633,8 @@ void Application::startRasterizer()
 
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
-    m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
-
+    m_Scene_Raster = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+    m_ActiveScene = m_Scene_Raster;
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;

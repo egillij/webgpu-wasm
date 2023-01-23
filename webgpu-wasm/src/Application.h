@@ -61,7 +61,9 @@ private:
 private:
     std::string m_Name;
 
-    Scene* m_Scene = nullptr;
+    Scene* m_ActiveScene = nullptr;
+    Scene* m_Scene_Raster = nullptr;
+    Scene* m_Scene_PathTrac = nullptr;
     Renderer* m_Renderer = nullptr;
     PathTracer* m_PathTracer = nullptr;
 
