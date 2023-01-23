@@ -9,6 +9,10 @@
 
 class WGpuDevice;
 
+enum class TexDataType {
+    UnsignedByte, Float
+};
+
 class TextureLoadTask {
 public:
     virtual ~TextureLoadTask() = default;
@@ -31,7 +35,7 @@ public:
 
     WGpuTexture* find(uint32_t id);
 
-    void updateTexture(uint32_t id, void* data, int size, TextureLoadTask* loadTask = nullptr);
+    void updateTexture(uint32_t id, void* data, int size, TexDataType dataType, TextureLoadTask* loadTask = nullptr);
     void updateCubemap(uint32_t id, void* data, int size);
 
     void clear();

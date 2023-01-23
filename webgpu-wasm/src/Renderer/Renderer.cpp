@@ -47,7 +47,7 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
 
     m_CubemapVizPipeline = new CubemapVizualizationPipeline(width, height, m_Device);
 
-    m_DiffuseConvolutionPipeline = new CubemapGenerationPipeline(m_Device);
+    m_DiffuseConvolutionPipeline = new CubemapGenerationPipeline(CubemapGenerationPipeline::PipelineType::EquirectangularToCubemap, m_Device);
     
 }
 

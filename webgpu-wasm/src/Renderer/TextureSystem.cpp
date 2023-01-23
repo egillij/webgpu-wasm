@@ -13,12 +13,22 @@
 
 #include <emscripten.h>
 
-
 struct LoadData {
     TextureSystem* texSystem;
     uint32_t textureId;
+    TexDataType expectedType;
     TextureLoadTask* task = nullptr;
 };
+
+std::string extractExtension(const std::string& filename)
+{
+    size_t lastDot = filename.find_last_of(".");
+    printf("lastDot: %zu\n", lastDot);
+    std::string extension = filename.substr(lastDot+1, filename.size()-lastDot-1);
+    printf("ext: %s\n", extension.c_str());
+
+    return extension;
+}
 
 void onTextureLoadSuccess(void* userData, void* data, int size)
 {
@@ -29,7 +39,7 @@ void onTextureLoadSuccess(void* userData, void* data, int size)
     }
 
     LoadData* loadData = (LoadData*) userData;
-    loadData->texSystem->updateTexture(loadData->textureId, data, size, loadData->task);
+    loadData->texSystem->updateTexture(loadData->textureId, data, size, loadData->expectedType, loadData->task);
 
     if(loadData->task)
         delete loadData->task;
@@ -158,6 +168,14 @@ WGpuTexture* TextureSystem::registerTexture(uint32_t id, const std::string& name
     loadData->textureId = id;
     loadData->task = loadTask;
 
+    std::string extension = extractExtension(filename);
+    if(extension == "hdr"){
+        loadData->expectedType = TexDataType::Float;
+    }
+    else {
+        loadData->expectedType = TexDataType::UnsignedByte;
+    }
+
     emscripten_async_wget_data(filename.c_str(), (void*)loadData, onTextureLoadSuccess, onTextureLoadError);
 
     return m_Textures.at(id).get();
@@ -219,7 +237,7 @@ WGpuTexture* TextureSystem::find(uint32_t id)
     return nullptr;
 }
 
-void TextureSystem::updateTexture(uint32_t id, void* data, int size, TextureLoadTask* loadTask)
+void TextureSystem::updateTexture(uint32_t id, void* data, int size, TexDataType dataType, TextureLoadTask* loadTask)
 {
     const auto it = m_Textures.find(id);
     if(it == m_Textures.end()) 
@@ -230,19 +248,37 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size, TextureLoad
 
     auto texture = it->second;
 
-    stbi_set_flip_vertically_on_load(true);
-    int width, height, elements;
-    unsigned char *imageData = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &elements, 4);
-    elements = 4;
-
-    if(!imageData) {
-        printf("Failed to load texture from memory. No update done.\n");
-        return;
-    }
-
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
     TextureCreateInfo info{};
-    info.format = TextureFormat::RGBA8Unorm;
+
+    int width, height, elements;
+    void* imageData;
+    size_t elementSize = 0;
+    if(dataType == TexDataType::Float){
+        info.format = TextureFormat::RGBA32Float;
+        elementSize = sizeof(float);
+        stbi_set_flip_vertically_on_load(true);
+        imageData = stbi_loadf_from_memory((unsigned char*)data, size, &width, &height, &elements, 4);
+        elements = 4;
+
+        if(!imageData) {
+            printf("Failed to load texture from memory. No update done.\n");
+            return;
+        }
+    }
+    else {
+        info.format = TextureFormat::RGBA8Unorm;
+        elementSize = sizeof(char);
+        stbi_set_flip_vertically_on_load(true);
+        imageData = stbi_load_from_memory((unsigned char*)data, size, &width, &height, &elements, 4);
+        elements = 4;
+
+        if(!imageData) {
+            printf("Failed to load texture from memory. No update done.\n");
+            return;
+        }
+    }
+
     info.height = height;
     info.width = width;
     info.usage = {TextureUsage::TextureBinding, TextureUsage::CopyDst};
@@ -255,7 +291,7 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size, TextureLoad
     imgCpyTex.origin = texOrig;
 
     wgpu::TextureDataLayout texDataLayout{};
-    texDataLayout.bytesPerRow = width*elements;
+    texDataLayout.bytesPerRow = width*elements*elementSize;
     texDataLayout.rowsPerImage = height;
     texDataLayout.offset = 0;
 
@@ -263,7 +299,7 @@ void TextureSystem::updateTexture(uint32_t id, void* data, int size, TextureLoad
     texExtent.width = width;
     texExtent.height = height;
 
-    size_t texSize = width * height * elements;
+    size_t texSize = width * height * elements * elementSize;
 
     queue.WriteTexture(&imgCpyTex, imageData, texSize, &texDataLayout, &texExtent);
 

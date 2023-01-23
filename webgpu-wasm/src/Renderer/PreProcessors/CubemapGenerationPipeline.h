@@ -16,7 +16,13 @@ class WGpuShader;
 // to generate a diffuse irradiance cubemap
 class CubemapGenerationPipeline {
 public:
-    CubemapGenerationPipeline(WGpuDevice* device);
+    enum class PipelineType {
+        EquirectangularToCubemap = 0,
+        DiffuseIrradiance,
+        SpecularRadiance
+    };
+public:
+    CubemapGenerationPipeline(PipelineType type, WGpuDevice* device);
     ~CubemapGenerationPipeline();
 
     void process(WGpuTexture* input, WGpuCubemap* output);

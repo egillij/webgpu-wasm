@@ -1,6 +1,6 @@
 #include "CubemapGenerationPipeline.h"
 
-#include "ConvolutionShaders.h"
+#include "CubemapGenerationShaders.h"
 
 #include "Application.h"
 
@@ -35,7 +35,7 @@ static glm::mat4 viewMatrices[6] = {
     glm::lookAt(glm::vec3(0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f)),
 };
 
-CubemapGenerationPipeline::CubemapGenerationPipeline(WGpuDevice* device)
+CubemapGenerationPipeline::CubemapGenerationPipeline(PipelineType type, WGpuDevice* device)
 : m_Device(device), m_Pipeline(nullptr), m_TextureBGL(nullptr), m_NearestSampler(nullptr),
   m_Shader(nullptr), m_CameraUniformBGL(nullptr)
 {
@@ -52,10 +52,27 @@ CubemapGenerationPipeline::CubemapGenerationPipeline(WGpuDevice* device)
     m_CameraUniformBGL->build(m_Device);
 
     ShaderDescription pbrDescription{};
-    pbrDescription.shaderCode = diffuseIrradianceConvolutionCode;
-    pbrDescription.colorTargets = {TextureFormat::RGBA8Unorm};
+    pbrDescription.colorTargets = {TextureFormat::RGBA32Float};
     pbrDescription.type = ShaderType::VERTEX_FRAGMENT;
-    m_Shader = new WGpuShader("Diffuse Irradiance Convolution", pbrDescription, device);
+    switch(type){
+        case PipelineType::EquirectangularToCubemap:{
+            pbrDescription.shaderCode = equirectangularToCubemapCode;
+            m_Shader = new WGpuShader("Equirectangluar to Cubemap", pbrDescription, device);
+            break;
+        }
+        case PipelineType::DiffuseIrradiance:{
+            pbrDescription.shaderCode = diffuseConvolutionCode;
+            m_Shader = new WGpuShader("Diffuse Irradiance Convolution", pbrDescription, device);
+            break;
+        }
+        case PipelineType::SpecularRadiance:{
+            printf("Specular convolution not implemented yet");
+            // pbrDescription.shaderCode = equirectangularToCubemapCode;
+            // m_Shader = new WGpuShader("Equirectangluar to Cubemap", pbrDescription, device);
+            break;
+        }
+    }
+    
 
     m_Pipeline = new WGpuPipeline("Diffuse Irradiance Convolution");
     m_Pipeline->addBindGroup(m_CameraUniformBGL);
@@ -104,6 +121,7 @@ void CubemapGenerationPipeline::process(WGpuTexture* input, WGpuCubemap* output)
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
 
     wgpu::CommandBuffer commands;
+    
     {
         wgpu::CommandEncoder encoder = m_Device->getHandle().CreateCommandEncoder();
         for(int i = 0; i < 6; ++i)
@@ -123,19 +141,47 @@ void CubemapGenerationPipeline::process(WGpuTexture* input, WGpuCubemap* output)
             wgpu::RenderPassDescriptor renderPassDescription{};
             renderPassDescription.colorAttachmentCount = 1;
             renderPassDescription.colorAttachments = &attachment;
+            
+            uint32_t xStep = 100u;
+            uint32_t yStep = 100u;
 
-            wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
-            renderPass.SetPipeline(m_Pipeline->getPipeline());
-            renderPass.SetBindGroup(0, m_CameraUniformBindGroup[i]->get());
-            renderPass.SetBindGroup(1, textureBindGroup.get());
+            uint32_t width = output->getWidth();
+            uint32_t height = output->getHeight();
 
-            static GeometrySystem* geos = Application::get()->getGeometrySystem();
-            static const TriangleMesh* cube = geos->getCube();
-            renderPass.SetVertexBuffer(0, cube->getVertexBuffer()->getHandle());
-            static WGpuIndexBuffer* cubeIndexBuffer = cube->getIndexBuffer();
-            renderPass.SetIndexBuffer(cubeIndexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(cubeIndexBuffer->getDataFormat()));
-            renderPass.DrawIndexed(cubeIndexBuffer->getIndexCount());
-            renderPass.End();
+            uint32_t xSize = width / xStep;
+            uint32_t ySize = height / yStep;
+
+            std::vector<wgpu::CommandBuffer> commandVector;
+            commandVector.resize((ySize+1)*(xSize+1));
+
+            // Do the convolution in tiles to avoid timeouts
+            for(uint32_t y = 0u; y < ySize + 1; ++y){
+                for(uint32_t x = 0u; x < xSize+1; ++x){
+                    if(x != 0) attachment.loadOp = wgpu::LoadOp::Load;
+                    // wgpu::CommandEncoder encoder = m_Device->getHandle().CreateCommandEncoder();
+                    wgpu::RenderPassEncoder renderPass = encoder.BeginRenderPass(&renderPassDescription);
+
+                    uint32_t xStart = x * xStep;
+                    uint32_t yStart = y * yStep;
+                    uint32_t actualXSize = std::fmin(xStep, width-xStart);
+                    uint32_t actualYSize = std::fmin(yStep, height - yStart);
+
+                    renderPass.SetScissorRect(xStart, yStart, actualXSize, actualYSize);
+                    renderPass.SetPipeline(m_Pipeline->getPipeline());
+                    renderPass.SetBindGroup(0, m_CameraUniformBindGroup[i]->get());
+                    renderPass.SetBindGroup(1, textureBindGroup.get());
+
+                    static GeometrySystem* geos = Application::get()->getGeometrySystem();
+                    static const TriangleMesh* cube = geos->getCube();
+                    renderPass.SetVertexBuffer(0, cube->getVertexBuffer()->getHandle());
+                    static WGpuIndexBuffer* cubeIndexBuffer = cube->getIndexBuffer();
+                    renderPass.SetIndexBuffer(cubeIndexBuffer->getHandle(), static_cast<wgpu::IndexFormat>(cubeIndexBuffer->getDataFormat()));
+                    renderPass.DrawIndexed(cubeIndexBuffer->getIndexCount());
+                    renderPass.End();
+                    // commandVector.at(x + y * (xSize+1)) = encoder.Finish();
+                }
+            }
+            // queue.Submit(commandVector.size(), commandVector.data());
         }
         commands = encoder.Finish();
     }

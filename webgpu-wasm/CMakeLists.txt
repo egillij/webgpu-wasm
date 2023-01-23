@@ -46,9 +46,9 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.h
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.cpp
 
-	src/Renderer/PreProcessors/ConvolutionShaders.h
-	src/Renderer/PreProcessors/DiffuseConvolutionPipeline.h
-	src/Renderer/PreProcessors/DiffuseConvolutionPipeline.cpp
+	src/Renderer/PreProcessors/CubemapGenerationShaders.h
+	src/Renderer/PreProcessors/CubemapGenerationPipeline.h
+	src/Renderer/PreProcessors/CubemapGenerationPipeline.cpp
 
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp

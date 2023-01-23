@@ -16,9 +16,19 @@ Environment::Environment(const std::string& name, const std::string& filename, W
     class EnvironmentTextureLoadTask : public TextureLoadTask {
     public:
         EnvironmentTextureLoadTask(Environment* environment, WGpuDevice* device) 
-        : m_Environment(environment), m_DiffusePipeline(nullptr)
+        : m_Environment(environment), m_BackgroundPipeline(nullptr),
+          m_DiffusePipeline(nullptr), m_SpecularPipeline(nullptr)
         {
-            m_DiffusePipeline = new CubemapGenerationPipeline(device);
+            m_BackgroundPipeline = new CubemapGenerationPipeline(
+                                        CubemapGenerationPipeline::PipelineType::EquirectangularToCubemap,
+                                        device
+                                    );
+
+            // m_DiffusePipeline = new CubemapGenerationPipeline(
+            //                             CubemapGenerationPipeline::PipelineType::DiffuseIrradiance,
+            //                             device
+            //                         );    
+
         }
 
         ~EnvironmentTextureLoadTask() 
@@ -30,20 +40,24 @@ Environment::Environment(const std::string& name, const std::string& filename, W
         {
             printf("Exectue load task\n");
             //TODO: make cubemap background, diffuse irradiance and specular mips
-            m_DiffusePipeline->process(texture, m_Environment->getBackground());
+            m_BackgroundPipeline->process(texture, m_Environment->getBackground());
+            // m_DiffusePipeline->process(texture, m_Environment->getDiffuseIrradiance());
         }
 
     private:
         Environment* m_Environment;
+        CubemapGenerationPipeline* m_BackgroundPipeline;
         CubemapGenerationPipeline* m_DiffusePipeline;
+        CubemapGenerationPipeline* m_SpecularPipeline;
     };
     
     TextureCreateInfo info{};
-    info.format = TextureFormat::RGBA8Unorm;
+    info.format = TextureFormat::RGBA32Float;
     info.width = 512u;
     info.height = 512u;
     info.usage = {TextureUsage::RenderAttachment, TextureUsage::TextureBinding};
     m_Background = new WGpuCubemap(m_Name + "_BackgroundCube", &info, device);
+    // m_DiffuseIrradiance = new WGpuCubemap(m_Name + "_DffisueIrradiance", &info, device);
 
     std::string serverResource = "/resources/environments/" + filename;
     EnvironmentTextureLoadTask* task = new EnvironmentTextureLoadTask(this, device);
