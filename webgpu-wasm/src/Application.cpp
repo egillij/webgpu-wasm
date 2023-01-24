@@ -275,10 +275,8 @@ void Application::onUpdate()
 
 void Application::renderFrame()
 {
-    printf("Render\n");
     if(m_State == State::PathTracer)
     {
-        printf("Path trace\n");
         m_PathTracer->run();
     }
     else if(m_State == State::Rasterizer)
@@ -369,7 +367,7 @@ void Application::startRasterizer()
         desc.albedo = glm::vec4(0.1f, 0.6f, 0.3f, 1.f);
         desc.albedoPipeline = new NoisePipeline(m_Device);
         desc.roughness = 0.f;
-        desc.metallic = 1.f;
+        desc.metallic = 0.f;
         desc.ao = 0.01f;
         materials.push_back(desc);
     }

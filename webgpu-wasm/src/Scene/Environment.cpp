@@ -38,7 +38,6 @@ Environment::Environment(const std::string& name, const std::string& filename, W
 
         virtual void execute(WGpuTexture* texture) override 
         {
-            printf("Exectue load task\n");
             //TODO: make cubemap background, diffuse irradiance and specular mips
             m_BackgroundPipeline->process(texture, m_Environment->getBackground());
             // m_DiffusePipeline->process(texture, m_Environment->getDiffuseIrradiance());

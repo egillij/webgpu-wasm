@@ -17,6 +17,7 @@
 #include "Renderer/Pipelines/PBRRenderPipeline.h"
 #include "Renderer/Pipelines/PresentPipeline.h"
 #include "Renderer/Pipelines/CubemapVizualizationPipeline.h"
+#include "Renderer/Pipelines/CubemapBackgroundPipeline.h"
 
 // Temporary
 #include "Renderer/PreProcessors/CubemapGenerationPipeline.h"
@@ -41,6 +42,8 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
 
     m_Pipeline = new PBRRenderPipeline(width, height, device);
 
+    m_Background = new CubemapBackgroundPipeline(device);
+
     m_PresentPipeline = new PresentPipeline(m_Pipeline->getOutputTexture(), device);
 
     m_Compute = new TestComputePipeline(m_Device);
@@ -48,6 +51,8 @@ Renderer::Renderer(uint32_t width, uint32_t height, WGpuDevice* device)
     m_CubemapVizPipeline = new CubemapVizualizationPipeline(width, height, m_Device);
 
     m_DiffuseConvolutionPipeline = new CubemapGenerationPipeline(CubemapGenerationPipeline::PipelineType::EquirectangularToCubemap, m_Device);
+
+    m_Scene = nullptr;
     
 }
 
@@ -57,6 +62,8 @@ Renderer::~Renderer()
     m_SwapChain = nullptr;
     if(m_Pipeline) delete m_Pipeline;
     m_Pipeline = nullptr;
+    if(m_Background) delete m_Background;
+    m_Background = nullptr;
     if(m_PresentPipeline) delete m_PresentPipeline;
     m_PresentPipeline = nullptr;
     if(m_Compute) delete m_Compute;
@@ -71,25 +78,44 @@ void pbrDoneCallback(WGPUQueueWorkDoneStatus status, void* userData){
     }
 }
 
+void backgroundDoneCallback(WGPUQueueWorkDoneStatus status, void* userData){
+    if(status == WGPUQueueWorkDoneStatus_Success){
+        if(!userData) printf("Renderer  not attached to queue callback\n");
+        Renderer* renderer = (Renderer*)userData;
+        renderer->present();
+    }
+}
+
 int animFrameRender(double t, void* userData) {
     // params.pipeline->run(params.scene, params.device, params.swapChain);
     Application::get()->onUpdate();
     return 1;
 }
 
+void pbrPipelineDone(void* args) {
+    if(args){
+        Renderer* rend = (Renderer*)args;
+        rend->renderBackground();
+        rend->present();
+    }
+}
+
 void Renderer::render(Scene* scene)
 {
     if(!scene) return; //TODO: report error?
-
+    m_Scene = scene;
     wgpu::Queue queue = m_Device->getHandle().GetQueue();
     
-    // if(m_Pipeline){
-    //     m_Pipeline->run(scene, m_Device, m_SwapChain, &queue);
-        
-    //     //Wait for queue to finish
-    //     // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
+    if(m_Pipeline){
+        m_Background->setCubemap(m_Pipeline->getDepthTexture(), scene->m_Environment->getBackground(), m_Device);
 
-    // }
+        //TODO: make a task for execution instead of callback and argument passing
+        m_Pipeline->run(scene, m_Device, m_SwapChain, &queue, pbrPipelineDone, (void*)this);
+        
+        //Wait for queue to finish
+        // queue.OnSubmittedWorkDone(0, pbrDoneCallback, this);
+
+    }
 
     // if(m_Compute){
     //     m_Compute->run(m_Device, m_SwapChain);
@@ -113,19 +139,25 @@ void Renderer::render(Scene* scene)
     static bool updateMap = true;
     if(m_CubemapVizPipeline){
         if(updateMap){
-            m_CubemapVizPipeline->setCubemap(scene->m_Environment->getBackground(), m_Device);
+            // m_CubemapVizPipeline->setCubemap(scene->m_Environment->getBackground(), m_Device);
+            m_Background->setCubemap(m_Pipeline->getDepthTexture(), scene->m_Environment->getBackground(), m_Device);
             updateMap = false;
         }
-        m_CubemapVizPipeline->run(m_Device, m_SwapChain);
-        emscripten_request_animation_frame(animFrameRender, nullptr);
+        // m_CubemapVizPipeline->run(m_Device, m_SwapChain);
+        // emscripten_request_animation_frame(animFrameRender, nullptr);
     }
     
 
 }
 
+void Renderer::renderBackground()
+{
+    wgpu::Queue queue = m_Device->getHandle().GetQueue();
+    m_Background->run(m_Scene->m_Camera.viewMatrix, m_Device, m_Pipeline->getOutputTexture(), &queue);
+}
+
 void Renderer::present()
 {
-    printf("Present\n");
     m_PresentPipeline->run(m_Device, m_SwapChain);
     emscripten_request_animation_frame(animFrameRender, nullptr);
 }

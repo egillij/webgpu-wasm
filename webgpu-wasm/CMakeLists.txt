@@ -45,6 +45,8 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/CubemapShaders.h
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.h
 	src/Renderer/Pipelines/CubemapVizualizationPipeline.cpp
+	src/Renderer/Pipelines/CubemapBackgroundPipeline.h
+	src/Renderer/Pipelines/CubemapBackgroundPipeline.cpp
 
 	src/Renderer/PreProcessors/CubemapGenerationShaders.h
 	src/Renderer/PreProcessors/CubemapGenerationPipeline.h

@@ -23,9 +23,7 @@ struct LoadData {
 std::string extractExtension(const std::string& filename)
 {
     size_t lastDot = filename.find_last_of(".");
-    printf("lastDot: %zu\n", lastDot);
     std::string extension = filename.substr(lastDot+1, filename.size()-lastDot-1);
-    printf("ext: %s\n", extension.c_str());
 
     return extension;
 }
@@ -220,6 +218,7 @@ WGpuCubemap* TextureSystem::registerCubemap(uint32_t id, const std::string& name
     LoadData* loadData = new LoadData;
     loadData->texSystem = this;
     loadData->textureId = id;
+    loadData->task = nullptr;
 
     emscripten_async_wget_data(filename.c_str(), (void*)loadData, onCubemapLoadSuccess, onCubemapLoadError);
 

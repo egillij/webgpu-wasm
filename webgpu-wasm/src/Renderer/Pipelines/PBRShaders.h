@@ -147,10 +147,11 @@ static const char pbrLightingCode[] = R"(
 
     struct SceneUniforms {
         viewProjection : mat4x4<f32>,
+        view : mat4x4<f32>,
         cameraPosition : vec3<f32>
     };
 
-    const lDir = vec3<f32>(0.0, 0.0, -1.0);
+    const lDir = vec3<f32>(1.0, -1.0, -1.0);
     const lCol = vec3<f32>(1.0, 1.0, 1.0);
 
     @group(0) @binding(0) var<uniform> sceneUniforms : SceneUniforms;
@@ -180,7 +181,7 @@ static const char pbrLightingCode[] = R"(
 
         let normalsAo : vec4<f32> = textureSample(normalsAoTexture, nearestSampler, lookupuv);
         var N = normalize(normalsAo.xyz);
-        let ao = normalsAo.w;
+        let ao = 0.001;// normalsAo.w;
 
         // View vector
         let V = normalize(position - sceneUniforms.cameraPosition);
@@ -190,53 +191,58 @@ static const char pbrLightingCode[] = R"(
         if(N_dot_V < 0.0)   {
             N = -N;
         }
-    
-        // let fragColor = vec4<f32>(albedo, 1.0);
-        // return fragColor;
 
         var F0 : vec3<f32> = vec3<f32>(0.04);
         F0 = mix(F0, albedo, metallic);
 
         var Lo : vec3<f32> = vec3<f32>(0.0);
 
-        // Lighting
-        let L = lDir; // Already normalized
+        for(var i : i32 = 0; i < 2; i++){
+            // Lighting
+            var L = lDir; // Already normalized
+            if(i == 1){
+                L = vec3<f32>(-1.f, -1.f, -1.f);
+            }
+            else if(i == 2){
+                L = normalize(vec3<f32>(-1.f, 1.f, -1.f));
+            }
 
-        let H : vec3<f32> = normalize(-V-L);
+            let H : vec3<f32> = normalize(-V-L);
 
-        let NdotL : f32 = max(0.0, dot(N, -L));
-        let NdotV : f32 = max(0.0, dot(N, -V));
-        let NdotH : f32 = max(0.0, dot(N, H));
-        let HdotV : f32 = max(0.0, dot(H, -V));
+            let NdotL : f32 = max(0.0, dot(N, -L));
+            let NdotV : f32 = max(0.0, dot(N, -V));
+            let NdotH : f32 = max(0.0, dot(N, H));
+            let HdotV : f32 = max(0.0, dot(H, -V));
 
-        let radiance : vec3<f32> = lCol;
+            let radiance : vec3<f32> = lCol;
 
-        let NDF : f32 = DistributionGGX(NdotH, roughness);
-        let G : f32 = GeometrySmith(NdotV, NdotL, roughness);
-        let F : vec3<f32> = fresnelSchlick(HdotV, F0);
+            let NDF : f32 = DistributionGGX(NdotH, roughness);
+            let G : f32 = GeometrySmith(NdotV, NdotL, roughness);
+            let F : vec3<f32> = fresnelSchlick(HdotV, F0);
 
-        let kS : vec3<f32> = F;
-        var kD : vec3<f32> = vec3<f32>(1.0) - kS;
-        kD *= 1.0 - metallic;
+            let kS : vec3<f32> = F;
+            var kD : vec3<f32> = vec3<f32>(1.0) - kS;
+            kD *= 1.0 - metallic;
 
-        let num : vec3<f32> = NDF * G * F;
-        let den : f32 = 4.0 * NdotV * NdotL + 0.0001;
-        let specular = num / den;
+            let num : vec3<f32> = NDF * G * F;
+            let den : f32 = 4.0 * NdotV * NdotL + 0.0001;
+            let specular = num / den;
 
-        Lo = (M_1_PI * kD * albedo + specular) * radiance * NdotL;
+            Lo += (M_1_PI * kD * albedo + specular) * radiance * NdotL;
+        }
         
         let ambient = ao * albedo;
 
         var color = ambient +  Lo;
 
         // Tone mapping
-        color = color / (color + vec3(1.0));
+        // color = color / (color + vec3(1.0));
 
-        // Gamma correction
-        let gamma : f32 = 1.0 / 2.2;
-        let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
+        // // Gamma correction
+        // let gamma : f32 = 1.0 / 2.2;
+        // let gammaVec : vec3<f32> = vec3<f32>(gamma, gamma, gamma);
 
-        let fragColor = vec4<f32>(pow(color, gammaVec), 1.0);
-        return fragColor;
+        // let fragColor = vec4<f32>(pow(color, gammaVec), 1.0);
+        return vec4<f32>(color, 1.0);
     }
 )";

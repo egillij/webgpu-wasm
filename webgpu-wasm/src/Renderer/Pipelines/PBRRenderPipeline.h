@@ -27,8 +27,10 @@ public:
     PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice* device);
     ~PBRRenderPipeline();
  
-    virtual void run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue* queue) override;
+    virtual void run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue* queue, PipelineDoneCallback callback, void* args) override;
     virtual WGpuTexture* getOutputTexture() override { return m_OutputTexture; };
+
+    virtual WGpuTexture* getDepthTexture() override { return m_DepthTexture; }
     
 // private:
     void render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::CommandEncoder* commandEncoder);//, wgpu::CommandEncoder& encoder);
@@ -56,9 +58,13 @@ private:
     WGpuSampler* m_NearestSampler;
     WGpuSampler* m_NearestSampler2;
 
-
     WGpuTexture* m_DepthTexture;
     WGpuTexture* m_OutputTexture;
 
     bool m_CacheTransforms;
+
+    struct TaskComplete {
+        PipelineDoneCallback  callback;
+        void* args;
+    } m_CompletionTask;
 };

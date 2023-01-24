@@ -60,7 +60,7 @@ int pbrAnimationFrame(double t, void* userData) {
 void queueDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata){
     if(status == WGPUQueueWorkDoneStatus_Success){
         params.pipeline->light(params.scene, params.device, params.swapChain);
-        emscripten_request_animation_frame(pbrAnimationFrame, nullptr);
+        // emscripten_request_animation_frame(pbrAnimationFrame, nullptr);
     }
 }
 
@@ -115,7 +115,7 @@ PBRRenderPipeline::PBRRenderPipeline(uint32_t width, uint32_t height, WGpuDevice
 
     ShaderDescription pbrLightingDescription{};
     pbrLightingDescription.shaderCode = pbrLightingCode;
-    pbrLightingDescription.colorTargets = {TextureFormat::BGRA8Unorm};
+    pbrLightingDescription.colorTargets = {TextureFormat::RGBA32Float};
     m_LightingShader = new WGpuShader("PBR_Lighting_Shader", pbrLightingDescription, device);  
     m_LightingPipeline = new WGpuPipeline("PBR Lighting Pipeline");
     m_LightingPipeline->addBindGroup(m_SceneUniformBindGroupLayout);
@@ -183,9 +183,12 @@ PBRRenderPipeline::~PBRRenderPipeline()
     if(m_LightingPipeline) delete m_LightingPipeline;
 }
 
-void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue *queue)
+void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::Queue *queue, PipelineDoneCallback callback, void* args)
 {
     if(!scene || !device || !swapChain) return;
+
+    m_CompletionTask.callback = callback;
+    m_CompletionTask.args = args;
 
     params.pipeline = this;
     params.device = device;
@@ -392,10 +395,10 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
 void PBRRenderPipeline::light(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain)
 {
     wgpu::Queue queue = device->getHandle().GetQueue();
-    wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
+    // wgpu::TextureView backBuffer = swapChain->getCurrentFrameTexture();// swapChain.GetCurrentTextureView();
 
     wgpu::RenderPassColorAttachment attachment{};
-    attachment.view = backBuffer;// m_OutputTexture->createView();
+    attachment.view = m_OutputTexture->createView();
     attachment.loadOp = wgpu::LoadOp::Clear;
     attachment.storeOp = wgpu::StoreOp::Store;
     attachment.clearValue = {0, 0, 0, 1};
@@ -420,4 +423,6 @@ void PBRRenderPipeline::light(Scene* scene, WGpuDevice* device, WGpuSwapChain* s
     }
     
     queue.Submit(1, &commands);
+
+    m_CompletionTask.callback(m_CompletionTask.args);
 }

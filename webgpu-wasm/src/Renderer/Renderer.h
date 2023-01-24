@@ -20,6 +20,7 @@ class RenderPipeline;
 class PresentPipeline;
 class CubemapVizualizationPipeline;
 class CubemapGenerationPipeline;
+class CubemapBackgroundPipeline;
 
 
 class Renderer {
@@ -28,7 +29,7 @@ public:
     ~Renderer();
 
     void render(Scene* scene);
-
+    void renderBackground();
     void present();
 
 private:
@@ -36,6 +37,8 @@ private:
     WGpuSwapChain* m_SwapChain = nullptr;
 
     RenderPipeline* m_Pipeline;
+
+    CubemapBackgroundPipeline* m_Background;
     
     PresentPipeline* m_PresentPipeline;
 
@@ -44,4 +47,6 @@ private:
     CubemapVizualizationPipeline* m_CubemapVizPipeline;
 
     CubemapGenerationPipeline* m_DiffuseConvolutionPipeline;
+
+    Scene* m_Scene;
 };
