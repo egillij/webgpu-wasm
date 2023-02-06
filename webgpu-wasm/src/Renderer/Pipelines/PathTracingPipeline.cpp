@@ -204,8 +204,9 @@ fn shadeRay(payload : ptr<function, Payload>, pointLight : PointLight, material 
 
 @group(0) @binding(0) var targetTexture : texture_storage_2d<rgba8unorm, write>;
 
-@compute @workgroup_size(1, 1, 1)
-fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
+// @compute @workgroup_size(1, 1, 1)
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) invocationId : vec3<u32> ) {
     ////////////////////////////////////////////////////////
     //Scene. Gera þetta öðruvísis svo þetta sé ekki búið til í hvert skipti
     const NUM_MATERIALS = 5;
@@ -329,8 +330,13 @@ fn main(@builtin(local_invocation_id) invocationId : vec3<u32> ) {
 
     //////////////////////////////////////////////////////
 
-    for(var x : u32 = 0; x < 500; x++) {
-        for(var y : u32 = 0; y < 500; y++) {
+    var xRange : u32 = 500 / 8;
+    var yRange : u32 = 500 / 8;
+    var xStart : u32 = 500 / 8 * invocationId.x;
+    var yStart : u32 = 500 / 8 * invocationId.y;
+
+    for(var x : u32 = xStart; x < xStart+xRange; x++) {
+        for(var y : u32 = yStart; y < yStart+yRange; y++) {
             var closestPayload : Payload;
             closestPayload.hit = false;
             closestPayload.distance = -1.0;
@@ -487,7 +493,7 @@ void PathTracingPipeline::run(WGpuDevice* device, wgpu::Queue* queue)
     computePass.SetLabel("Path Tracing Pass");
     computePass.SetBindGroup(0, m_BindGroup->get());
 
-    computePass.DispatchWorkgroups(1, 1, 1);
+    computePass.DispatchWorkgroups(8, 8, 1);
 
     computePass.End();
 

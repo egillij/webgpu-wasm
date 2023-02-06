@@ -32,11 +32,6 @@
 #define EM_ASM(x, y)
 #endif
 
-// #define WAIT_FOR_QUEUE 1
-// #ifdef WAIT_FOR_QUEUE
-// #undef WAIT_FOR_QUEUE
-// #endif
-
 static uint32_t totalTriangles = 0;
 static uint32_t uniqueTriangles = 0;
 static uint32_t uniqueObjects = 0;
@@ -202,17 +197,7 @@ void PBRRenderPipeline::run(Scene* scene, WGpuDevice* device, WGpuSwapChain* swa
     wgpu::CommandBuffer commands = encoder.Finish();
     queue->Submit(1, &commands);
 
-    #ifdef WAIT_FOR_QUEUE
     queue->OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
-    #endif
-
-    // #ifndef WAIT_FOR_QUEUE
-    // light(scene, device, swapChain, &encoder);
-    // #endif
-    // swapChain->present();
-
-    // wgpu::CommandBuffer commands = encoder.Finish();
-    // queue->Submit(1, &commands);
 }
 
 void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* swapChain, wgpu::CommandEncoder* encoder)
@@ -385,10 +370,6 @@ void PBRRenderPipeline::render(Scene* scene, WGpuDevice* device, WGpuSwapChain* 
     // wgpu::Queue queue = device->getHandle().GetQueue();
     // wgpu::CommandBuffer commands = encoder.Finish();
     // queue.Submit(1, &commands);
-
-    // #ifdef WAIT_FOR_QUEUE
-    // queue.OnSubmittedWorkDone(0, queueDoneCallback, nullptr);
-    // #endif
     
 }
 
