@@ -42,11 +42,24 @@ SET(WW_SOURCES
 	src/Renderer/Pipelines/PresentPipeline.h
 	src/Renderer/Pipelines/PresentPipeline.cpp
 
+	src/Renderer/Pipelines/CubemapShaders.h
+	src/Renderer/Pipelines/CubemapVizualizationPipeline.h
+	src/Renderer/Pipelines/CubemapVizualizationPipeline.cpp
+	src/Renderer/Pipelines/CubemapBackgroundPipeline.h
+	src/Renderer/Pipelines/CubemapBackgroundPipeline.cpp
+
+	src/Renderer/PreProcessors/CubemapGenerationShaders.h
+	src/Renderer/PreProcessors/CubemapGenerationPipeline.h
+	src/Renderer/PreProcessors/CubemapGenerationPipeline.cpp
+
 	src/Renderer/WebGPU/wgpuBindGroup.h
 	src/Renderer/WebGPU/wgpuBindGroup.cpp
 
 	src/Renderer/WebGPU/wgpuBuffer.h
 	src/Renderer/WebGPU/wgpuBuffer.cpp
+
+	src/Renderer/WebGPU/ComputePipeline.h
+	src/Renderer/WebGPU/ComputePipeline.cpp
 
 	src/Renderer/WebGPU/wgpuDevice.h
 	src/Renderer/WebGPU/wgpuDevice.cpp
@@ -69,11 +82,17 @@ SET(WW_SOURCES
 	src/Renderer/WebGPU/wgpuTexture.h
 	src/Renderer/WebGPU/wgpuTexture.cpp
 
+	src/Renderer/WebGPU/wgpuCubemap.h
+	src/Renderer/WebGPU/wgpuCubemap.cpp
+
 	src/Renderer/WebGPU/wgpuUniformBuffer.h
 	src/Renderer/WebGPU/wgpuUniformBuffer.cpp
 
 	src/Renderer/WebGPU/wgpuVertexBuffer.h
 	src/Renderer/WebGPU/wgpuVertexBuffer.cpp	
+
+	src/Scene/Environment.h
+	src/Scene/Environment.cpp
 
 	src/Scene/GameObject.h
 	src/Scene/GameObject.cpp
@@ -84,6 +103,19 @@ SET(WW_SOURCES
 	src/Scene/SceneUtils/B1BattleDroid.h
 
 	src/Utils/UniformStructs.h
+
+	src/Renderer/Pipelines/TestComputePipeline.h
+	src/Renderer/Pipelines/TestComputePipeline.cpp
+
+	src/Renderer/Pipelines/ProceduralPipeline.h
+	src/Renderer/Pipelines/Procedural/NoisePipeline.h
+	src/Renderer/Pipelines/Procedural/NoisePipeline.cpp
+
+	src/Renderer/PathTracer.h
+	src/Renderer/PathTracer.cpp
+
+	src/Renderer/Pipelines/PathTracingPipeline.h
+	src/Renderer/Pipelines/PathTracingPipeline.cpp
 )
 
 add_executable(wgpu_wasm ${WW_SOURCES})
@@ -92,7 +124,6 @@ SET(LINKER_FLAGS
 -s USE_WEBGPU=1
 -o index.html
 -s ASSERTIONS=2
--s ASYNCIFY
 )
 
 add_compile_definitions("WAIT_FOR_QUEUE")

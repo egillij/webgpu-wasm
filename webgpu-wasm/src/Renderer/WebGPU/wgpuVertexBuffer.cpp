@@ -15,3 +15,7 @@ WGpuVertexBuffer::WGpuVertexBuffer(WGpuDevice* device, const std::string& label,
 
     create(description);
 }
+
+WGpuVertexBuffer::~WGpuVertexBuffer() 
+{
+}

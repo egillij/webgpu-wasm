@@ -6,7 +6,7 @@ class WGpuDevice final {
 public:
     WGpuDevice() {};
     WGpuDevice(wgpu::Device device);
-    ~WGpuDevice() {};
+    ~WGpuDevice();
 
     wgpu::Device& getHandle() {return m_Device;}
 

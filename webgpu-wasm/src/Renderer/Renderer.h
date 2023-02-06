@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "Renderer/Pipelines/TestComputePipeline.h"
+
 class WGpuDevice;
 class WGpuSwapChain;
 class WGpuPipeline;
@@ -16,6 +18,10 @@ class Scene;
 
 class RenderPipeline;
 class PresentPipeline;
+class CubemapVizualizationPipeline;
+class CubemapGenerationPipeline;
+class CubemapBackgroundPipeline;
+
 
 class Renderer {
 public:
@@ -23,7 +29,7 @@ public:
     ~Renderer();
 
     void render(Scene* scene);
-
+    void renderBackground();
     void present();
 
 private:
@@ -31,6 +37,16 @@ private:
     WGpuSwapChain* m_SwapChain = nullptr;
 
     RenderPipeline* m_Pipeline;
+
+    CubemapBackgroundPipeline* m_Background;
     
     PresentPipeline* m_PresentPipeline;
+
+    TestComputePipeline* m_Compute;
+
+    CubemapVizualizationPipeline* m_CubemapVizPipeline;
+
+    CubemapGenerationPipeline* m_DiffuseConvolutionPipeline;
+
+    Scene* m_Scene;
 };

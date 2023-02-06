@@ -4,6 +4,7 @@
 #include "wgpuBuffer.h"
 #include "wgpuSampler.h"
 #include "wgpuTexture.h"
+#include "wgpuCubemap.h"
 
 WGpuBindGroupLayout::WGpuBindGroupLayout(const std::string& label)
 : m_Label(label)
@@ -13,7 +14,8 @@ WGpuBindGroupLayout::WGpuBindGroupLayout(const std::string& label)
     
 WGpuBindGroupLayout::~WGpuBindGroupLayout()
 {
-
+    m_Entries.clear();
+    m_Layout.Release();
 }
 
 void WGpuBindGroupLayout::addBuffer(BufferBindingType bindingType, uint64_t minBindingSize, uint32_t bindingSlot, wgpu::ShaderStage visiblity)
@@ -46,6 +48,31 @@ void WGpuBindGroupLayout::addTexture(TextureSampleType sampleType, uint32_t bind
     entry_.bindingSlot = bindingSlot;
     entry_.visibility = visibility;
     entry_.texture.type = sampleType;
+
+    m_Entries.push_back(entry_);
+}
+
+void WGpuBindGroupLayout::addStorageTexture(wgpu::StorageTextureAccess access, TextureFormat format, wgpu::TextureViewDimension dim, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    LayoutEntry entry_;
+    entry_.entryType = LayoutEntry::Type::StorageTexture;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+
+    entry_.storagTexture.access = access;
+    entry_.storagTexture.format = format;
+    entry_.storagTexture.dim = dim;
+
+    m_Entries.push_back(entry_);
+}
+
+void WGpuBindGroupLayout::addCubemap(TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    LayoutEntry entry_;
+    entry_.entryType = LayoutEntry::Type::Cubemap;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.cubemap.type = sampleType;
 
     m_Entries.push_back(entry_);
 }
@@ -98,7 +125,37 @@ void WGpuBindGroupLayout::build(WGpuDevice *device)
                 bindGroupLayoutEntries.emplace_back(bglEntry);
                 break;
             }
+            case LayoutEntry::Type::StorageTexture: {
+                wgpu::StorageTextureBindingLayout stbl{};
+                stbl.access = entry_.storagTexture.access; //TODO: nota eigin týpu
+                stbl.format = static_cast<wgpu::TextureFormat>(entry_.storagTexture.format);
+                stbl.viewDimension = entry_.storagTexture.dim; //TODO: nota eigin týpu
 
+                wgpu::BindGroupLayoutEntry bglEntry{};
+                bglEntry.binding = entry_.bindingSlot;
+                bglEntry.visibility = entry_.visibility;
+                bglEntry.storageTexture = stbl;
+
+                bindGroupLayoutEntries.emplace_back(bglEntry);
+                break;
+            }
+            case LayoutEntry::Type::Cubemap: {
+                wgpu::TextureBindingLayout tbl{};
+                tbl.multisampled = false;
+                tbl.sampleType = static_cast<wgpu::TextureSampleType>(entry_.cubemap.type);
+                tbl.viewDimension = wgpu::TextureViewDimension::Cube;
+
+                wgpu::BindGroupLayoutEntry bglEntry{};
+                bglEntry.binding = entry_.bindingSlot;
+                bglEntry.visibility = entry_.visibility;
+                bglEntry.texture = tbl;
+
+                bindGroupLayoutEntries.emplace_back(bglEntry);
+                break;
+            }
+            default: {
+                printf("BindGroupLayoutEntry type not implemented (%i)\n", static_cast<int>(entry_.entryType));
+            }
         }
     }
 
@@ -129,6 +186,7 @@ WGpuBindGroup::WGpuBindGroup(const std::string& label)
 WGpuBindGroup::~WGpuBindGroup()
 {
     m_BindGroup.Release();
+    m_Entries.clear();
 }
 
 void WGpuBindGroup::setLayout(WGpuBindGroupLayout* layout)
@@ -173,6 +231,29 @@ void WGpuBindGroup::addTexture(WGpuTexture* texture, TextureSampleType sampleTyp
     m_Entries.push_back(entry_);
 }
 
+void WGpuBindGroup::addCubemap(WGpuCubemap* cubemap, TextureSampleType sampleType, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    Entry entry_;
+    entry_.entryType = Entry::Type::Cubemap;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.cubemap.cubemap = cubemap;
+    entry_.cubemap.type = sampleType;
+
+    m_Entries.push_back(entry_);
+}
+
+void WGpuBindGroup::addStorageTexture(WGpuTexture* texture, uint32_t bindingSlot, wgpu::ShaderStage visibility)
+{
+    Entry entry_;
+    entry_.entryType = Entry::Type::StorageTexture;
+    entry_.bindingSlot = bindingSlot;
+    entry_.visibility = visibility;
+    entry_.storageTexture.texture = texture;
+
+    m_Entries.push_back(entry_);
+}
+
 void WGpuBindGroup::build(WGpuDevice *device)
 {
     if(!device) return;
@@ -204,20 +285,34 @@ void WGpuBindGroup::build(WGpuDevice *device)
             case Entry::Type::Texture: {
                 wgpu::BindGroupEntry bge{};
                 bge.binding = entry_.bindingSlot;
-
-                // wgpu::TextureViewDescriptor texViewDesc{};
-                // texViewDesc.label = "Texture View Label"; //TODO: create something from the texture label??
-                // texViewDesc.format = wgpu::TextureFormat::RGBA8Unorm; //TODO: get from the texture?
-                // texViewDesc.dimension = wgpu::TextureViewDimension::e2D;
-                // texViewDesc.mipLevelCount = 1;
-                // texViewDesc.arrayLayerCount = 1;
-
-                bge.textureView = entry_.texture.texture->createView();// ->getHandle().CreateView(&texViewDesc);
+                bge.textureView = entry_.texture.texture->createView();
 
                 bindGroupEntries.emplace_back(bge);
 
                 break;
             }
+            case Entry::Type::StorageTexture: {
+                wgpu::BindGroupEntry bge{};
+                bge.binding = entry_.bindingSlot;
+                bge.textureView = entry_.storageTexture.texture->createView();
+
+                bindGroupEntries.emplace_back(bge);
+
+                break;
+            }
+            case Entry::Type::Cubemap: {
+                wgpu::BindGroupEntry bge{};
+                bge.binding = entry_.bindingSlot;
+                bge.textureView = entry_.cubemap.cubemap->createView();
+
+                bindGroupEntries.emplace_back(bge);
+
+                break;
+            }
+            default: {
+                printf("Entry type not implemented (%i)\n", static_cast<int>(entry_.entryType));
+            }
+
 
         }
     }

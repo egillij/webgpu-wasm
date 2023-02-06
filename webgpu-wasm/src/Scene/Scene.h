@@ -8,6 +8,7 @@
 #include "GameObject.h"
 
 #include "Utils/UniformStructs.h"
+#include "Renderer/Pipelines/ProceduralPipeline.h"
 
 class MaterialSystem;
 class GeometrySystem;
@@ -22,6 +23,8 @@ class WGpuPipeline;
 class WGpuShader;
 class WGpuTexture;
 class WGpuSampler;
+
+class Environment;
 
 #define MATERIAL_NO_ID 0
 #define MODEL_NO_ID 0
@@ -42,6 +45,7 @@ struct MaterialDescription {
     std::string name = {};
     std::string filename = {};
     glm::vec4 albedo = glm::vec4(0.6f, 0.6f, 0.6f, 1.f);
+    ProceduralPipeline* albedoPipeline = nullptr;
     float metallic = 0.f;
     float roughness = 0.f;
     float ao = 0.1f;
@@ -83,6 +87,8 @@ public:
     void onUpdate();
 
 private:
+    void cleanup();
+    
     WGpuBindGroup* getUniformsBindGroup();
     std::vector<GameObject*>& getGameObjects();
 
@@ -96,6 +102,8 @@ private:
 private:
     std::string m_Name;
     std::vector<GameObject*> m_GameObjects;
+
+    Environment* m_Environment;
 
     struct Camera {
         glm::vec3 position;

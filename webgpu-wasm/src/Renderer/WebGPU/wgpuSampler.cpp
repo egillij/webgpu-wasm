@@ -27,5 +27,5 @@ WGpuSampler::WGpuSampler(const std::string& label, const SamplerCreateInfo* crea
 
 WGpuSampler::~WGpuSampler()
 {
-
+    m_Sampler.Release();
 }

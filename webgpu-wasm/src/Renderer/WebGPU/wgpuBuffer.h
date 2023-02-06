@@ -31,7 +31,7 @@ public:
     WGpuBuffer() : m_Device(nullptr) {};
     WGpuBuffer(WGpuDevice* device);
     WGpuBuffer(WGpuDevice* device, const BufferDescription& description);
-    ~WGpuBuffer() {};
+    ~WGpuBuffer();
 
     void create(const BufferDescription& description);
 

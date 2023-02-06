@@ -7,16 +7,19 @@
 #include "Scene/SceneUtils/TantiveIV.h"
 #include "Scene/SceneUtils/Thranta.h"
 #include "Scene/SceneUtils/PongKrell.h"
+#include "Scene/SceneUtils/Plane.h"
 
 #include "Renderer/Renderer.h"
+#include "Renderer/PathTracer.h"
 #include "Renderer/WebGPU/wgpuDevice.h"
 
 #include "Renderer/MaterialSystem.h"
 #include "Renderer/TextureSystem.h"
 #include "Renderer/Geometry/GeometrySystem.h"
+#include "Renderer/Pipelines/Procedural/NoisePipeline.h"
 
 #include <emscripten.h>
-// #include <emscripten/html5.h>
+#include <emscripten/html5.h>
 #include <emscripten/html5_webgpu.h>
 #include <webgpu/webgpu_cpp.h>
 
@@ -31,6 +34,8 @@
 #ifndef __EMSCRIPTEN__
 #define EM_ASM(x, y)
 #endif
+
+// #define PATH_TRACE
 
 static double elapsed = 0.f;
 static double lastTime = 0.f;
@@ -50,6 +55,14 @@ static float fovY = glm::radians(45.f);
 static Application *s_Instance = nullptr;
 
 static WGpuTexture *depthTexture = nullptr;
+
+void materialUpdateDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata)
+{
+    if(status != WGPUQueueWorkDoneStatus::WGPUQueueWorkDoneStatus_Success){
+        printf("Error while waiting for material queue to finish updates.\n");
+    }
+    s_Instance->renderFrame();
+}
 
 void GetDevice()
 {
@@ -102,6 +115,11 @@ void GetDevice()
         nullptr);
 }
 
+int newAnimFrame(double t, void* userData) {
+    Application::get()->onUpdate();
+    return 1;
+}
+
 Application::Application(const std::string &applicationName)
 {
     assert(!s_Instance);
@@ -112,7 +130,10 @@ Application::Application(const std::string &applicationName)
     s_Instance = this;
 
     m_IsInitialized = false;
-    m_Scene = nullptr;
+    m_ActiveScene = nullptr;
+    m_Scene_PathTrac = nullptr;
+    m_Scene_Raster = nullptr;
+    m_State = State::Other;
     // Get the device and then continue with initialization
     GetDevice();
 }
@@ -134,12 +155,170 @@ void Application::initializeAndRun()
     m_GeometrySystem = new GeometrySystem(m_Device);
     m_TextureSystem = new TextureSystem(m_Device);
 
-    const char *battleDroidFile = "b1_battle_droid.obj"; //"character.obj";
+// #ifdef PATH_TRACE
+//     startPathTracer();
+// #else
+    startRasterizer();
+    startPathTracer();
+// #endif
 
+    onUpdate();
+}
+
+void Application::transition(State state)
+{
+    if(m_State == state) return;
+
+    if(state == State::Other) return;
+
+    m_TransitionOnNextFrame = true;
+    m_TargetState = state;
+}
+
+void Application::onUpdate()
+{
+    if (!m_IsInitialized)
+        return;
+
+    if(m_TransitionOnNextFrame){
+        if(m_TargetState == State::PathTracer){
+            //TODO: cleanup the rasterizer state and scene
+            // m_IsInitialized = false;
+            // delete m_Renderer;
+            // m_Renderer = nullptr;
+            // delete m_Scene;
+            // m_Scene = nullptr;
+            
+
+            // m_MaterialSystem->cleanup();
+            // m_GeometrySystem->clear();
+            // m_TextureSystem->clear();
+
+            // startPathTracer();
+            m_ActiveScene = m_Scene_PathTrac;
+            m_State = State::PathTracer;
+            m_TransitionOnNextFrame = false;
+        }
+
+        if(m_TargetState == State::Rasterizer) {
+            //TODO: cleanup the path tracer state and scene
+            // m_IsInitialized = false;
+            // delete m_PathTracer;
+            // m_PathTracer = nullptr;
+            // delete m_Scene;
+            // m_Scene = nullptr;
+
+            // m_MaterialSystem->cleanup();
+            // m_GeometrySystem->clear();
+            // m_TextureSystem->clear();
+
+            // startRasterizer();
+            m_ActiveScene = m_Scene_Raster;
+            m_State = State::Rasterizer;
+            m_TransitionOnNextFrame = false;
+        }
+    }
+
+    if (m_ActiveScene)
+        m_ActiveScene->onUpdate();
+
+
+    double now = emscripten_get_now();
+    double deltaTime = now-lastTime;
+
+    lastTime = now;
+    uint64_t index = frameNo % deltaTimes.size();
+    deltaTimes[index] = deltaTime;
+
+    double avgDelta = 0.f;
+    for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
+    {
+        avgDelta += deltaTimes[i];
+    }
+
+    avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
+    avgDelta /= 1000.0;
+
+    currentFPS = int(1.0/avgDelta);
+    
+    EM_ASM({
+        let elem = document.getElementById("FPSdiv");
+        elem.innerHTML = "FPS: " + $0;
+        }, currentFPS
+    );
+
+    if(m_State == State::PathTracer)
+    {
+        if(m_PathTracer){
+            renderFrame();
+        }
+    }
+    else{
+        if (m_Renderer)
+        {
+            wgpu::Queue materialQueue = m_Device->getHandle().GetQueue();
+
+            bool waitForUpdate = m_MaterialSystem->onUpdate(m_Device, &materialQueue);
+            if(waitForUpdate){
+                //TODO: instead of waiting here we should do it just in time before we do the lighting pass
+                materialQueue.OnSubmittedWorkDone(0, materialUpdateDoneCallback, nullptr);
+            }
+            else {
+                // No updates pending to materials. We can start rendering immediately
+                renderFrame();
+            }        
+        }
+    }
+
+    ++frameNo;
+}
+
+void Application::renderFrame()
+{
+    if(m_State == State::PathTracer)
+    {
+        m_PathTracer->run();
+    }
+    else if(m_State == State::Rasterizer)
+    {
+        m_Renderer->render(m_ActiveScene);
+    }
+}
+
+void Application::startPathTracer()
+{
     SceneDescription scene{};
-    scene.name = "Test Scene";
+    scene.name = "Path Tracer Test Scene";
     std::vector<ModelDescription> models;
     std::vector<MaterialDescription> materials;
+
+    // m_State = State::PathTracer;
+
+    scene.modelDescriptions = models.data();
+    scene.numberOfModels = models.size();
+
+    scene.materialDescriptons = materials.data();
+    scene.numberOfMaterials = materials.size();
+
+    std::vector<GameObjectNode> gameObjects;
+
+    scene.gameObjects = gameObjects.data();
+    scene.numberOfGameObjects = gameObjects.size();
+    m_Scene_PathTrac = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+
+    m_PathTracer = new PathTracer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
+
+    // m_IsInitialized = true;
+}
+
+void Application::startRasterizer()
+{
+    SceneDescription scene{};
+    scene.name = "Resterizer Test Scene";
+    std::vector<ModelDescription> models;
+    std::vector<MaterialDescription> materials;
+
+    m_State = State::Rasterizer;
     int b1StartPartId = models.size() + 1;
     int b1StartMaterialId = materials.size() + 1;
     std::string B1BattleDroidResourceFolder = "B1BattleDroid";
@@ -175,7 +354,23 @@ void Application::initializeAndRun()
     std::string PongKrellResourceFolder = "PongKrell";
     getPongKrellParts(pongKrellStartPartId, PongKrellResourceFolder, models);
     getPongKrellMaterials(pongKrellStartMaterialId, PongKrellResourceFolder, materials);
-    
+
+    int planePartId = models.size() + 1;
+    int planeMaterialId = materials.size() + 1;
+    std::string PlaneResourceFolder = "Plane";
+    getPlaneParts(planePartId, PlaneResourceFolder, models);
+    // Custom material for the plane
+    {
+        MaterialDescription desc{};
+        desc.name = "Plane Material";
+        desc.id = planeMaterialId;
+        desc.albedo = glm::vec4(0.1f, 0.6f, 0.3f, 1.f);
+        desc.albedoPipeline = new NoisePipeline(m_Device);
+        desc.roughness = 0.f;
+        desc.metallic = 0.f;
+        desc.ao = 0.01f;
+        materials.push_back(desc);
+    }
 
     scene.modelDescriptions = models.data();
     scene.numberOfModels = models.size();
@@ -208,6 +403,8 @@ void Application::initializeAndRun()
 
     GameObjectNode pongKrell = getPongKrellParentNode(nodeId, pongKrellStartPartId, pongKrellStartMaterialId, "Pong Krell",
                                                       glm::vec3(0.f), glm::vec3(1.f), glm::vec3(0.f));
+
+    GameObjectNode plane = getPlaneParentNode(nodeId, planePartId, planeMaterialId, "Ground Plane", glm::vec3(0.f), glm::vec3(10.f), glm::vec3(0.f));
 
 
     int xFactor = 10;
@@ -421,57 +618,24 @@ void Application::initializeAndRun()
         gameObjects.push_back(node);
     }
 
+    {
+        //Ground plane
+        GameObjectNode node = plane;
+        node.id = nodeId++;
+        node.name = "Plane";
+        node.position = glm::vec3(0.f);
+        node.scale = glm::vec3(100.f);
+        node.rotation = glm::vec3(0.f);
+        gameObjects.push_back(node);
+    }
+
     scene.gameObjects = gameObjects.data();
     scene.numberOfGameObjects = gameObjects.size();
-
-
-
-    m_Scene = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+    m_Scene_Raster = new Scene(&scene, m_MaterialSystem, m_GeometrySystem, m_Device);
+    m_ActiveScene = m_Scene_Raster;
     m_Renderer = new Renderer(WINDOW_WIDTH, WINDOW_HEIGHT, m_Device);
 
     m_IsInitialized = true;
-
-    onUpdate();
-}
-
-void Application::onUpdate()
-{
-    if (!m_IsInitialized)
-        return;
-
-    if (m_Scene)
-        m_Scene->onUpdate();
-
-    if (m_Renderer)
-    {
-        double now = emscripten_get_now();
-        double deltaTime = now-lastTime;
-
-        lastTime = now;
-        uint64_t index = frameNo % deltaTimes.size();
-        deltaTimes[index] = deltaTime;
-
-        double avgDelta = 0.f;
-        for(int i = 0; i < std::fmin(deltaTimes.size(), frameNo+1); ++i)
-        {
-            avgDelta += deltaTimes[i];
-        }
-
-        avgDelta /= double(std::fmin(deltaTimes.size(), frameNo+1));
-        avgDelta /= 1000.0;
-
-        currentFPS = int(1.0/avgDelta);
-        
-        EM_ASM({
-            let elem = document.getElementById("FPSdiv");
-            elem.innerHTML = $0;
-            }, currentFPS
-        );
-
-        m_Renderer->render(m_Scene);
-    }
-
-    ++frameNo;
 }
 
 Application *Application::get()

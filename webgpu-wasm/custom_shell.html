@@ -59,6 +59,13 @@
       <div id="UniqueObjectCount">0</div>
       <div id="UniquePartCount">0</div>
       <div id="UniqueTriangleCount">0</div>
+      <div id="ModeToggle">
+        <label for="RenderModes">Choose a render mode</label>
+        <select name="RenderModes" id="renderModeSelect">
+          <option value="0">Rasterize</option>
+          <option value="1">Path Trace</option>
+        </select>
+      </div>
       <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
     </div>
     <hr/>
@@ -80,7 +87,13 @@
 
       var Module = {
         preRun: [],
-        postRun: [],
+        postRun: [function() {
+          var s = document.getElementById("renderModeSelect");
+          s.onchange = function(event) {
+            console.log(event.target.value);
+            _changeModes(event.target.value);
+          };
+        }],
         print: (function() {
           var element = document.getElementById('output');
           if (element) element.value = ''; // clear browser cache

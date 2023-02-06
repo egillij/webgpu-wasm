@@ -62,18 +62,21 @@ WGpuTexture::WGpuTexture(const std::string& label, const TextureCreateInfo* crea
     wgpu::Extent3D texExtent{};
     texExtent.width = createInfo->width;
     texExtent.height = createInfo->height;
+    texExtent.depthOrArrayLayers = 1u;
     texDesc.size = texExtent;
     texDesc.usage = static_cast<wgpu::TextureUsage>(createInfo->usage[0]);
     for(int i = 1; i < createInfo->usage.size(); ++i){
         texDesc.usage = texDesc.usage | static_cast<wgpu::TextureUsage>(createInfo->usage[1]);
     }
 
+    texDesc.dimension = wgpu::TextureDimension::e2D;
+
     m_Texture = device->getHandle().CreateTexture(&texDesc);
 }
 
 WGpuTexture::~WGpuTexture()
 {
-
+    m_Texture.Release();
 }
 
 wgpu::TextureView WGpuTexture::createView()
@@ -96,7 +99,6 @@ void WGpuTexture::update(const TextureCreateInfo* createInfo, WGpuDevice* device
 {
     if(!createInfo || !device) return;
     
-    //TODO: first delete current texture
     m_Texture.Release();
     m_Texture = nullptr;
 
@@ -108,6 +110,7 @@ void WGpuTexture::update(const TextureCreateInfo* createInfo, WGpuDevice* device
     wgpu::Extent3D texExtent{};
     texExtent.width = createInfo->width;
     texExtent.height = createInfo->height;
+    texExtent.depthOrArrayLayers = 1u;
     texDesc.size = texExtent;
     texDesc.usage = static_cast<wgpu::TextureUsage>(createInfo->usage[0]);
     for(int i = 1; i < createInfo->usage.size(); ++i){

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
 #include <glm/vec3.hpp>
 
@@ -11,8 +12,20 @@ class WGpuTexture;
 class WGpuSampler;
 class WGpuUniformBuffer;
 
+class ProceduralPipeline;
+
+namespace wgpu {
+    class Queue;
+};
+
 enum class MaterialType {
     PBR   
+};
+
+struct TextureOption {
+    std::string filename = {};
+    ProceduralPipeline* pipeline = nullptr;
+    WGpuBindGroup* bindgroup = nullptr;
 };
 
 struct PBRUniforms {
@@ -25,7 +38,8 @@ struct PBRUniforms {
     } shaderUniforms;
 
     struct Textures {
-        std::string albedo = {};
+        TextureOption albedo{};
+
         std::string metallic = {};
         std::string roughness = {};
         std::string ambientOcclusion = {};
@@ -40,6 +54,8 @@ public:
 
     virtual void update(const PBRUniforms& data, WGpuDevice* device) = 0;
     virtual void updateBindGroup(WGpuDevice* device) = 0;
+
+    virtual bool onUpdate(WGpuDevice* device, wgpu::Queue* queue) {return false;};
 
 protected:
     Material(const std::string& name, MaterialType type);
@@ -61,6 +77,8 @@ public:
 
     virtual void update(const PBRUniforms& data, WGpuDevice* device) override;
     virtual void updateBindGroup(WGpuDevice* device) override;
+
+    virtual bool onUpdate(WGpuDevice* device, wgpu::Queue* queue) override;
 
 private:
     PBRUniforms m_Uniforms;

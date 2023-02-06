@@ -9,9 +9,16 @@ WGpuBuffer::WGpuBuffer(WGpuDevice* device)
 }
 
 WGpuBuffer::WGpuBuffer(WGpuDevice* device, const BufferDescription& description)
-: m_Device(device)
+: m_Device(device), m_Buffer(nullptr)
 {
     create(description);
+}
+
+WGpuBuffer::~WGpuBuffer()
+{
+    if(m_Buffer){
+        m_Buffer.Destroy();
+    }
 }
 
 void WGpuBuffer::create(const BufferDescription& description)

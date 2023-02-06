@@ -15,6 +15,12 @@ WGpuSwapChain::WGpuSwapChain(WGpuDevice* device, uint32_t width, uint32_t height
     createSwapChain(width, height);
 }
 
+WGpuSwapChain::~WGpuSwapChain()
+{
+    //TODO: is this enough?
+    m_SwapChain.Release();
+}
+
 wgpu::TextureView WGpuSwapChain::getCurrentFrameTexture() const
 {
     return m_SwapChain.GetCurrentTextureView();

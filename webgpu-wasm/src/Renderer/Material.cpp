@@ -1,5 +1,8 @@
 #include "Material.h"
 
+#include "Renderer/WebGPU/wgpuBindGroup.h"
+#include "Renderer/WebGPU/wgpuUniformBuffer.h"
+
 Material::Material(const std::string& name, MaterialType type)
 : m_Name(name), m_Type(type),
   m_MaterialBindGroupLayout(nullptr), m_MaterialBindGroup(nullptr),
@@ -9,4 +12,10 @@ Material::Material(const std::string& name, MaterialType type)
 
 Material::~Material()
 {
+    if(m_MaterialBindGroupLayout) delete m_MaterialBindGroupLayout;
+    m_MaterialBindGroupLayout = nullptr;
+    if(m_MaterialBindGroup) delete m_MaterialBindGroup;
+    m_MaterialBindGroup = nullptr;
+    if(m_UniformBuffer) delete m_UniformBuffer;
+    m_UniformBuffer = nullptr;
 }

@@ -108,7 +108,7 @@ void MaterialSystem::updateMaterial(uint32_t id, void* data, int size)
         materialData.shaderUniforms.ambientOcclusions = params.ao;
 
         if(params.albedoTextureSize > 0){
-            materialData.textures.albedo = std::string(params.albedoTexture);
+            materialData.textures.albedo.filename = std::string(params.albedoTexture);
         }
 
         if(params.metallicTextureSize > 0){
@@ -132,4 +132,18 @@ void MaterialSystem::updateBindgroups()
     for(auto& material : m_Materials){
         material.second->updateBindGroup(m_Device);
     }
+}
+
+bool MaterialSystem::onUpdate(WGpuDevice* device, wgpu::Queue* queue)
+{
+    bool hasUpdates = false;
+    for(auto& material : m_Materials){
+        hasUpdates |= material.second->onUpdate(device, queue);
+    }
+    return hasUpdates;
+}
+
+void MaterialSystem::cleanup()
+{
+    m_Materials.clear();
 }

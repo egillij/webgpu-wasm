@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include <glm/gtc/matrix_transform.hpp>
+#include "Environment.h"
 
 #include "Renderer/WebGPU/wgpuDevice.h"
 #include "Renderer/WebGPU/wgpuUniformBuffer.h"
@@ -18,8 +18,9 @@
 #include "Renderer/MaterialSystem.h"
 #include "Renderer/Geometry/GeometrySystem.h"
 
-#include <emscripten.h>
+#include <glm/gtc/matrix_transform.hpp>
 
+#include <emscripten.h>
 
 
 ///////////////////////////////////////////////////////////////////
@@ -99,11 +100,14 @@ static float aspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WIND
 static float fovY = glm::radians(45.f);
 
 Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem, GeometrySystem* geometrySystem, WGpuDevice* device)
+//TODO: initalize everything that is needed with : 
 {
     m_Name = description->name;
 
     // Temporary???? Þarf kannski ekki að hafa hér
     device_ = device;
+
+    m_Environment = new Environment("Environment Test", "fouriesburg_mountain_midday_2k.hdr", device_);
 
     m_Camera.projectionMatrix = glm::perspective(fovY, aspect, 0.1f, 500.f);
     m_Camera.viewMatrix = glm::lookAt(glm::vec3(-5.f, 2.f, 5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
@@ -152,6 +156,8 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
             mat.shaderUniforms.metallic = material->metallic;
             mat.shaderUniforms.roughness = material->roughness;
             mat.shaderUniforms.ambientOcclusions = material->ao;
+
+            mat.textures.albedo.pipeline = material->albedoPipeline;
 
             materialSystem->registerMaterial(material->id, material->name, mat);
         }
@@ -210,10 +216,30 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
 
 Scene::~Scene()
 {
-    for(int i = 0; i < m_GameObjects.size(); ++i){
-        delete m_GameObjects[i];
-    }
+    cleanup();
+}
+
+void Scene::cleanup()
+{
+    //TODO: properly cleanup all gameobjects
+    // for(int i = 0; i < m_GameObjects.size(); ++i){
+    //     delete m_GameObjects[i];
+    // }
     m_GameObjects.clear();
+
+    if(sceneUniformBuffer) delete sceneUniformBuffer;
+    sceneUniformBuffer = nullptr;
+    if(sceneUniformBindGroupLayout) delete sceneUniformBindGroupLayout;
+    sceneUniformBindGroupLayout = nullptr;
+    if(sceneUniformBindGroup) delete sceneUniformBindGroup;
+    sceneUniformBindGroup= nullptr;
+
+    if(m_NearestSampler) delete m_NearestSampler;
+    m_NearestSampler = nullptr;
+    if(m_SamplerBindGroupLayout) delete m_SamplerBindGroupLayout;
+    m_SamplerBindGroupLayout = nullptr;
+    if(m_SamplerBindGroup) delete m_SamplerBindGroup;
+    m_SamplerBindGroup = nullptr;
 }
 
 void Scene::onUpdate()
@@ -240,7 +266,8 @@ void Scene::onUpdate()
     m_Camera.position = glm::vec3(x, y, z) + focusPoint + cameraCenter;
     m_Camera.viewMatrix = glm::lookAt(m_Camera.position, focusPoint, glm::vec3(0.f, 1.f, 0.f));
     sceneUniforms.viewProjection = m_Camera.projectionMatrix * m_Camera.viewMatrix;
-    sceneUniforms.cameraPosition = m_Camera.position;
+    sceneUniforms.view = m_Camera.viewMatrix;
+    sceneUniforms.cameraPosition = glm::vec4(m_Camera.position, 1.f);
 
 
     // printf("Frame %f\n", weight);
