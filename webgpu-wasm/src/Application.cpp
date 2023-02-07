@@ -56,6 +56,39 @@ static Application *s_Instance = nullptr;
 
 static WGpuTexture *depthTexture = nullptr;
 
+void setSceneInfo()
+{
+    EM_ASM({
+        var sceneDiv = document.getElementById("scene_info");
+
+        function addResource(name, url) {
+            var d = document.createElement("div");
+            var a = document.createElement("a");
+            a.href = url;
+            a.innerHTML = name;
+            d.appendChild(a);
+            sceneDiv.appendChild(d);
+        }
+
+        addResource("B1 Battle Droid", "https://sketchfab.com/3d-models/b1-battle-droid-5e098a79422b476388f59b189c5bbd4e");
+
+        addResource("Buzz Droid", "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3");
+
+        addResource("Jedi Starfighter", "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd");
+
+        // a = document.createElement("a");
+        // a.href = "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3";
+        // a.innerHTML = "Buzz Droid";
+        // sceneDiv.appendChild(a);
+
+        // a = document.createElement("a");
+        // a.href = "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd";
+        // a.innerHTML = "Jedi Starfighter";
+        // sceneDiv.appendChild(a);
+
+    });
+}
+
 void materialUpdateDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata)
 {
     if(status != WGPUQueueWorkDoneStatus::WGPUQueueWorkDoneStatus_Success){
@@ -158,8 +191,11 @@ void Application::initializeAndRun()
 // #ifdef PATH_TRACE
 //     startPathTracer();
 // #else
+    EM_ASM(Module.setStatus("Initializing Rasterizer..."););
     startRasterizer();
+    EM_ASM(Module.setStatus("Initializing Path Tracer..."););
     startPathTracer();
+    EM_ASM(Module.setStatus(""););
 // #endif
 
     onUpdate();
@@ -182,40 +218,16 @@ void Application::onUpdate()
 
     if(m_TransitionOnNextFrame){
         if(m_TargetState == State::PathTracer){
-            //TODO: cleanup the rasterizer state and scene
-            // m_IsInitialized = false;
-            // delete m_Renderer;
-            // m_Renderer = nullptr;
-            // delete m_Scene;
-            // m_Scene = nullptr;
-            
-
-            // m_MaterialSystem->cleanup();
-            // m_GeometrySystem->clear();
-            // m_TextureSystem->clear();
-
-            // startPathTracer();
             m_ActiveScene = m_Scene_PathTrac;
             m_State = State::PathTracer;
             m_TransitionOnNextFrame = false;
         }
 
         if(m_TargetState == State::Rasterizer) {
-            //TODO: cleanup the path tracer state and scene
-            // m_IsInitialized = false;
-            // delete m_PathTracer;
-            // m_PathTracer = nullptr;
-            // delete m_Scene;
-            // m_Scene = nullptr;
-
-            // m_MaterialSystem->cleanup();
-            // m_GeometrySystem->clear();
-            // m_TextureSystem->clear();
-
-            // startRasterizer();
             m_ActiveScene = m_Scene_Raster;
             m_State = State::Rasterizer;
             m_TransitionOnNextFrame = false;
+            setSceneInfo();
         }
     }
 
