@@ -76,6 +76,12 @@ void setSceneInfo()
 
         addResource("Jedi Starfighter", "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd");
 
+        addResource("Outrider Thranta Class", "https://sketchfab.com/3d-models/star-wars-outrider-thranta-class-f0cded07ccc247dca419329afd0819a9");
+
+        addResource("Tantive IV", "https://sketchfab.com/3d-models/star-wars-cr-90-60e26a508ca84126b30f01461f60086e");
+
+        addResource("Pong Krell ", "https://sketchfab.com/3d-models/pong-krell-star-wars-jedi-general-c3ba011873f2490eb8c48f6ef80b7f93");
+
         // a = document.createElement("a");
         // a.href = "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3";
         // a.innerHTML = "Buzz Droid";
