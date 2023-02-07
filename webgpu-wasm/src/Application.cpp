@@ -56,43 +56,66 @@ static Application *s_Instance = nullptr;
 
 static WGpuTexture *depthTexture = nullptr;
 
-void setSceneInfo()
+void setSceneInfo(Application::State state)
 {
-    EM_ASM({
-        var sceneDiv = document.getElementById("scene_info");
+    if(state == Application::State::Rasterizer){
+        EM_ASM({
+            var sceneDiv = document.getElementById("scene_info");
+            while(sceneDiv.children.length > 0) {
+                sceneDiv.removeChild(sceneDiv.children[0]);
+            }
 
-        function addResource(name, url) {
-            var d = document.createElement("div");
-            var a = document.createElement("a");
-            a.href = url;
-            a.innerHTML = name;
-            d.appendChild(a);
-            sceneDiv.appendChild(d);
-        }
+            function addResource(name, url, thumbnail) {
+                var d = document.createElement("div");
+                d.className = "scene_element";
+                var d2 = document.createElement("div");
 
-        addResource("B1 Battle Droid", "https://sketchfab.com/3d-models/b1-battle-droid-5e098a79422b476388f59b189c5bbd4e");
+                var header = document.createElement("h4");
+                header.className = "info_text";
+                header.innerHTML = name;
+                d.appendChild(header);
 
-        addResource("Buzz Droid", "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3");
+                var a = document.createElement("a");
+                a.href = url;
+                a.target = "_blank";
 
-        addResource("Jedi Starfighter", "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd");
+                var img = document.createElement("img");
+                img.src = thumbnail;
+                img.className = "scene_thumbnail";
+                a.appendChild(img);
+                d.appendChild(a);
 
-        addResource("Outrider Thranta Class", "https://sketchfab.com/3d-models/star-wars-outrider-thranta-class-f0cded07ccc247dca419329afd0819a9");
+                var aa = document.createElement("a");
+                aa.href = url;
+                aa.target = "_blank";
+                aa.innerHTML = "Sketchfab";
+                d2.appendChild(aa);
+                d.appendChild(d2);
+                
+                sceneDiv.appendChild(d);
+            }
 
-        addResource("Tantive IV", "https://sketchfab.com/3d-models/star-wars-cr-90-60e26a508ca84126b30f01461f60086e");
+            addResource("B1 Battle Droid", "https://sketchfab.com/3d-models/b1-battle-droid-5e098a79422b476388f59b189c5bbd4e", "resources/thumbnails/b1_battle_droid.png");
 
-        addResource("Pong Krell ", "https://sketchfab.com/3d-models/pong-krell-star-wars-jedi-general-c3ba011873f2490eb8c48f6ef80b7f93");
+            addResource("Buzz Droid", "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3", "resources/thumbnails/buzz_droid.png");
 
-        // a = document.createElement("a");
-        // a.href = "https://sketchfab.com/3d-models/buzz-droid-star-wars-939daac943324c10b5e245e0580752e3";
-        // a.innerHTML = "Buzz Droid";
-        // sceneDiv.appendChild(a);
+            addResource("Jedi Starfighter", "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd", "resources/thumbnails/jedi_starfighter.png");
 
-        // a = document.createElement("a");
-        // a.href = "https://sketchfab.com/3d-models/jedi-star-fighter-0b641c2f2b854f1f9ae7f2a731e44dbd";
-        // a.innerHTML = "Jedi Starfighter";
-        // sceneDiv.appendChild(a);
+            addResource("Outrider Thranta Class", "https://sketchfab.com/3d-models/star-wars-outrider-thranta-class-f0cded07ccc247dca419329afd0819a9", "resources/thumbnails/thranta.png");
 
-    });
+            addResource("Tantive IV", "https://sketchfab.com/3d-models/star-wars-cr-90-60e26a508ca84126b30f01461f60086e", "resources/thumbnails/tantive_iv.png");
+
+            addResource("Pong Krell ", "https://sketchfab.com/3d-models/pong-krell-star-wars-jedi-general-c3ba011873f2490eb8c48f6ef80b7f93", "resources/thumbnails/krell.png");
+        });
+    }
+    else {
+        EM_ASM({
+            var sceneDiv = document.getElementById("scene_info");
+            while(sceneDiv.children.length > 0) {
+                sceneDiv.removeChild(sceneDiv.children[0]);
+            }
+        });
+    }
 }
 
 void materialUpdateDoneCallback(WGPUQueueWorkDoneStatus status, void * userdata)
@@ -204,6 +227,7 @@ void Application::initializeAndRun()
     EM_ASM(Module.setStatus(""););
 // #endif
 
+    setSceneInfo(m_State);
     onUpdate();
 }
 
@@ -233,8 +257,8 @@ void Application::onUpdate()
             m_ActiveScene = m_Scene_Raster;
             m_State = State::Rasterizer;
             m_TransitionOnNextFrame = false;
-            setSceneInfo();
         }
+        setSceneInfo(m_State);
     }
 
     if (m_ActiveScene)

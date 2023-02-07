@@ -6,11 +6,56 @@
     <title>WebGPU - WASM playground</title>
     <style>
       body {
-        background-color: black;
+        background-color: rgb(32, 32, 32);
       }
       .info_text {
         color: white;
       }
+
+      .info_viewport {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .info_panel {
+        flex: 30%;
+      }
+      .viewport_panel {
+        flex: 70%;
+      }
+      
+      .scene_info {
+        max-height: 40%;
+        display: flex;
+        flex-wrap: wrap;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        text-align: center;
+      }
+
+      .scene_element {
+        border: 2px;
+        border-color: white;
+        border-style: inset;
+        padding-left: 10px;
+        padding-bottom: 10px;
+        flex: 25%;
+        background: #6a6a6a;
+      }
+      .scene_thumbnail {
+        width: 200px;
+      }
+
+      @media (max-width: 800px) {
+      .scene_element {
+        flex: 100%;
+      }
+      .info_panel {
+        flex: 100%;
+      }
+      .viewport_panel {
+        flex: 100%;
+      }
+    }
 
 
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
@@ -61,27 +106,32 @@
     <!-- <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>  
     </div> -->
-    <div class="emscripten_border">
-      <div class="info_text" id="FPSdiv">0</div>
-      <div class="info_text" id="TotalTriangleCount">0</div>
-      <div class="info_text" id="UniqueObjectCount">0</div>
-      <div class="info_text" id="UniquePartCount">0</div>
-      <div class="info_text" id="UniqueTriangleCount">0</div>
-      <div class="info_text" id="ModeToggle">
-        <label class="info_text" for="RenderModes">Choose a render mode</label>
-        <select name="RenderModes" id="renderModeSelect">
-          <option value="0">Rasterize</option>
-          <option value="1">Path Trace</option>
-        </select>
+    
+    <div class="info_viewport">
+      <div class="info_panel">
+        <div class="info_text" id="FPSdiv">0</div>
+        <div class="info_text" id="TotalTriangleCount">0</div>
+        <div class="info_text" id="UniqueObjectCount">0</div>
+        <div class="info_text" id="UniquePartCount">0</div>
+        <div class="info_text" id="UniqueTriangleCount">0</div>
+        <div class="info_text" id="ModeToggle">
+          <label class="info_text" for="RenderModes">Choose a render mode</label>
+          <select name="RenderModes" id="renderModeSelect">
+            <option value="0">Rasterize</option>
+            <option value="1">Path Trace</option>
+          </select>
+        </div>
       </div>
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+      <div class="viewport_panel">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+      </div>
     </div>
     <hr/>
     
     <!-- <hr/> -->
     <div class="scene">
       <h3 class="info_text">Scene Information</h3>
-      <div id="scene_info">
+      <div class="scene_info" id="scene_info">
         
       </div>
     </div>
