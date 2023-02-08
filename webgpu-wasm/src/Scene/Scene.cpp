@@ -107,7 +107,7 @@ Scene::Scene(const SceneDescription* description, MaterialSystem* materialSystem
     // Temporary???? Þarf kannski ekki að hafa hér
     device_ = device;
 
-    m_Environment = new Environment("Environment Test", "fouriesburg_mountain_midday_2k.hdr", device_);
+    m_Environment = new Environment("Environment Test", "industrial_sunset_02_puresky_4k.hdr", device_);
 
     m_Camera.projectionMatrix = glm::perspective(fovY, aspect, 0.1f, 500.f);
     m_Camera.viewMatrix = glm::lookAt(glm::vec3(-5.f, 2.f, 5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f));
