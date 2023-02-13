@@ -252,16 +252,18 @@ void Scene::onUpdate()
     // float weight = glm::abs(glm::sin(t*glm::pi<float>()/10.f));
     // uniformColor.color = glm::vec4(1.f, 0.502f, 0.f, 1.f) * weight + glm::vec4(0.f, 0.498f, 1.f, 1.f) * (1.f-weight);
     
-    static float radius = 30.f;
+    static float radius = 45.f;
     static float phi = 0.f;
     static float theta = 0.1f;
 
     static glm::vec3 focusPoint = glm::vec3(0.f, 1.5f, 0.f);
     static glm::vec3 cameraCenter = glm::vec3(0.f, 5.f, 0.f);
 
-    float x = radius * glm::cos(phi) * glm::sin(theta);
-    float y = radius * glm::sin(phi) * glm::sin(theta);
-    float z = radius * glm::cos(theta);
+    float r = radius * glm::clamp(glm::abs(glm::cos(t * 0.1f)), 0.1f, 1.0f);
+
+    float x = r * glm::cos(phi) * glm::sin(theta);
+    float y = r * glm::sin(phi) * glm::sin(theta);
+    float z = r * glm::cos(theta);
 
     //TODO: make camera spin
     static glm::vec3 cameraPosition;
@@ -277,6 +279,16 @@ void Scene::onUpdate()
     t += 1.f/60.f;
     // phi = glm::clamp(glm::radians(10.f)*t, 0.f, glm::radians(180.f));
     theta = glm::radians(5.f)*t;
+    static float signPhi = 1.f;
+    phi = phi + signPhi * glm::radians(1.f)*1./60.f;
+    if(phi > glm::radians(45.f)){
+        signPhi = -1.f;
+        phi = glm::radians(45.f);
+    }
+    else if(phi < -glm::radians(10.f)){
+        signPhi = 1.f;
+        phi = -glm::radians(10.f);
+    }
     // radius = 50.f*glm::cos(t*glm::radians(5.f));
 
     queue.WriteBuffer(sceneUniformBuffer->getHandle(), 0, (void*) &sceneUniforms, sizeof(SceneUniforms));
