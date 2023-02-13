@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "wgpuUniformBuffer.h"
 
 WGpuUniformBuffer::WGpuUniformBuffer(WGpuDevice* device, const std::string& label, uint64_t size)

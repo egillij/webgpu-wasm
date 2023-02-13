@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "TriangleMesh.h"
 
 #include "Renderer/WebGPU/wgpuVertexBuffer.h"

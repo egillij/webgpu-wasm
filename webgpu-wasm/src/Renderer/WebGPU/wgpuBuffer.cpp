@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "wgpuBuffer.h"
 
 #include "wgpuDevice.h"

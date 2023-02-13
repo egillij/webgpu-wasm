@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "TestComputePipeline.h"
 
 #include "Renderer/WebGPU/wgpuBindGroup.h"

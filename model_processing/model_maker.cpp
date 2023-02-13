@@ -1,3 +1,4 @@
+// Copyright 2023 Egill Ingi Jacobsen
 
 #define GEOM_IO_SAVE
 #include "geomIo.h"

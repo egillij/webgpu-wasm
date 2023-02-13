@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 

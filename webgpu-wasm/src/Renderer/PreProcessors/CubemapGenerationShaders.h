@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #pragma once
 
 static const char equirectangularToCubemapCode[] = R"(

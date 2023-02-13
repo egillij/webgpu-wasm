@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "Part.h"
 
 #include "Renderer/Geometry/TriangleMesh.h"

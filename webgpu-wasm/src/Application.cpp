@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "Application.h"
 
 #include "Scene/Scene.h"

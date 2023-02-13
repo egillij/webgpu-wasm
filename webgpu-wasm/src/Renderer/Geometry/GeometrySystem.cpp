@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #include "GeometrySystem.h"
 
 #define GEOM_IO_LOAD

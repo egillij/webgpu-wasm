@@ -11,6 +11,9 @@
       .info_text {
         color: white;
       }
+      .warning_text {
+        color: rgb(255, 0, 0);
+      }
 
       .info_viewport {
         display: flex;
@@ -106,7 +109,13 @@
     <!-- <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>  
     </div> -->
-    
+    <div class="warning_text" id="webgpu_warning"></div>
+    <hr/>
+    <div class="info_text">
+      Small WebGPU hobby project that uses Emscripten to compile C++ code to WebAssembly. Googles Dawn WebGPU backend is used as provided by the Emscripten project.<br>
+      The project is hosted on Github  <a href="https://github.com/egillij/webgpu-wasm" target="_blank">here</a>
+    </div>
+    <hr/>
     <div class="info_viewport">
       <div class="info_panel">
         <div class="info_text" id="FPSdiv">0</div>
@@ -138,6 +147,11 @@
     <!-- <textarea class="emscripten" id="output" rows="8"></textarea>
     <hr> -->
     <script type='text/javascript'>
+      if(!("gpu" in navigator)){
+        var warningDiv = document.getElementById("webgpu_warning");
+        warningDiv.innerHTML = "<h2>WebGPU is not available in your current browser. Please use Google Chrome Canary and enable the WebGPU experimental flag to view this page</h2>";
+      }
+
       var statusElement = document.getElementById('status');
       // var progressElement = document.getElementById('progress');
       // var spinnerElement = document.getElementById('spinner');

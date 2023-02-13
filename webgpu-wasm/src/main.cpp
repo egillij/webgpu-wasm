@@ -1,3 +1,4 @@
+// Copyright 2023 Egill Ingi Jacobsen
 
 #include <emscripten.h>
 #include <emscripten/html5.h>

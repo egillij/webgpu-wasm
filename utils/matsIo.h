@@ -1,3 +1,5 @@
+// Copyright 2023 Egill Ingi Jacobsen
+
 #pragma once
 // #define MATS_IO_SAVE
 // #define MATS_IO_LOAD
