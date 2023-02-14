@@ -2,7 +2,7 @@
 This is a hobby project and the goal of it is to learn and experiment with WebGPU and its shading language WGSL.
 The code is predominantly written in C++ and is compiled to WebAssembly and javascript using the Emscripten compiler toolchain.
 
-As version one of WebGPU is still under development, browser support has not been released in stable browser versions. The project has been tested on Google Chromes experimental nighlt builds, Chrome Canary. To run it in Chrome Canary the experimental flag: *Unsafe WebGPU* needs to be enabled.
+As version 1.0 of WebGPU is still under development, browser support has not been released in stable browser versions. The project has been tested on Google Chromes experimental nightly builds, Chrome Canary. To run it in Chrome Canary you need to enable the experimental flag: **Unsafe WebGPU**.
 
 As stated this is a hobby project and is only meant for learning. This means decisions about architecture, algorithms and other aspects of the code are not necessarily final and are often made the "What takes the shortest time to implement?" way.
 
@@ -15,8 +15,11 @@ To build this project you should use CMake to generate build files. You need to 
    + Based on shaders from https://learnopengl.com/
  + Simple camera animation
  + Simple Ray Tracing of sphere primitives in a compute shader
+ + Custom model file format ready to upload directly to GPU
+   + Standalone program for converting .obj model files this format
  
  ## Possible future features
+  + WebGPU Render Bundles
   + Full HDR pipeline with Image Based Lighting
   + Reflections
   + Shadows
